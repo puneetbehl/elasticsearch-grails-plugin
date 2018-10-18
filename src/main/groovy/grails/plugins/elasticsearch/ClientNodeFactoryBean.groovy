@@ -105,12 +105,19 @@ class ClientNodeFactoryBean implements FactoryBean {
                 if (!elasticSearchContextHolder.config.client.hosts) {
                     transportClient.addTransportAddress(new InetSocketTransportAddress(new InetSocketAddress('localhost', 9300)))
                 } else {
+                    def debugEnabled = LOG.isDebugEnabled()
                     elasticSearchContextHolder.config.client.hosts.each {
                         try {
+                            if (debugEnabled) {
+                                LOG.debug("Trying this host:  ${it.host}")
+                            }
                             for (InetAddress address : InetAddress.getAllByName(it.host)) {
+                                if (debugEnabled) {
+                                    LOG.debug("Gonna add host: ${address.getHostAddress()}:${it.port}")
+                                }
                                 if ((ip6Enabled && address instanceof Inet6Address) || (ip4Enabled && address instanceof Inet4Address)) {
-                                    LOG.info("Adding host: ${address}:${it.port}")
-                                    transportClient.addTransportAddress(new InetSocketTransportAddress(address, it.port));
+                                    LOG.info("Adding InetAddress: ${address}:${it.port}")
+                                    transportClient.addTransportAddress(new InetSocketTransportAddress(address, Integer.parseInt(it.port)));
                                 }
                             }
                         } catch (UnknownHostException e) {
