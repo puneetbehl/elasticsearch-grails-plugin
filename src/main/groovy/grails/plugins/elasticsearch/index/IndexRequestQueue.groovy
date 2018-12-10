@@ -26,6 +26,7 @@ import org.elasticsearch.action.bulk.BulkRequestBuilder
 import org.elasticsearch.action.bulk.BulkResponse
 import org.elasticsearch.client.Client
 import org.elasticsearch.common.xcontent.XContentBuilder
+import org.hibernate.proxy.HibernateProxy
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.util.Assert
@@ -95,6 +96,9 @@ class IndexRequestQueue {
 
     IndexEntityKey indexEntityKeyFromInstance(instance) {
         def clazz = instance.getClass()
+        if(clazz in HibernateProxy) {
+            clazz = clazz.superclass
+        }
         SearchableClassMapping scm = elasticSearchContextHolder.getMappingContextByType(clazz)
         Assert.notNull(scm, "Class $clazz is not a searchable domain class.")
         def id = (InvokerHelper.invokeMethod(instance, 'getId', null)).toString()

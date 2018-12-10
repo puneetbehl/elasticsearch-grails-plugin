@@ -6,6 +6,7 @@ import groovy.transform.CompileStatic
 import org.grails.core.artefact.DomainClassArtefactHandler
 import org.grails.datastore.mapping.model.MappingContext
 import org.grails.datastore.mapping.model.PersistentEntity
+import org.hibernate.proxy.HibernateProxy
 
 @CompileStatic
 class DomainReflectionService {
@@ -23,6 +24,10 @@ class DomainReflectionService {
     }
 
     DomainEntity getDomainEntity(Class<?> clazz) {
+        if(clazz in HibernateProxy) {
+            clazz = clazz.superclass
+        }
+
         if (!isDomainEntity(clazz)) return null
 
         entityCache.computeIfAbsent(clazz) {
