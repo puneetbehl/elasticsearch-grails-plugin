@@ -112,14 +112,14 @@ dependencies {
     compile fileTree(dir: "libs/elasticsearch", include: '*.jar')
 }
 
-task downloadAttachmentsPlugin(type: Download) {
+task("downloadAttachmentsPlugin", type: Download) {
     src "https://artifacts.elastic.co/downloads/elasticsearch-plugins/mapper-attachments/mapper-attachments-${elasticsearchVersion}.zip"
     dest "libs/mapper-attachments-${elasticsearchVersion}.zip"
     overwrite true
     onlyIfNewer true
 }
 
-task downloadAndUnzipAttachmentsPlugin(dependsOn: downloadAttachmentsPlugin) {
+task("downloadAndUnzipAttachmentsPlugin", dependsOn: downloadAttachmentsPlugin) {
     doLast {
         copy {
             from zipTree(downloadAttachmentsPlugin.dest)

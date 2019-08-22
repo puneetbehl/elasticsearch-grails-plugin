@@ -69,6 +69,10 @@ trait ElasticSearchSpec {
         elasticSearchService.search([indices: clazz, types: clazz], queryBuilder)
     }
 
+    void clearSession() {
+        sessionFactory.currentSession.clear()
+    }
+
     void flushSession() {
         sessionFactory.currentSession.flush()
     }
