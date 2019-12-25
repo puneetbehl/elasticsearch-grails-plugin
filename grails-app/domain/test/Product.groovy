@@ -4,7 +4,7 @@ import org.grails.web.json.JSONObject
 
 class Product {
     String productName
-    String description = "A description of a product"
+    String description = 'A description of a product'
     Float price = 1.00
     Date date
     JSONObject json

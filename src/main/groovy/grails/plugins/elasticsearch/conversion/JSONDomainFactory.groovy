@@ -26,6 +26,7 @@ import grails.plugins.elasticsearch.unwrap.DomainClassUnWrapperChain
 import org.elasticsearch.common.xcontent.XContentBuilder
 
 import java.beans.PropertyEditor
+import java.sql.Timestamp
 
 import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder
 
@@ -152,6 +153,13 @@ class JSONDomainFactory {
         scm.propertiesMapping.each { scpm ->
             marshallingContext.lastParentPropertyName = scpm.propertyName
             Object res = delegateMarshalling(instance."${scpm.propertyName}", marshallingContext)
+
+            // convert Date to UTC Date: https://www.elastic.co/guide/en/elasticsearch/reference/6.5/date.html
+            if (res?.class == Timestamp) {
+                TimeZone.setDefault(TimeZone.getTimeZone('UTC'))
+                res = res.toCalendar().getTime().format("yyyy-MM-dd'T'HH:mm:ss'Z'")
+            }
+
             json.field(scpm.propertyName, res)
             // add the alias
             if (scpm.getAlias()) {

@@ -86,8 +86,11 @@ grails:
 elasticSearch:
     date:
         formats: ["yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"]
-    client.hosts:
-        - {host: localhost, port: 9300}
+    client:
+        connectTimeout: 2
+        socketTimeout: 30
+        hosts:
+        - {host: localhost, port: 9200}
     defaultExcludedProperties: ['password']
     disableAutoIndex: false
     index:
@@ -107,7 +110,11 @@ environments:
         elasticSearch:
             client:
                 mode: local
+                hosts:
+                  - {host: 127.0.0.1, port: 9200}
                 transport.sniff: false
+                username: zzb-elasticsearch
+                password: /+mh&K@2sF('X7J_
             datastoreImpl: hibernateDatastore
             index:
                 store.type: simplefs

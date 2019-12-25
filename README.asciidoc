@@ -24,7 +24,7 @@ Edit your project's +build.gradle+ file, by adding the plugin's dependency decla
 ----
 dependencies {
     ...
-    compile "org.grails.plugins:elasticsearch:2.4.2"
+    compile "org.grails.plugins:elasticsearch:2.7.0"
     ...
 
 }
@@ -35,6 +35,14 @@ dependencies {
 
 |===
 |Plugin Version | Grails Version | Elasticsearch Version
+
+|2.7.0
+|3.3.y
+|7.3.0
+
+|2.6.0
+|3.3.y
+|6.8.2
 
 |2.5.0.BUILD-SNAPSHOT
 |3.3.x

@@ -23,6 +23,11 @@ import org.apache.commons.logging.Log
 import org.apache.commons.logging.LogFactory
 import org.springframework.util.ClassUtils
 
+import java.time.OffsetDateTime
+import java.time.OffsetTime
+import java.time.ZonedDateTime
+import java.time.temporal.Temporal
+
 /**
  * Build ElasticSearch class mapping based on attributes provided by closure.
  */
@@ -33,14 +38,13 @@ class ElasticSearchMappingFactory {
     private static final Set<String> SUPPORTED_FORMAT =
             ['text', 'integer', 'long', 'float', 'double', 'boolean', 'null', 'date', 'keyword'] as Set<String>
 
-    private static Class JODA_TIME_BASE
-
     static Map<String, String> javaPrimitivesToElastic =
             [int: 'integer', long: 'long', short: 'short', double: 'double', float: 'float', byte: 'byte']
 
+    private static Set<Class> DATE_CLASSES = [Date, Temporal] as Set<Class>
     static {
         try {
-            JODA_TIME_BASE = Class.forName('org.joda.time.ReadableInstant')
+            DATE_CLASSES.add(Class.forName('org.joda.time.ReadableInstant'))
         } catch (ClassNotFoundException e) {
         }
     }
@@ -48,12 +52,13 @@ class ElasticSearchMappingFactory {
     static Map<String, Object> getElasticMapping(SearchableClassMapping scm) {
         Map mappingFields = [properties: getMappingProperties(scm)]
 
-        if (scm.@all instanceof Map) {
+        // _all is deprecated in ES 6
+        /*if (scm.@all instanceof Map) {
             mappingFields.put('_all', scm.@all as Map)
         }
         if (!scm.isAll()) {
             mappingFields.put('_all', [enabled: false] as Map)
-        }
+        }*/
 
         SearchableClassPropertyMapping parentProperty = scm.propertiesMapping.find { it.parent }
         if (parentProperty) {
@@ -111,17 +116,19 @@ class ElasticSearchMappingFactory {
 
                     if(idType == 'text') idType = 'keyword'
 
-                    props.put('id', defaultDescriptor(idType, 'not_analyzed', true))
-                    props.put('class', defaultDescriptor('keyword', 'no', true))
-                    props.put('ref', defaultDescriptor('keyword', 'no', true))
+                    props.put('id', defaultDescriptor(idType, 'true', true))
+                    props.put('class', defaultDescriptor('keyword', 'false', true))
+                    props.put('ref', defaultDescriptor('keyword', 'false', true))
                 }
             }
             propOptions.type = propType
             // See http://www.elasticsearch.com/docs/elasticsearch/mapping/all_field/
-            if (!(propType in ['object', 'attachment']) && scm.isAll()) {
+            /*if (!(propType in ['object', 'attachment']) && scm.isAll()) {
                 // does it make sense to include objects into _all?
-                propOptions.include_in_all = !scpm.shouldExcludeFromAll()
-            }
+                // is deprecated https://www.elastic.co/guide/en/elasticsearch/reference/6.4/mapping-all-field.html
+                // if wanted then should be implemented with https://www.elastic.co/guide/en/elasticsearch/reference/6.4/mapping-all-field.html#enabling-all-field
+                //propOptions.include_in_all = !scpm.shouldExcludeFromAll()
+            }*/
             // todo only enable this through configuration...
             if (propType == 'text' && scpm.isDynamic()) {
                 propOptions.type = 'object'
@@ -147,6 +154,14 @@ class ElasticSearchMappingFactory {
             if (propType == 'text' && scpm.fieldDataEnabled){
                 propOptions.fielddata = true
             }
+            if (propType == 'date') {
+                if (scpm.grailsProperty.type == ZonedDateTime || scpm.grailsProperty.type == OffsetDateTime) {
+                    propOptions.format = 'strict_date_time'
+                }
+                if (scpm.grailsProperty.type == OffsetTime) {
+                    propOptions.format = 'strict_time'
+                }
+            }
             elasticTypeMappingProperties.put(scpm.getPropertyName(), propOptions)
         }
         elasticTypeMappingProperties
@@ -158,7 +173,7 @@ class ElasticSearchMappingFactory {
         if (scpm.isGeoPoint()) {
             propType = 'geo_point'
         } else if (scpm.isAttachment()) {
-            propType = 'attachment'
+            propType = 'binary'
         } else {
             DomainProperty property = scpm.grailsProperty
 
@@ -223,7 +238,7 @@ class ElasticSearchMappingFactory {
 
     private static String getTypeSimpleName(Class type, SearchableClassPropertyMapping scpm) {
         String name = ClassUtils.getShortName(type).toLowerCase(Locale.ENGLISH)
-        if(name == 'string'){
+        if (name == 'string'){
             name = scpm.analyzed ? 'text' : 'keyword'
         }
         return name
@@ -250,7 +265,7 @@ class ElasticSearchMappingFactory {
     }
 
     private static boolean isDateType(Class type) {
-        (JODA_TIME_BASE != null && JODA_TIME_BASE.isAssignableFrom(type)) || Date.isAssignableFrom(type)
+        DATE_CLASSES.any { it.isAssignableFrom(type) }
     }
 
     private static boolean isBigDecimalType(Class type) {
@@ -258,6 +273,6 @@ class ElasticSearchMappingFactory {
     }
 
     private static Map<String, Object> defaultDescriptor(String type, String index, boolean excludeFromAll) {
-        [type: type, index: index, include_in_all: !excludeFromAll] as Map<String, Object>
+        [type: type, index: index] as Map<String, Object>
     }
 }

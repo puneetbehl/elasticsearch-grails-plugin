@@ -11,10 +11,12 @@ import test.upperCase.UpperCase
 
 class SearchableClassMappingSpec extends Specification implements DataTest, AutowiredTest {
 
-    Closure doWithSpring() {{ ->
-        mappingContext GrailsDomainClassMappingContext
-        domainReflectionService DomainReflectionService
-    }}
+    Closure doWithSpring() {
+        { ->
+            mappingContext GrailsDomainClassMappingContext
+            domainReflectionService DomainReflectionService
+        }
+    }
 
     DomainReflectionService domainReflectionService
 
@@ -22,56 +24,58 @@ class SearchableClassMappingSpec extends Specification implements DataTest, Auto
         mockDomains(Photo, UpperCase)
     }
 
-    def "indexing and querying index are calculated based on the index name"() {
+    def 'indexing and querying index are calculated based on the index name'() {
         given:
-        def domainClass = Mock(GrailsDomainClass)
-        domainClass.getPackageName() >> packageName
+            def domainClass = Mock(GrailsDomainClass)
+            domainClass.getPackageName() >> packageName
+            domainClass.getFullName() >> fullName
 
         when:
-        SearchableClassMapping scm = new SearchableClassMapping(grailsApplication, new DomainEntity(domainReflectionService, domainClass, null), [])
+            SearchableClassMapping scm = new SearchableClassMapping(grailsApplication, new DomainEntity(domainReflectionService, domainClass, null), [])
 
         then:
-        scm.indexName == domainClass.packageName
-        scm.queryingIndex == IndexNamingUtils.queryingIndexFor(packageName)
-        scm.indexingIndex == IndexNamingUtils.indexingIndexFor(packageName)
-        scm.queryingIndex != scm.indexingIndex
-        scm.indexName != scm.queryingIndex
-        scm.indexName != scm.indexingIndex
+            scm.indexName == domainClass.fullName.toLowerCase()
+            scm.queryingIndex == IndexNamingUtils.queryingIndexFor(fullName.toLowerCase())
+            scm.indexingIndex == IndexNamingUtils.indexingIndexFor(fullName.toLowerCase())
+            scm.queryingIndex != scm.indexingIndex
+            scm.indexName != scm.queryingIndex
+            scm.indexName != scm.indexingIndex
 
         where:
-        packageName << ["test.scm", "com.mapping"]
+            packageName << ['test.scm', 'com.mapping']
+            fullName << ['test.scm.Department', 'com.mapping.Person']
     }
 
     void testGetIndexName() throws Exception {
         when:
-        def domainClass = Mock(GrailsDomainClass)
-        domainClass.getPackageName() >> "test"
-        SearchableClassMapping mapping = new SearchableClassMapping(grailsApplication, new DomainEntity(domainReflectionService, domainClass, null), null)
+            def domainClass = Mock(GrailsDomainClass)
+            domainClass.getFullName() >> 'com.test.Person'
+            SearchableClassMapping mapping = new SearchableClassMapping(grailsApplication, new DomainEntity(domainReflectionService, domainClass, null), null)
 
         then:
-        'test' == mapping.getIndexName()
+            'com.test.person' == mapping.getIndexName()
     }
 
     void testManuallyConfiguredIndexName() throws Exception {
 
         when:
-        DomainEntity dc = domainReflectionService.getAbstractDomainEntity(Photo.class)
-        grailsApplication.config.elasticSearch.index.name = 'index-name'
-        SearchableClassMapping mapping = new SearchableClassMapping(grailsApplication, dc, null)
+            DomainEntity dc = domainReflectionService.getAbstractDomainEntity(Photo.class)
+            grailsApplication.config.elasticSearch.index.name = 'index-name'
+            SearchableClassMapping mapping = new SearchableClassMapping(grailsApplication, dc, null)
 
         then:
-        'index-name' == mapping.getIndexName()
+            'index-name' == mapping.getIndexName()
     }
 
     void testIndexNameIsLowercaseWhenPackageNameIsLowercase() throws Exception {
         when:
-        def domainClass = Mock(GrailsDomainClass)
-        domainClass.getPackageName() >> "test.upperCase"
-        SearchableClassMapping mapping = new SearchableClassMapping(grailsApplication, new DomainEntity(domainReflectionService, domainClass, null), null)
-        String indexName = mapping.getIndexName()
+            def domainClass = Mock(GrailsDomainClass)
+            domainClass.getFullName() >> 'test.upperCase.Person'
+            SearchableClassMapping mapping = new SearchableClassMapping(grailsApplication, new DomainEntity(domainReflectionService, domainClass, null), null)
+            String indexName = mapping.getIndexName()
 
         then:
-        'test.uppercase' == indexName
+            'test.uppercase.person' == indexName
     }
 
     void cleanup() {

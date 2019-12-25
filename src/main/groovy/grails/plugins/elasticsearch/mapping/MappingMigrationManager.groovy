@@ -13,9 +13,6 @@ import static grails.plugins.elasticsearch.mapping.MappingMigrationStrategy.*
 import static grails.plugins.elasticsearch.util.IndexNamingUtils.indexingIndexFor
 import static grails.plugins.elasticsearch.util.IndexNamingUtils.queryingIndexFor
 
-/**
- * Created by @marcos-carceles on 26/01/15.
- */
 @CompileStatic
 class MappingMigrationManager implements ElasticSearchConfigAware {
 
@@ -33,10 +30,10 @@ class MappingMigrationManager implements ElasticSearchConfigAware {
                 throw new MappingException()
             case deleteIndex:
                 elasticSearchContextHolder.indexesRebuiltOnMigration = applyDeleteIndexStrategy(elasticMappings, mappingConflicts, indexSettings)
-                break;
+                break
             case alias:
                 elasticSearchContextHolder.indexesRebuiltOnMigration = applyAliasStrategy(elasticMappings, mappingConflicts, indexSettings)
-                break;
+                break
             case none:
                 LOG.error("Could not install mappings : ${mappingConflicts}. No migration strategy selected.")
                 throw new MappingException()
@@ -84,7 +81,7 @@ class MappingMigrationManager implements ElasticSearchConfigAware {
         Map<String, Map> esMappings = elasticMappings.findAll { SearchableClassMapping scm, Map esMapping ->
             scm.indexName == indexName && scm.isRoot()
         }.collectEntries { SearchableClassMapping scm, Map esMapping ->
-            [(scm.elasticTypeName) : esMapping]
+            [(scm.elasticTypeName): esMapping]
         } as Map<String, Map>
         es.createIndex indexName, nextVersion, indexSettings, esMappings
         es.waitForIndex indexName, nextVersion //Ensure it exists so later on mappings are created on the right version

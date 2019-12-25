@@ -22,20 +22,22 @@ import grails.plugins.elasticsearch.mapping.SearchableClassMapping
 import grails.plugins.elasticsearch.unwrap.DomainClassUnWrapperChain
 import org.codehaus.groovy.runtime.InvokerHelper
 import org.elasticsearch.action.ActionListener
-import org.elasticsearch.action.bulk.BulkItemResponse
-import org.elasticsearch.action.bulk.BulkRequestBuilder
-import org.elasticsearch.action.bulk.BulkResponse
-import org.elasticsearch.client.Client
+import org.elasticsearch.action.bulk.*
+import org.elasticsearch.action.delete.DeleteRequest
+import org.elasticsearch.action.index.IndexRequest
+import org.elasticsearch.client.RequestOptions
+import org.elasticsearch.client.RestHighLevelClient
+import org.elasticsearch.common.unit.ByteSizeUnit
+import org.elasticsearch.common.unit.ByteSizeValue
+import org.elasticsearch.common.unit.TimeValue
 import org.elasticsearch.common.xcontent.XContentBuilder
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.util.Assert
 
 import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.ConcurrentLinkedDeque
-import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicInteger
+import java.util.function.BiConsumer
 
 /**
  * Holds objects to be indexed.
@@ -49,10 +51,9 @@ class IndexRequestQueue {
 
     private static final Logger LOG = LoggerFactory.getLogger(this)
 
-    JSONDomainFactory jsonDomainFactory
-    ElasticSearchContextHolder elasticSearchContextHolder
-    Client elasticSearchClient
-    DomainClassUnWrapperChain domainClassUnWrapperChain
+    private JSONDomainFactory jsonDomainFactory
+    private ElasticSearchContextHolder elasticSearchContextHolder
+    private RestHighLevelClient elasticSearchClient
 
     /**
      * A map containing the pending index requests.
@@ -64,7 +65,19 @@ class IndexRequestQueue {
      */
     private Set<IndexEntityKey> deleteRequests = []
 
-    private ConcurrentLinkedDeque<OperationBatch> operationBatch = new ConcurrentLinkedDeque<OperationBatch>()
+    //private ConcurrentLinkedDeque<OperationBatch> operationBatch = new ConcurrentLinkedDeque<OperationBatch>()
+
+    void setJsonDomainFactory(JSONDomainFactory jsonDomainFactory) {
+        this.jsonDomainFactory = jsonDomainFactory
+    }
+
+    void setElasticSearchContextHolder(ElasticSearchContextHolder elasticSearchContextHolder) {
+        this.elasticSearchContextHolder = elasticSearchContextHolder
+    }
+
+    void setElasticSearchClient(RestHighLevelClient elasticSearchClient) {
+        this.elasticSearchClient = elasticSearchClient
+    }
 
     void addIndexRequest(instance) {
         addIndexRequest(instance, null)
@@ -117,8 +130,6 @@ class IndexRequestQueue {
         Map<IndexEntityKey, Object> toIndex = [:]
         Set<IndexEntityKey> toDelete = []
 
-        cleanOperationBatchList()
-
         // Copy existing queue to ensure we are interfering with incoming requests.
         synchronized (this) {
             toIndex.putAll(indexRequests)
@@ -136,189 +147,76 @@ class IndexRequestQueue {
             return
         }
 
-        BulkRequestBuilder bulkRequestBuilder = elasticSearchClient.prepareBulk()
+        try {
+            BulkProcessor.Listener listener = new BulkProcessor.Listener() {
+                int count = 0
 
-        toIndex.each { key, value ->
-            SearchableClassMapping scm = elasticSearchContextHolder.getMappingContextByType(key.clazz)
-
-            def parentMapping = scm.propertiesMapping.find { it.parent }
-
-            try {
-                XContentBuilder json = toJSON(value)
-
-                def index = elasticSearchClient.prepareIndex()
-                        .setIndex(scm.indexingIndex)
-                        .setType(scm.elasticTypeName)
-                        .setId(key.id) // TODO : Composite key ?
-                        .setSource(json)
-                if (parentMapping) {
-                    index = index.setParent(value."${parentMapping.propertyName}".id?.toString())
+                @Override
+                void beforeBulk(long l, BulkRequest bulkRequest1) {
+                    count = count + bulkRequest1.numberOfActions()
+                    LOG.debug("Executed " + count + " so far")
                 }
 
-                bulkRequestBuilder.add(index)
-                if (LOG.isDebugEnabled()) {
-                    try {
-                        LOG.debug("Indexing $key.clazz (index: $scm.indexingIndex , type: $scm.elasticTypeName) of id $key.id and source ${json.string()}")
-                    } catch (IOException e) {
+                @Override
+                void afterBulk(long l, BulkRequest bulkRequest1, BulkResponse bulkResponse) {
+                    if (bulkResponse.hasFailures()) {
+                        for (BulkItemResponse bulkItemResponse : bulkResponse) {
+                            if (bulkItemResponse.isFailed()) {
+                                BulkItemResponse.Failure failure = bulkItemResponse.getFailure()
+                                LOG.error("Error " + failure.toString())
+                            }
+                        }
                     }
                 }
-            } catch (Exception e) {
-                LOG.error("Error Indexing $key.clazz (index: $scm.indexingIndex , type: $scm.elasticTypeName) of id $key.id", e)
-            }
-        }
 
-        // Execute delete requests
-        toDelete.each {
-            SearchableClassMapping scm = elasticSearchContextHolder.getMappingContextByType(it.clazz)
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Deleting object from index $scm.indexingIndex and type $scm.elasticTypeName and ID $it.id")
-            }
-            bulkRequestBuilder.add(
-                    elasticSearchClient.prepareDelete()
-                            .setIndex(scm.indexingIndex)
-                            .setType(scm.elasticTypeName)
-                            .setId(it.id)
-            )
-        }
-
-        if (bulkRequestBuilder.numberOfActions() > 0) {
-            OperationBatch completeListener = new OperationBatch(0, toIndex, toDelete)
-            operationBatch.add(completeListener)
-            try {
-                bulkRequestBuilder.execute().addListener(completeListener)
-            } catch (Exception e) {
-                throw new IndexException("Failed to index/delete ${bulkRequestBuilder.numberOfActions()}", e)
-            }
-        }
-    }
-
-    void waitComplete() {
-        LOG.debug('IndexRequestQueue.waitComplete() called')
-        List<OperationBatch> clone = []
-        synchronized (this) {
-            clone.addAll(operationBatch)
-            operationBatch.clear()
-        }
-        clone.each { it.waitComplete() }
-    }
-
-    private void cleanOperationBatchList() {
-        synchronized (this) {
-            for (Iterator<OperationBatch> it = operationBatch.iterator(); it.hasNext();) {
-                OperationBatch current = it.next()
-                if (current.complete) {
-                    it.remove()
+                @Override
+                void afterBulk(long l, BulkRequest bulkRequest1, Throwable throwable) {
+                    LOG.error("Big errors " + throwable.toString())
                 }
             }
-        }
-        LOG.debug('OperationBatchList cleaned')
-    }
 
-    class OperationBatch implements ActionListener<BulkResponse> {
+            BiConsumer<BulkRequest, ActionListener<BulkResponse>> bulkConsumer = ({ request, bulkListener ->
+                elasticSearchClient.bulkAsync(request, RequestOptions.DEFAULT, bulkListener)
+            } as BiConsumer)
+            BulkProcessor bulkProcessor = BulkProcessor.builder(bulkConsumer, listener)
+                    .setBulkActions(10000)
+                    .setBulkSize(new ByteSizeValue(5, ByteSizeUnit.MB))
+                    .setFlushInterval(TimeValue.timeValueSeconds(5))
+                    .setConcurrentRequests(1)
+                    .setBackoffPolicy(
+                    BackoffPolicy.exponentialBackoff(TimeValue.timeValueMillis(100), 3))
+                    .build()
 
-        private AtomicInteger attempts
-        private Map<IndexEntityKey, Object> toIndex
-        private Set<IndexEntityKey> toDelete
-        private CountDownLatch synchronizedCompletion = new CountDownLatch(1)
-
-        OperationBatch(int attempts, Map<IndexEntityKey, Object> toIndex, Set<IndexEntityKey> toDelete) {
-            this.attempts = new AtomicInteger(attempts)
-            this.toIndex = toIndex
-            this.toDelete = toDelete
-        }
-
-        boolean isComplete() {
-            synchronizedCompletion.count == 0
-        }
-
-        void waitComplete() {
-            waitComplete(null)
-        }
-
-        /**
-         * Wait for the operation to complete. Use this method to synchronize the application with the last ES operation.
-         *
-         * @param msTimeout A maximum timeout (in milliseconds) before the wait method returns, whether the operation has been completed or not.
-         *                  Default value is 5000 milliseconds
-         */
-        void waitComplete(Integer msTimeout) {
-            msTimeout = msTimeout == null ? 5000 : msTimeout
-
-            try {
-                if (!synchronizedCompletion.await(msTimeout, TimeUnit.MILLISECONDS)) {
-                    LOG.warn("OperationBatchList.waitComplete() timed out after ${msTimeout.toString()} ms")
-                }
-            } catch (InterruptedException ie) {
-                LOG.warn('OperationBatchList.waitComplete() interrupted')
-            }
-        }
-
-        void fireComplete() {
-            synchronizedCompletion.countDown()
-        }
-
-        void onResponse(BulkResponse bulkResponse) {
-            bulkResponse.getItems().each { BulkItemResponse it ->
-                boolean removeFromQueue = !it.failed || it.failureMessage.contains('UnavailableShardsException')
-                // On shard failure, do not re-push.
-                if (removeFromQueue) {
-                    // remove successful OR fatal ones.
-                    Class<?> entityClass = elasticSearchContextHolder.findMappedClassByElasticType(it.type)
-                    if (entityClass == null) {
-                        LOG.error("Elastic type [${it.type}] is not mapped.")
-                        return
-                    }
-                    IndexEntityKey key = new IndexEntityKey(it.id, entityClass)
-                    toIndex.remove(key)
-                    toDelete.remove(key)
-                }
-                if (it.failed) {
-                    LOG.error("Failed bulk item: $it.failureMessage")
-                }
-            }
-            if (!toIndex.isEmpty() || !toDelete.isEmpty()) {
-                push()
-            } else {
-                fireComplete()
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Batch complete: ${bulkResponse.getItems().length} actions.")
-                }
-            }
-        }
-
-        void onFailure(Exception e) {
-            // Everything failed. Re-push all.
-            LOG.error('Bulk request failure', e)
-            def remainingAttempts = attempts.getAndDecrement()
-            if (remainingAttempts > 0) {
-                LOG.info("Retrying failed bulk request ($remainingAttempts attempts remaining)")
-                push()
-            } else {
-                LOG.info("Aborting bulk request - no attempts remain)")
-            }
-        }
-
-        /**
-         * Push specified entities to be retried.
-         */
-        void push() {
-            LOG.debug("Pushing retry: ${toIndex.size()} indexing, ${toDelete.size()} deletes.")
             toIndex.each { key, value ->
-                synchronized (this) {
-                    if (!indexRequests.containsKey(key)) {
-                        // Do not overwrite existing stuff in the queue.
-                        indexRequests.put(key, value)
+                SearchableClassMapping scm = elasticSearchContextHolder.getMappingContextByType(key.clazz)
+
+                try {
+                    XContentBuilder json = toJSON(value)
+                    bulkProcessor.add(new IndexRequest(scm.indexingIndex).id(key.id).source(json))
+
+                    if (LOG.isDebugEnabled()) {
+                        try {
+                            LOG.debug("Indexing $key.clazz (index: $scm.indexingIndex , type: $scm.elasticTypeName) of id $key.id and source ${json.getOutputStream().toString()}")
+                        } catch (IOException e) {
+                        }
                     }
+                } catch (Exception e) {
+                    LOG.error("Error Indexing $key.clazz (index: $scm.indexingIndex , type: $scm.elasticTypeName) of id $key.id", e)
                 }
             }
+
+            // Execute delete requests
             toDelete.each {
-                synchronized (this) {
-                    if (!deleteRequests.contains(it)) {
-                        deleteRequests.add(it)
-                    }
+                SearchableClassMapping scm = elasticSearchContextHolder.getMappingContextByType(it.clazz)
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Deleting object from index $scm.indexingIndex and type $scm.elasticTypeName and ID $it.id")
                 }
+                bulkProcessor.add(new DeleteRequest(scm.indexingIndex, scm.elasticTypeName, it.id))
             }
-            executeRequests()
+
+            bulkProcessor.awaitClose(30L, TimeUnit.SECONDS)
+        } catch (Exception e) {
+            throw new IndexException("Failed to index/delete ${bulkProcessor.numberOfActions()}", e)
         }
     }
 }

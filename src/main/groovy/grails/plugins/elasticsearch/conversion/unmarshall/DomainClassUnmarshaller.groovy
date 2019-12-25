@@ -25,13 +25,22 @@ import grails.plugins.elasticsearch.mapping.DomainProperty
 import grails.plugins.elasticsearch.mapping.SearchableClassMapping
 import grails.plugins.elasticsearch.mapping.SearchableClassPropertyMapping
 import grails.web.databinding.DataBinder
+
+import java.time.OffsetDateTime
+import java.time.OffsetTime
+import java.time.temporal.Temporal
+import java.time.format.DateTimeFormatter as JDateTimeFormatter
 import org.codehaus.groovy.runtime.DefaultGroovyMethods
 import org.elasticsearch.action.get.GetRequest
 import org.elasticsearch.action.get.GetResponse
-import org.elasticsearch.client.Client
-import org.elasticsearch.common.xcontent.XContentBuilder
+import org.elasticsearch.client.RequestOptions
+import org.elasticsearch.client.RestHighLevelClient
 import org.elasticsearch.search.SearchHit
 import org.elasticsearch.search.SearchHits
+import org.joda.time.DateTime
+import org.joda.time.DateTimeZone
+import org.joda.time.format.DateTimeFormat
+import org.joda.time.format.DateTimeFormatter
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.SimpleTypeConverter
@@ -39,6 +48,9 @@ import org.springframework.beans.TypeConverter
 import org.springframework.util.Assert
 
 import java.beans.PropertyEditor
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.ZonedDateTime
 
 /**
  * Domain class unmarshaller.
@@ -49,23 +61,23 @@ class DomainClassUnmarshaller implements DataBinder {
 
     private ElasticSearchContextHolder elasticSearchContextHolder
     private GrailsApplication grailsApplication
-    private Client elasticSearchClient
+    private RestHighLevelClient elasticSearchClient
 
     Collection buildResults(SearchHits hits) {
         DefaultUnmarshallingContext unmarshallingContext = new DefaultUnmarshallingContext()
         TypeConverter typeConverter = new SimpleTypeConverter()
         List results = []
         for (SearchHit hit : hits) {
-            String type = hit.type()
+            String type = hit.type
             SearchableClassMapping scm = elasticSearchContextHolder.findMappingContextByElasticType(type)
             if (scm == null) {
-                LOG.warn("Unknown SearchHit: ${hit.id()}#${hit.type()}: adding to result set as a raw object")
-                results << hit.source
+                LOG.warn("Unknown SearchHit: ${hit.id}#${hit.type}: adding to result set as a raw object")
+                results << hit.sourceAsMap
                 continue
             }
 
             DomainProperty identifier = scm.domainClass.identifier
-            Object id = typeConverter.convertIfNecessary(hit.id(), identifier.type)
+            Object id = typeConverter.convertIfNecessary(hit.id, identifier.type)
             GroovyObject instance = (GroovyObject) scm.domainClass.type.newInstance()
             instance.setProperty(identifier.name, id)
 
@@ -77,7 +89,7 @@ class DomainClassUnmarshaller implements DataBinder {
             }
 
             Map rebuiltProperties = new HashMap()
-            for (Map.Entry<String, Object> entry : hit.source.entrySet()) {
+            for (Map.Entry<String, Object> entry : hit.sourceAsMap.entrySet()) {
                 def key = entry.key
                 if (aliasFields.contains(key)) {
                     continue
@@ -96,8 +108,6 @@ class DomainClassUnmarshaller implements DataBinder {
                 }
             }
             bindData(instance, rebuiltProperties)
-            //TODO: Remove comment
-//            new DatabindingApi().setProperties(instance, rebuiltProperties)
 
             results << instance
         }
@@ -240,7 +250,31 @@ class DomainClassUnmarshaller implements DataBinder {
 
                 parseResult = null
             } else if (scpm.grailsProperty.type == Date && propertyValue != null) {
-                parseResult = XContentBuilder.DEFAULT_DATE_PRINTER.parseDateTime(propertyValue).toDate()
+                DateTimeFormatter dateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").withZone(DateTimeZone.UTC)
+                parseResult = DateTime.parse(propertyValue, dateTimeFormatter)
+            } else if (Temporal.isAssignableFrom(scpm.grailsProperty.type) && propertyValue != null) {
+                switch (scpm.grailsProperty.type) {
+                    case LocalDate:
+                        JDateTimeFormatter dateTimeFormatter = JDateTimeFormatter.ISO_LOCAL_DATE
+                        parseResult = LocalDate.parse(propertyValue, dateTimeFormatter)
+                        break
+                    case LocalDateTime:
+                        JDateTimeFormatter dateTimeFormatter = JDateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSX")
+                        parseResult = LocalDateTime.parse(propertyValue, dateTimeFormatter)
+                        break
+                    case ZonedDateTime:
+                        JDateTimeFormatter dateTimeFormatter = JDateTimeFormatter.ISO_OFFSET_DATE_TIME
+                        parseResult = ZonedDateTime.parse(propertyValue, dateTimeFormatter)
+                        break
+                    case OffsetDateTime:
+                        JDateTimeFormatter dateTimeFormatter = JDateTimeFormatter.ISO_OFFSET_DATE_TIME
+                        parseResult = OffsetDateTime.parse(propertyValue, dateTimeFormatter)
+                        break
+                    case OffsetTime:
+                        JDateTimeFormatter dateTimeFormatter = JDateTimeFormatter.ISO_OFFSET_TIME
+                        parseResult = OffsetTime.parse(propertyValue, dateTimeFormatter)
+                        break
+                }
             }
         }
 
@@ -258,12 +292,11 @@ class DomainClassUnmarshaller implements DataBinder {
         TypeConverter typeConverter = new SimpleTypeConverter()
         // A property value is expected to be a map in the form [id:ident]
         Object id = data.id
-        GetRequest request = new GetRequest(indexName).operationThreaded(false).type(name)
-                .id(typeConverter.convertIfNecessary(id, String))
+        GetRequest request = new GetRequest(indexName).id(typeConverter.convertIfNecessary(id, String))
         if (data.containsKey('parent')) {
             request.parent(typeConverter.convertIfNecessary(data.parent, String))
         }
-        GetResponse response = elasticSearchClient.get(request).actionGet()
+        GetResponse response = elasticSearchClient.get(request, RequestOptions.DEFAULT)
         Map<String, Object> resolvedReferenceData = response.sourceAsMap
         Assert.state(resolvedReferenceData != null, "Could not find and resolve searchable reference: $request")
         unmarshallDomain(domainClass, response.id, resolvedReferenceData, unmarshallingContext)
@@ -301,7 +334,7 @@ class DomainClassUnmarshaller implements DataBinder {
         this.grailsApplication = grailsApplication
     }
 
-    void setElasticSearchClient(Client elasticSearchClient) {
+    void setElasticSearchClient(RestHighLevelClient elasticSearchClient) {
         this.elasticSearchClient = elasticSearchClient
     }
 }

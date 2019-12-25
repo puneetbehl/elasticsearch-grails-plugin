@@ -17,13 +17,17 @@ package grails.plugins.elasticsearch
 
 import grails.core.GrailsApplication
 import grails.core.support.GrailsApplicationAware
+import grails.persistence.support.PersistenceContextInterceptor
 import grails.plugins.elasticsearch.index.IndexRequestQueue
 import grails.plugins.elasticsearch.mapping.SearchableClassMapping
 import grails.plugins.elasticsearch.util.GXContentBuilder
-
+import groovy.util.logging.Slf4j
 import org.elasticsearch.action.search.SearchRequest
-import org.elasticsearch.client.Client
+import org.elasticsearch.action.search.SearchResponse
+import org.elasticsearch.client.RequestOptions
+import org.elasticsearch.client.RestHighLevelClient
 import org.elasticsearch.common.settings.Settings
+import org.elasticsearch.common.xcontent.DeprecationHandler
 import org.elasticsearch.common.xcontent.NamedXContentRegistry
 import org.elasticsearch.common.xcontent.XContent
 import org.elasticsearch.common.xcontent.XContentParser
@@ -32,22 +36,22 @@ import org.elasticsearch.index.query.Operator
 import org.elasticsearch.index.query.QueryBuilder
 import org.elasticsearch.index.query.QueryStringQueryBuilder
 import org.elasticsearch.search.SearchHit
+import org.elasticsearch.search.SearchHits
 import org.elasticsearch.search.SearchModule
 import org.elasticsearch.search.aggregations.Aggregation
 import org.elasticsearch.search.aggregations.Aggregations
+import org.elasticsearch.search.aggregations.AggregatorFactories
+import org.elasticsearch.search.aggregations.BaseAggregationBuilder
 import org.elasticsearch.search.builder.SearchSourceBuilder
 import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder
 import org.elasticsearch.search.sort.SortBuilder
 import org.elasticsearch.search.sort.SortOrder
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 
 import static grails.plugins.elasticsearch.util.AbstractQueryBuilderParser.parseInnerQueryBuilder
 import static org.elasticsearch.index.query.QueryBuilders.queryStringQuery
 
-
+@Slf4j
 class ElasticSearchService implements GrailsApplicationAware {
-    static final Logger LOG = LoggerFactory.getLogger(this)
 
     private static final int INDEX_REQUEST = 0
     private static final int DELETE_REQUEST = 1
@@ -57,6 +61,7 @@ class ElasticSearchService implements GrailsApplicationAware {
     def domainInstancesRebuilder
     ElasticSearchContextHolder elasticSearchContextHolder
     IndexRequestQueue indexRequestQueue
+    PersistenceContextInterceptor persistenceInterceptor
 
     static transactional = false
 
@@ -66,10 +71,10 @@ class ElasticSearchService implements GrailsApplicationAware {
      * @param params Search parameters
      * @param closure Query closure
      * @param filter The search filter, whether a Closure or a QueryBuilder
-     * @return A ElasticSearchResult containing the search results
+     * @param aggregation The search results aggregations, whether a Closure, a BaseAggregationBuilder or a Collection<QueryBuilder>
      */
-    ElasticSearchResult search(Map params, Closure query, filter = null) {
-        SearchRequest request = buildSearchRequest(query, filter, params)
+    ElasticSearchResult search(Map params, Closure query, filter = null, aggregation = null) {
+        SearchRequest request = buildSearchRequest(query, filter, aggregation, params)
         search(request, params)
     }
 
@@ -78,33 +83,23 @@ class ElasticSearchService implements GrailsApplicationAware {
      *
      * @param query Query closure
      * @param filter The search filter, whether a Closure or a QueryBuilder
+     * @param aggregation The search results aggregations, whether a Closure, a BaseAggregationBuilder or a Collection<QueryBuilder>
      * @param params Search parameters
      * @return A ElasticSearchResult containing the search results
      */
-    ElasticSearchResult search(Closure query, filter = null, Map params = [:]) {
-        search(params, query, filter)
+    ElasticSearchResult search(Closure query, filter = null, aggregation = null, Map params = [:]) {
+        search(params, query, filter, aggregation)
     }
 
     /**
      *
      * @param query Query closure
+     * @param aggregation The search results aggregations, whether a Closure, a BaseAggregationBuilder or a Collection<QueryBuilder>
      * @param params Search parameters
      * @return A ElasticSearchResult containing the search results
      */
-    ElasticSearchResult search(Closure query, Map params) {
-        search(params, query)
-    }
-
-	/**
-	 * Alias for the search(Map params, QueryBuilder query, Closure filter) signature
-	 *
-     * @param params Search parameters
-	 * @param query QueryBuilder query
-     * @param filter The search filter, whether a Closure or a QueryBuilder
-	 * @return A ElasticSearchResult containing the search results
-	 */
-    ElasticSearchResult search(QueryBuilder query, filter = null, Map params = [:]) {
-        search(params, query, filter)
+    ElasticSearchResult search(Closure query, aggregation = null, Map params) {
+        search(params, query, null, aggregation)
     }
 
     /**
@@ -113,10 +108,24 @@ class ElasticSearchService implements GrailsApplicationAware {
      * @param params Search parameters
      * @param query QueryBuilder query
      * @param filter The search filter, whether a Closure or a QueryBuilder
+     * @param aggregation The search results aggregations, whether a Closure, a BaseAggregationBuilder or a Collection<QueryBuilder>
      * @return A ElasticSearchResult containing the search results
      */
-    ElasticSearchResult search(Map params, QueryBuilder query, filter = null) {
-        SearchRequest request = buildSearchRequest(query, filter, params)
+    ElasticSearchResult search(QueryBuilder query, filter = null, aggregation = null, Map params = [:]) {
+        search(params, query, filter, aggregation)
+    }
+
+    /**
+     * Alias for the search(Map params, QueryBuilder query, Closure filter) signature
+     *
+     * @param params Search parameters
+     * @param query QueryBuilder query
+     * @param filter The search filter, whether a Closure or a QueryBuilder
+     * @param aggregation The search results aggregations, whether a Closure, a BaseAggregationBuilder or a Collection<QueryBuilder>
+     * @return A ElasticSearchResult containing the search results
+     */
+    ElasticSearchResult search(Map params, QueryBuilder query, filter = null, aggregation = null) {
+        SearchRequest request = buildSearchRequest(query, filter, aggregation, params)
         search(request, params)
     }
 
@@ -128,7 +137,7 @@ class ElasticSearchService implements GrailsApplicationAware {
      * @return A ElasticSearchResult containing the search results
      */
     ElasticSearchResult search(String query, Map params = [:]) {
-        SearchRequest request = buildSearchRequest(query, null, params)
+        SearchRequest request = buildSearchRequest(query, null, null, params)
         search(request, params)
     }
 
@@ -138,12 +147,13 @@ class ElasticSearchService implements GrailsApplicationAware {
      * @param query The search query. Will be parsed by the Lucene Query Parser.
      * @param params Search parameters
      * @param filter The search filter, whether a Closure or a QueryBuilder
+     * @param aggregation The search results aggregations, whether a Closure or a BaseAggregationBuilder
      * @return A ElasticSearchResult containing the search results
      */
-    ElasticSearchResult search(String query, filter, Map params = [:]){
-		SearchRequest request = buildSearchRequest(query, filter, params)
-		search(request, params)
-	}
+    ElasticSearchResult search(String query, filter, aggregation = null, Map params = [:]) {
+        SearchRequest request = buildSearchRequest(query, filter, aggregation, params)
+        search(request, params)
+    }
 
     /**
      * Returns the number of hits for a peculiar query
@@ -280,48 +290,140 @@ class ElasticSearchService implements GrailsApplicationAware {
         } else {
             mappings = elasticSearchContextHolder.mapping.values() as List
         }
-        def max = elasticSearchContextHolder.config.maxBulkRequest ?: 500
+        int max = elasticSearchContextHolder.config.maxBulkRequest ?: 500
 
         mappings.each { scm ->
             Class<?> domainClass = scm.domainClass.type
             if (scm.root) {
-                if (operationType == INDEX_REQUEST) {
-                    LOG.debug("Indexing all instances of $domainClass")
-                } else if (operationType == DELETE_REQUEST) {
-                    LOG.debug("Deleting all instances of $domainClass")
-                }
+                // how many needs indexing - needed to compute the page size that can be executed concurrently
+                int total = domainClass.count()
+                log.debug "Found $total instances of $domainClass"
 
-                // The index is split to avoid out of memory exception
-                def count = domainClass.count() ?: 0
-                LOG.debug("Found $count instances of $domainClass")
+                if (total > 0) {
+                    // compute the number of rounds
+                    int rounds = Math.ceil(total / max) as int
+                    log.debug "Maximum entries allowed in each bulk request is $max, so indexing is split to $rounds iterations"
 
-                int nbRun = Math.ceil(count / max)
+                    // Couldn't get to work with hibernate due to lost/closed hibernate session errors
+                    /*GParsPool.withPool(Runtime.getRuntime().availableProcessors()) {
+                        long offset = 0L
+                        (1..rounds).each { round ->
+                            try {
+                                log.debug("Bulk index iteration $round: fetching $max results starting from ${offset}")
+                                persistenceInterceptor.init()
+                                persistenceInterceptor.setReadOnly()
 
-                LOG.debug("Maximum entries allowed in each bulk request is $max, so indexing is split to $nbRun iterations")
+                                //List<Class<?>> results = domainClass.listOrderById([offset: offset, max: max, order: "asc"])
+                                List<Class<?>> results = domainClass.listOrderById([offset: offset, max: max, readOnly: true, sort: 'id', order: "asc"])
 
-                for (int i = 0; i < nbRun; i++) {
-                    def offset = i * max
+                                // set lastId for next run
+                                offset = round * max
 
-                    LOG.debug("Bulk index iteration ${i+1}: fetching $max results starting from ${offset}")
+                                // build blocks of 100s and index them in parallel
+                                results.collate(100).eachParallel { List<Map> entries ->
+                                    entries.each { def entry ->
+                                        if (operationType == INDEX_REQUEST) {
+                                            indexRequestQueue.addIndexRequest(entry)
+                                            log.debug("Adding the document ${entry.id} to the index request queue")
+                                        } else if (operationType == DELETE_REQUEST) {
+                                            indexRequestQueue.addDeleteRequest(entry)
+                                            log.debug("Adding the document ${entry.id} to the delete request queue")
+                                        }
+                                        indexRequestQueue.executeRequests()
 
-                    def results = domainClass.listOrderById([offset: offset, max: max, order: "asc"])
+                                        entry = null
+                                    }
+                                    entries = null
+                                }
 
-                    LOG.debug("Bulk index iteration ${i+1}: found ${results.size()} results")
-                    results.each {
-                        if (operationType == INDEX_REQUEST) {
-                            indexRequestQueue.addIndexRequest(it)
-                            LOG.debug("Adding the document ${it.id} to the index request queue")
-                        } else if (operationType == DELETE_REQUEST) {
-                            indexRequestQueue.addDeleteRequest(it)
-                            LOG.debug("Adding the document ${it.id} to the delete request queue")
+                                persistenceInterceptor.flush()
+                                persistenceInterceptor.clear()
+                                persistenceInterceptor.reconnect()
+                                results = null
+                                log.info "Request iteration $round out of $rounds finished"
+                            } finally {
+                                persistenceInterceptor.flush()
+                                persistenceInterceptor.clear()
+                                persistenceInterceptor.destroy()
+                            }
+                        }
+                    }*/
+                    long offset = 0L
+                    (1..rounds).each { round ->
+                        try {
+                            log.debug("Bulk index iteration $round: fetching $max results starting from ${offset}")
+                            persistenceInterceptor.init()
+                            persistenceInterceptor.setReadOnly()
+
+                            List<Class<?>> results = domainClass.listOrderById([offset: offset, max: max, readOnly: true, sort: 'id', order: "asc"])
+
+                            // set lastId for next run
+                            offset = round * max
+
+                            // build blocks of 100s and index them in parallel
+                            results.each { def entry ->
+                                if (operationType == INDEX_REQUEST) {
+                                    indexRequestQueue.addIndexRequest(entry)
+                                    log.debug("Adding the document ${entry.id} to the index request queue")
+                                } else if (operationType == DELETE_REQUEST) {
+                                    indexRequestQueue.addDeleteRequest(entry)
+                                    log.debug("Adding the document ${entry.id} to the delete request queue")
+                                }
+                            }
+                            indexRequestQueue.executeRequests()
+
+                            persistenceInterceptor.flush()
+                            persistenceInterceptor.clear()
+                            persistenceInterceptor.reconnect()
+                            results = null
+                            log.info "Request iteration $round out of $rounds finished"
+                        } finally {
+                            persistenceInterceptor.flush()
+                            persistenceInterceptor.clear()
+                            persistenceInterceptor.destroy()
                         }
                     }
-                    indexRequestQueue.executeRequests()
-
-                    LOG.info("Request iteration ${i+1} out of $nbRun finished")
                 }
+
+
+                /*if (operationType == INDEX_REQUEST) {
+                     log.debug("Indexing all instances of $domainClass")
+                 } else if (operationType == DELETE_REQUEST) {
+                     log.debug("Deleting all instances of $domainClass")
+                 }
+
+                 // The index is split to avoid out of memory exception
+                 def count = domainClass.count() ?: 0
+                 log.debug("Found $count instances of $domainClass")
+
+                 int nbRun = Math.ceil(count / max) as int
+
+                 log.debug("Maximum entries allowed in each bulk request is $max, so indexing is split to $nbRun iterations")
+
+                 for (int i = 0; i < nbRun; i++) {
+
+                     int offset = i * max
+
+                     log.debug("Bulk index iteration ${i + 1}: fetching $max results starting from ${offset}")
+                     long maxId = offset + max
+                     List<Class<?>> results = domainClass.findAllByIdBetween(offset, maxId, [sort: 'id', order: 'asc'])
+
+                     log.debug("Bulk index iteration ${i + 1}: found ${results.size()} results")
+                     results.each {
+                         if (operationType == INDEX_REQUEST) {
+                             indexRequestQueue.addIndexRequest(it)
+                             log.debug("Adding the document ${it.id} to the index request queue")
+                         } else if (operationType == DELETE_REQUEST) {
+                             indexRequestQueue.addDeleteRequest(it)
+                             log.debug("Adding the document ${it.id} to the delete request queue")
+                         }
+                     }
+                     indexRequestQueue.executeRequests()
+
+                     log.info("Request iteration ${i + 1} out of $nbRun finished")
+                 }*/
             } else {
-                LOG.debug("$domainClass is not a root searchable class and has been ignored.")
+                log.debug("$domainClass is not a root searchable class and has been ignored.")
             }
         }
     }
@@ -343,7 +445,7 @@ class ElasticSearchService implements GrailsApplicationAware {
                     indexRequestQueue.addDeleteRequest(it)
                 }
             } else {
-                LOG.debug("${it.class} is not searchable or not a root searchable class and has been ignored.")
+                log.debug("${it.class} is not searchable or not a root searchable class and has been ignored.")
             }
         }
         indexRequestQueue.executeRequests()
@@ -357,7 +459,7 @@ class ElasticSearchService implements GrailsApplicationAware {
      */
     private SearchRequest buildCountRequest(query, Map params) {
         params['size'] = 0
-        def request = buildSearchRequest(query, null, params)
+        def request = buildSearchRequest(query, null, null, params)
         request.source().size(0)
         return request
     }
@@ -366,14 +468,15 @@ class ElasticSearchService implements GrailsApplicationAware {
      * Builds a search request
      *
      * @param params The query parameters
-     * @param query The search query, whether a String, a Closure or a QueryBuilder
+     * @param query The search query, whether a String or a Closure
      * @param filter The search filter, whether a Closure or a QueryBuilder
+     * @param aggregation The search results aggregations, whether a Closure, a BaseAggregationBuilder or a Collection<QueryBuilder>
      * @return The SearchRequest instance
      */
-    private SearchRequest buildSearchRequest(query, filter, Map params) {
+    private SearchRequest buildSearchRequest(query, filter, aggregation, Map params) {
         SearchSourceBuilder source = new SearchSourceBuilder()
 
-        LOG.debug("Build search request with params: ${params}")
+        log.debug("Build search request with params: ${params}")
         source.from(params.from ? params.from as int : 0)
                 .size(params.size ? params.size as int : 60)
                 .explain(params.explain ?: true).minScore(params.min_score ?: 0)
@@ -399,6 +502,10 @@ class ElasticSearchService implements GrailsApplicationAware {
             setFilterInSource(source, filter, params)
         }
 
+        if (aggregation) {
+            setAggregationInSource(source, aggregation, params)
+        }
+
         // Handle highlighting
         Closure highlight = params.highlight as Closure
         if (highlight) {
@@ -414,8 +521,8 @@ class ElasticSearchService implements GrailsApplicationAware {
 
         SearchRequest request = new SearchRequest()
         String searchType = params.searchType ?:
-                            elasticSearchContextHolder.config.defaultSearchType ?:
-                            'query_then_fetch'
+                elasticSearchContextHolder.config.defaultSearchType ?:
+                        'query_then_fetch'
         request.searchType searchType.toLowerCase()
         request.source source
 
@@ -443,10 +550,37 @@ class ElasticSearchService implements GrailsApplicationAware {
         source.query(query)
     }
 
-    private static SearchModule searchModule = null;
-    private static NamedXContentRegistry ContentRegistry = null;
+    SearchSourceBuilder setAggregationInSource(SearchSourceBuilder source, Closure aggregation, Map params = [:]) {
+        def aggregationBytes = new GXContentBuilder().buildAsBytes(aggregation)
+        XContentParser parser = createParser(JsonXContent.jsonXContent, aggregationBytes)
+        if (parser.currentToken() == null) {
+            parser.nextToken();
+        }
+        def aggregationBuilder = AggregatorFactories.parseAggregators(parser)
+        aggregationBuilder.aggregatorFactories.each {
+            source.aggregation(it)
+        }
+
+        source
+    }
+
+    SearchSourceBuilder setAggregationInSource(SearchSourceBuilder source, BaseAggregationBuilder aggregationBuilder, Map params = [:]) {
+        source.aggregation(aggregationBuilder)
+    }
+
+    SearchSourceBuilder setAggregationInSource(SearchSourceBuilder source, Collection<BaseAggregationBuilder> aggregationBuilder, Map params = [:]) {
+        aggregationBuilder.each {
+            source.aggregation(it)
+        }
+
+        source
+    }
+
+    private static SearchModule searchModule = null
+    private static NamedXContentRegistry ContentRegistry = null
+
     private static NamedXContentRegistry getXContentRegistry() {
-        if(ContentRegistry == null){
+        if (ContentRegistry == null) {
             searchModule = new SearchModule(Settings.EMPTY, false, Collections.emptyList())
             ContentRegistry = searchModule.namedXContents;
         }
@@ -454,19 +588,31 @@ class ElasticSearchService implements GrailsApplicationAware {
     }
 
     private static XContentParser createParser(XContent xContent, byte[] data) throws IOException {
-        return xContent.createParser(getXContentRegistry(), data);
+        return xContent.createParser(getXContentRegistry(), DEPRECATION_HANDLER, data)
     }
 
-	SearchSourceBuilder setFilterInSource(SearchSourceBuilder source, Closure filter, Map params = [:]){
-    def filterBytes = new GXContentBuilder().buildAsBytes(filter)
-    XContentParser parser = createParser(JsonXContent.jsonXContent, filterBytes)
-    def filterBuilder = parseInnerQueryBuilder(parser)
-		source.postFilter(filterBuilder)
-	}
+    private static final DeprecationHandler DEPRECATION_HANDLER = new DeprecationHandler() {
+        @Override
+        void usedDeprecatedName(String usedName, String modernName) {
+            log.warn("[${usedName}] is deprecated. Use [${modernName}] instead.")
+        }
 
-	SearchSourceBuilder setFilterInSource(SearchSourceBuilder source, QueryBuilder filter, Map params = [:]){
-		source.postFilter(filter)
-	}
+        @Override
+        void usedDeprecatedField(String usedName, String replacedWith) {
+            log.warn("[${usedName}] is deprecated. Use [${replacedWith}] instead.")
+        }
+    }
+
+    SearchSourceBuilder setFilterInSource(SearchSourceBuilder source, Closure filter, Map params = [:]) {
+        def filterBytes = new GXContentBuilder().buildAsBytes(filter)
+        XContentParser parser = createParser(JsonXContent.jsonXContent, filterBytes)
+        def filterBuilder = parseInnerQueryBuilder(parser)
+        source.postFilter(filterBuilder)
+    }
+
+    SearchSourceBuilder setFilterInSource(SearchSourceBuilder source, QueryBuilder filter, Map params = [:]) {
+        source.postFilter(filter)
+    }
 
     /**
      * Computes a search request and builds the results
@@ -477,17 +623,17 @@ class ElasticSearchService implements GrailsApplicationAware {
      */
     def search(SearchRequest request, Map params) {
         resolveIndicesAndTypes(request, params)
-        elasticSearchHelper.withElasticSearch { Client client ->
-            LOG.debug 'Executing search request.'
-            LOG.debug(request.inspect())
-            def response = client.search(request).actionGet()
-            LOG.debug 'Completed search request.'
-            LOG.debug(response.inspect())
-            def searchHits = response.getHits()
+        elasticSearchHelper.withElasticSearch { RestHighLevelClient client ->
+            log.debug 'Executing search request.'
+            log.debug(request.inspect())
+            SearchResponse searchResponse = client.search(request, RequestOptions.DEFAULT)
+            log.debug 'Completed search request.'
+            log.debug(searchResponse.inspect())
+            SearchHits searchHits = searchResponse.hits
             ElasticSearchResult result = new ElasticSearchResult()
-            result.total = searchHits.getTotalHits()
+            result.total = searchHits.totalHits
 
-            LOG.debug "Search returned ${result.total ?: 0} result(s)."
+            log.debug "Search returned ${result.total ?: 0} result(s)."
 
             // Convert the hits back to their initial type
             result.searchResults = domainInstancesRebuilder.buildResults(searchHits)
@@ -500,7 +646,7 @@ class ElasticSearchService implements GrailsApplicationAware {
                 }
             }
 
-            LOG.debug 'Adding score information to results.'
+            log.debug 'Adding score information to results.'
 
             //Extract score information
             //Records a map from hits of (hit.id, hit.score) returned in 'scores'
@@ -516,9 +662,9 @@ class ElasticSearchService implements GrailsApplicationAware {
                 }
             }
 
-            Aggregations aggregations = response.getAggregations()
+            Aggregations aggregations = searchResponse.aggregations
             if (aggregations) {
-                def aggregationsAsMap = aggregations.asMap()
+                Map<String, Aggregation> aggregationsAsMap = aggregations.asMap()
                 if (aggregationsAsMap) {
                     result.aggregations = aggregationsAsMap
                 }
@@ -535,9 +681,9 @@ class ElasticSearchService implements GrailsApplicationAware {
      * @param params
      * @return Integer The number of hits for the query
      */
-    Integer count(SearchRequest request, Map params) {
+    Long count(SearchRequest request, Map params) {
         def result = search(request, params)
-        result.total
+        result.total.value
     }
     /**
      * Sets the indices & types properties on SearchRequest & CountRequest
@@ -569,6 +715,8 @@ class ElasticSearchService implements GrailsApplicationAware {
         } else {
             request.indices("_all")
         }
+
+        /*
 
         // Handle the types. Each type must reference a Domain class for now, but we may consider to make it more
         // generic in the future to allow POGO/Map/Whatever indexing/searching
@@ -611,5 +759,6 @@ class ElasticSearchService implements GrailsApplicationAware {
             }
             request.types(types as String[])
         }
+        */
     }
 }

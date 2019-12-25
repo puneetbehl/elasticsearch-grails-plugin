@@ -4,6 +4,7 @@
 *.iws
 .gradle
 build/
+out/
 
 libs
 
@@ -29,6 +30,11 @@ plugin.xml
 .project
 test/reports
 data/
+
+# 'local' elasticsearch
+**/elastic/**
+gradle/tools/elastic-*
+*.part
 
 #Elasticserch plugin binaries
 src/integration-test/resources/elasticsearch/plugins

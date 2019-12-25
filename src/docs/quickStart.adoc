@@ -237,29 +237,7 @@ class FamilyGuy {
 
 ==== The Mapper Attachment plugin
 
-The Elasticsearch plugin does not ship with Mapper Attachment plugin, so if you are using mode `local` and config `elasticSearch.plugin.mapperAttachment.enabled: true` then you need to add the following dependency in build.gradle
+The Elasticsearch Mapper Attachment plugin is deprecated since ES version 5.0.0. Hence it is no longer supported in this plugin.
 
-[source, groovy]
-.build.gradle
-----
-compile "org.elasticsearch.plugin:mapper-attachments:2.4.6"
-----
-
-[TIP]
-====
-The latest version of Mapper Attachments plugin is not available in Maven
-====
-
-In order to use the latest version, you need to:
-
-* Download this plugin for offline install from https://artifacts.elastic.co/downloads/elasticsearch-plugins/mapper-attachments/mapper-attachments-5.6.9.zip into `/libs/elasticsearch` folder.
-
-* Now, include the downloaded lib into project dependencies as:
-
-[source, groovy]
-.build.gradle
-----
-compile fileTree(dir: "libs/elasticsearch", include: '*.jar')
-----
-
+In future versions it could be possible to support the new https://www.elastic.co/guide/en/elasticsearch/plugins/current/ingest-attachment.html[Ingest Attachment Processor Plugin].
 

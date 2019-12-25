@@ -8,10 +8,6 @@ import groovy.transform.CompileStatic
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
-/**
- * Created by @marcos-carceles on 13/01/15.
- * Created and exposed as a bean, because Bootstrap cannot be easily tested and invoked from IntegrationSpec
- */
 @CompileStatic
 class ElasticSearchBootStrapHelper implements ElasticSearchConfigAware {
 
@@ -25,12 +21,12 @@ class ElasticSearchBootStrapHelper implements ElasticSearchConfigAware {
     void bulkIndexOnStartup() {
         def bulkIndexOnStartup = esConfig?.bulkIndexOnStartup
         //Index Content
-        if (bulkIndexOnStartup == "deleted") { //Index lost content due to migration
+        if (bulkIndexOnStartup == 'deleted') { //Index lost content due to migration
             LOG.debug "Performing bulk indexing of classes requiring index/mapping migration ${elasticSearchContextHolder.indexesRebuiltOnMigration} on their new version."
             Class[] domainsToReindex = elasticSearchContextHolder.findMappedClassesOnIndices(elasticSearchContextHolder.indexesRebuiltOnMigration) as Class[]
             elasticSearchService.index(domainsToReindex)
         } else if (bulkIndexOnStartup) { //Index all
-            LOG.debug "Performing bulk indexing."
+            LOG.debug 'Performing bulk indexing.'
             elasticSearchService.index(Collections.emptyMap()) // empty map is needed for static compiling
         }
         //Update index aliases where needed

@@ -78,3 +78,5 @@ include::searching/highlighting.adoc[]
 include::searching/sorting.adoc[]
 
 include::searching/pagination.adoc[]
+
+include::searching/aggregation.adoc[]

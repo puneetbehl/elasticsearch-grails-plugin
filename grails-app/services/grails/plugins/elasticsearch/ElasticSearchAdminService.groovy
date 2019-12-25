@@ -2,16 +2,25 @@ package grails.plugins.elasticsearch
 
 import grails.plugins.elasticsearch.index.IndexRequestQueue
 import grails.plugins.elasticsearch.mapping.SearchableClassMapping
-import org.elasticsearch.action.admin.cluster.health.ClusterHealthRequest
-import org.elasticsearch.action.admin.cluster.health.ClusterHealthResponse
+import groovy.json.JsonSlurper
+import org.apache.http.util.EntityUtils
+import org.elasticsearch.action.admin.indices.alias.IndicesAliasesRequest
 import org.elasticsearch.action.admin.indices.alias.get.GetAliasesRequest
-import org.elasticsearch.action.admin.indices.create.CreateIndexRequestBuilder
-import org.elasticsearch.action.admin.indices.exists.types.TypesExistsRequest
+import org.elasticsearch.action.admin.indices.create.CreateIndexRequest
+import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest
+import org.elasticsearch.action.admin.indices.get.GetIndexRequest
+import org.elasticsearch.action.admin.indices.mapping.get.GetMappingsRequest
 import org.elasticsearch.action.admin.indices.mapping.put.PutMappingRequest
+import org.elasticsearch.action.admin.indices.refresh.RefreshRequest
 import org.elasticsearch.action.support.broadcast.BroadcastResponse
-import org.elasticsearch.client.Client
-import org.elasticsearch.client.Requests
+import org.elasticsearch.client.*
 import org.elasticsearch.cluster.health.ClusterHealthStatus
+import org.elasticsearch.common.settings.Settings
+import org.elasticsearch.common.xcontent.XContentHelper
+import org.elasticsearch.common.xcontent.XContentType
+import org.elasticsearch.index.query.MatchAllQueryBuilder
+import org.elasticsearch.index.reindex.DeleteByQueryRequest
+import org.elasticsearch.rest.RestStatus
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -26,10 +35,10 @@ class ElasticSearchAdminService {
     ElasticSearchHelper elasticSearchHelper
     ElasticSearchContextHolder elasticSearchContextHolder
     IndexRequestQueue indexRequestQueue
+    def jsonSlurper = new JsonSlurper()
 
     private static final WAIT_FOR_INDEX_MAX_RETRIES = 10
     private static final WAIT_FOR_INDEX_SLEEP_INTERVAL = 100
-
 
     /**
      * Explicitly refresh one or more index, making all operations performed since the last refresh available for search
@@ -39,22 +48,16 @@ class ElasticSearchAdminService {
     void refresh(Collection<String> indices = null) {
         // Flush any pending operation from the index queue
         indexRequestQueue.executeRequests()
-        // Wait till all the current operations are done
-        indexRequestQueue.waitComplete()
 
         // Refresh ES
-        elasticSearchHelper.withElasticSearch { Client client ->
-            BroadcastResponse response
-            if (!indices) {
-                response = client.admin().indices().refresh(Requests.refreshRequest()).actionGet()
-            } else {
-                response = client.admin().indices().refresh(Requests.refreshRequest(indices as String[])).actionGet()
-            }
+        elasticSearchHelper.withElasticSearch { RestHighLevelClient client ->
+            RefreshRequest request = new RefreshRequest(indices as String[])
+            BroadcastResponse response = client.indices().refresh(request, RequestOptions.DEFAULT)
 
             if (response.getFailedShards() > 0) {
-                LOG.info "Refresh failure"
+                LOG.info 'Refresh failure'
             } else {
-                LOG.info "Refreshed ${ indices ?: 'all' } indices"
+                LOG.info "Refreshed ${indices ?: 'all'} indices"
             }
         }
     }
@@ -93,16 +96,30 @@ class ElasticSearchAdminService {
      * @param indices The indices to delete. If null, will delete ALL indices.
      */
     void deleteIndex(Collection<String> indices = null) {
-        elasticSearchHelper.withElasticSearch { Client client ->
+        elasticSearchHelper.withElasticSearch { RestHighLevelClient client ->
             if (!indices) {
-                client.admin().indices().delete(Requests.deleteIndexRequest("_all")).actionGet()
+                client.indices().delete(new DeleteIndexRequest('_all'), RequestOptions.DEFAULT)
                 LOG.info "Deleted all indices"
             } else {
                 indices.each {
-                    client.admin().indices().delete(Requests.deleteIndexRequest(it)).actionGet()
+                    client.indices().delete(new DeleteIndexRequest(it), RequestOptions.DEFAULT)
                 }
                 LOG.info "Deleted indices $indices"
             }
+        }
+    }
+
+    /**
+     * Deletes all documents from one.
+     * @param aliasIndexName The alias index name from which to delete the documents.
+     */
+    void deleteAllDocumentsFromIndex(String aliasIndexName) {
+        String indexName = indexNameByAlias(aliasIndexName)
+        elasticSearchHelper.withElasticSearch { RestHighLevelClient client ->
+            DeleteByQueryRequest request = new DeleteByQueryRequest(indexName)
+            request.setQuery(new MatchAllQueryBuilder())
+            client.deleteByQuery(request, RequestOptions.DEFAULT)
+            LOG.info "Deleted all documents from $aliasIndexName"
         }
     }
 
@@ -143,12 +160,13 @@ class ElasticSearchAdminService {
      */
     void createMapping(String index, String type, Map elasticMapping) {
         LOG.info("Creating Elasticsearch mapping for ${index} and type ${type} ...")
-        elasticSearchHelper.withElasticSearch { Client client ->
-            client.admin().indices().putMapping(
+        elasticSearchHelper.withElasticSearch { RestHighLevelClient client ->
+            client.indices().putMapping(
                     new PutMappingRequest(index)
                             .type(type)
-                            .source(elasticMapping)
-            ).actionGet()
+                            .source(elasticMapping),
+                    RequestOptions.DEFAULT
+            )
         }
     }
 
@@ -159,8 +177,8 @@ class ElasticSearchAdminService {
      * @return true if the mapping exists
      */
     boolean mappingExists(String index, String type) {
-        elasticSearchHelper.withElasticSearch { Client client ->
-            client.admin().indices().typesExists(new TypesExistsRequest([index] as String[], type)).actionGet().exists
+        elasticSearchHelper.withElasticSearch { RestHighLevelClient client ->
+            !client.indices().getMapping(new GetMappingsRequest().indices(index).types(type), RequestOptions.DEFAULT).mappings.empty
         }
     }
 
@@ -172,8 +190,8 @@ class ElasticSearchAdminService {
     void deleteIndex(String index, Integer version = null) {
         index = versionIndex index, version
         LOG.info("Deleting  Elasticsearch index ${index} ...")
-        elasticSearchHelper.withElasticSearch { Client client ->
-            client.admin().indices().prepareDelete(index).execute().actionGet()
+        elasticSearchHelper.withElasticSearch { RestHighLevelClient client ->
+            client.indices().delete(new DeleteIndexRequest(index), RequestOptions.DEFAULT)
         }
     }
 
@@ -182,18 +200,33 @@ class ElasticSearchAdminService {
      * @param index The name of the index
      * @param settings The index settings (ie. number of shards)
      */
-    void createIndex(String index, Map settings=null, Map<String, Map> esMappings = [:]) {
+    void createIndex(String index, Map settings = null, Map<String, Map> esMappings = [:]) {
         LOG.debug "Creating index ${index} ..."
 
-        elasticSearchHelper.withElasticSearch { Client client ->
-            CreateIndexRequestBuilder builder = client.admin().indices().prepareCreate(index)
+        elasticSearchHelper.withElasticSearch { RestHighLevelClient client ->
+            CreateIndexRequest request = new CreateIndexRequest(index)
             if (settings) {
-                builder.setSettings(settings)
+                Map flattenedMap = flattenMap(settings)
+
+                Settings.Builder settingsBuilder = Settings.builder()
+                flattenedMap.each {
+                    if (it.value instanceof List) {
+                        it.value.eachWithIndex { entry, int i ->
+                            settingsBuilder.put("${it.key.toString()}.${i}", entry.toString())
+                        }
+
+                    } else {
+                        settingsBuilder.put(it.key.toString(), it.value.toString())
+                    }
+                }
+                request.settings(settingsBuilder)
+
             }
             esMappings.each { String type, Map elasticMapping ->
-                builder.addMapping(type, elasticMapping)
+                request.mapping(type, elasticMapping)
             }
-            builder.execute().actionGet()
+
+            client.indices().create(request, RequestOptions.DEFAULT)
         }
     }
 
@@ -203,7 +236,7 @@ class ElasticSearchAdminService {
      * @param version the version number, if provided <index>_v<version> will be used
      * @param settings The index settings (ie. number of shards)
      */
-    void createIndex(String index, Integer version, Map settings=null, Map<String, Map> esMappings = [:]) {
+    void createIndex(String index, Integer version, Map settings = null, Map<String, Map> esMappings = [:]) {
         index = versionIndex(index, version)
         createIndex(index, settings, esMappings)
     }
@@ -212,12 +245,15 @@ class ElasticSearchAdminService {
      * Checks whether the index exists
      * @param index The name of the index
      * @param version the version number, if provided <index>_v<version> will be used
-     * @return true, if the index exists
+     * @return true , if the index exists
      */
     boolean indexExists(String index, Integer version = null) {
         index = versionIndex(index, version)
-        elasticSearchHelper.withElasticSearch { Client client ->
-            client.admin().indices().prepareExists(index).execute().actionGet().exists
+        elasticSearchHelper.withElasticSearch { RestHighLevelClient client ->
+            GetIndexRequest request = new GetIndexRequest()
+            request.indices(index)
+            request.humanReadable(true)
+            client.indices().exists(request, RequestOptions.DEFAULT)
         }
     }
 
@@ -240,14 +276,14 @@ class ElasticSearchAdminService {
      * @return the name of the index
      */
     String indexPointedBy(String alias) {
-        elasticSearchHelper.withElasticSearch { Client client ->
-            def index = client.admin().indices().getAliases(new GetAliasesRequest().aliases([alias] as String[])).actionGet().getAliases()?.find {
+        elasticSearchHelper.withElasticSearch { RestHighLevelClient client ->
+            GetAliasesResponse aliasesResponse = client.indices().getAlias(new GetAliasesRequest(alias), RequestOptions.DEFAULT)
+            if (aliasesResponse.error) {
+                LOG.debug(aliasesResponse.error)
+            }
+            aliasesResponse.aliases?.find {
                 alias in it.value*.alias()
             }?.key
-            if (!index) {
-                LOG.debug("Alias ${alias} does not exist")
-            }
-            return index
         }
     }
 
@@ -256,8 +292,14 @@ class ElasticSearchAdminService {
      * @param alias The name of the alias
      */
     void deleteAlias(String alias) {
-        elasticSearchHelper.withElasticSearch { Client client ->
-            client.admin().indices().prepareAliases().removeAlias(indexPointedBy(alias), [alias] as String[]).execute().actionGet()
+        elasticSearchHelper.withElasticSearch { RestHighLevelClient client ->
+            IndicesAliasesRequest request = new IndicesAliasesRequest();
+            IndicesAliasesRequest.AliasActions removeAction =
+                    new IndicesAliasesRequest.AliasActions(IndicesAliasesRequest.AliasActions.Type.REMOVE)
+                            .index(indexPointedBy(alias))
+                            .alias(alias)
+            request.addAliasAction(removeAction)
+            client.indices().updateAliases(request, RequestOptions.DEFAULT)
         }
     }
 
@@ -271,15 +313,21 @@ class ElasticSearchAdminService {
         index = versionIndex(index, version)
         LOG.debug "Creating alias ${alias}, pointing to index ${index} ..."
         String oldIndex = indexPointedBy(alias)
-        elasticSearchHelper.withElasticSearch { Client client ->
-            //Create atomic operation
-            def aliasRequest = client.admin().indices().prepareAliases()
+        elasticSearchHelper.withElasticSearch { RestHighLevelClient client ->
             if (oldIndex && oldIndex != index) {
                 LOG.debug "Index used to point to ${oldIndex}, removing ..."
-                aliasRequest.removeAlias(oldIndex,alias)
+                new IndicesAliasesRequest.AliasActions(IndicesAliasesRequest.AliasActions.Type.REMOVE)
+                        .index(oldIndex)
+                        .alias(alias)
             }
-            aliasRequest.   addAlias(index,alias)
-            aliasRequest.execute().actionGet()
+            IndicesAliasesRequest request = new IndicesAliasesRequest()
+            IndicesAliasesRequest.AliasActions aliasAction =
+                    new IndicesAliasesRequest.AliasActions(IndicesAliasesRequest.AliasActions.Type.ADD)
+                            .index(index)
+                            .alias(alias)
+            request.addAliasAction(aliasAction)
+            LOG.debug "Create alias -> index: ${index}; alias: ${alias}"
+            client.indices().updateAliases(request, RequestOptions.DEFAULT)
         }
     }
 
@@ -289,8 +337,26 @@ class ElasticSearchAdminService {
      * @return true if the alias exists
      */
     boolean aliasExists(String alias) {
-        elasticSearchHelper.withElasticSearch { Client client ->
-            client.admin().indices().prepareAliasesExist(alias).execute().actionGet().exists
+        elasticSearchHelper.withElasticSearch { RestHighLevelClient client ->
+            client.indices().existsAlias(new GetAliasesRequest(alias), RequestOptions.DEFAULT)
+        }
+    }
+
+    /**
+     * Returns the index name by the given alias
+     * @param alias the name of the alias
+     * @return i if the index name if exists
+     */
+    String indexNameByAlias(String alias) {
+        elasticSearchHelper.withElasticSearch { RestHighLevelClient client ->
+            GetAliasesResponse aliasesResponse = client.indices().getAlias(new GetAliasesRequest(alias), RequestOptions.DEFAULT)
+            if (aliasesResponse.status() == RestStatus.NOT_FOUND) {
+                alias
+            } else {
+                aliasesResponse.getAliases()?.entrySet()?.iterator()?.next()?.getKey()
+            }
+
+
         }
     }
 
@@ -298,7 +364,7 @@ class ElasticSearchAdminService {
      * Builds an index name based on a base index and a version number
      * @param index
      * @param version
-     * @return <index>_v<version> if version is provided, <index> otherwise
+     * @return <index>   _v<version> if version is provided, <index> otherwise
      */
     String versionIndex(String index, Integer version = null) {
         version == null ? index : index + "_v${version}"
@@ -310,8 +376,11 @@ class ElasticSearchAdminService {
      * @return a Set of index names
      */
     Set<String> getIndices() {
-        elasticSearchHelper.withElasticSearch { Client client ->
-            client.admin().indices().prepareStats().execute().actionGet().indices.keySet()
+        elasticSearchHelper.withElasticSearch { RestHighLevelClient client ->
+            Request request = new Request("GET", "/_aliases")
+            Response response = client.lowLevelClient.performRequest(request)
+            String jsonResponse = EntityUtils.toString(response.getEntity())
+            jsonSlurper.parseText(jsonResponse).collect { it.key } as Set<String>
         }
     }
 
@@ -355,11 +424,28 @@ class ElasticSearchAdminService {
     /**
      * Waits for the cluster to be on Yellow status
      */
-    void waitForClusterStatus(ClusterHealthStatus status=ClusterHealthStatus.YELLOW) {
-        elasticSearchHelper.withElasticSearch { Client client ->
-            ClusterHealthResponse response = client.admin().cluster().health(new ClusterHealthRequest([] as String[]).waitForStatus(status)).actionGet()
-            LOG.debug("Cluster status: ${response.status}")
+    void waitForClusterStatus(ClusterHealthStatus status = ClusterHealthStatus.YELLOW) {
+        elasticSearchHelper.withElasticSearch { RestHighLevelClient client ->
+
+            Request request = new Request("GET", "/_cluster/health")
+            request.addParameter("wait_for_status", "yellow")
+            Response response = client.getLowLevelClient().performRequest(request)
+
+            ClusterHealthStatus healthStatus
+
+            response.getEntity().getContent().withStream { is ->
+                Map<String, Object> map = XContentHelper.convertToMap(XContentType.JSON.xContent(), is, true)
+                healthStatus = ClusterHealthStatus.fromString((String) map.get("status"))
+            }
+            LOG.debug("Cluster status: ${healthStatus}")
         }
+    }
+
+    //From http://groovy.329449.n5.nabble.com/Flatten-Map-using-closure-td364360.html
+    Map flattenMap(map) {
+        [:].putAll(map.entrySet().flatten {
+            it.value instanceof Map ? it.value.collect { k, v -> new MapEntry(it.key + '.' + k, v) } : it
+        })
     }
 
 }

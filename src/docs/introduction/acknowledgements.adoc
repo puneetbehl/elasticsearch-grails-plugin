@@ -10,6 +10,7 @@ Many thanks to all the users who reported issues and sent me pull requests.
 * Michael Schwartz (Dating Cafe)
 * https://github.com/marcoscarceles[Marcos Carceles]
 * https://github.com/puneetbehl[Puneet Behl]
+* https://github.com/cgoIT[Carsten Götzinger (cgo IT)]
 
 #### Authors and Contributors of the original plugin
 

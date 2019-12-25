@@ -2,6 +2,28 @@
 
 ==== Grails 3.x version
 
+* August 12, 2019
+** 2.7.0
+*** Upgraded to Grails 3.3.10
+*** Upgraded to Elasticsearch 7.3.0
+**** Return type of count method in ElasticSearchService is now `java.lang.Long` (was `java.lang.Integer` before)
+**** The property `total` in class `grails.plugins.elasticsearch.ElasticSearchResult` is now of type `org.apache.lucene.search.TotalHits`
+*** Make java.time classes usable
+*** Make aggregations usable with this plugin
+
+
+* August 6, 2019
+** 2.6.0
+*** Upgraded to Grails 3.3.9
+*** Upgraded to Elasticsearch 6.8.2
+**** mapping option index: was before `analyzed`, `not_analyzed`, `no` and can now only be: `true`, `false`
+**** `include_in_all` is deprecated because of https://www.elastic.co/guide/en/elasticsearch/reference/6.4/mapping-all-field.html, but could be enabled with https://www.elastic.co/guide/en/elasticsearch/reference/6.4/mapping-all-field.html#enabling-all-field, but now completely disabled in ElasticSearchMappingFactory.groovy:125
+**** Removal of mapping types: https://www.elastic.co/guide/en/elasticsearch/reference/current/removal-of-types.html
+***** In the documentation 4.1. Class Mapping -> 4.1.1. root is not used anymore, because every domain class will get its own index
+**** `parent` is no longer useable (not supported by Elasticsearch 6.x)
+**** Embedded ES was removed and so there is no accurate possibility to run integration tests with ES, see here: https://discuss.elastic.co/t/in-memory-testing-with-resthighlevelclient/106196/6 . For now the integration tests are only working if a local elasticsearch version is running, which can be downloaded here: https://www.elastic.co/downloads/past-releases - please note that you've to use the same version like described in the above comments, so for now it is 6.8.2
+
+
 * May 10, 2018
 ** 2.4.1
 *** `search` method now returns `ElasticsearchResult` instead of `Map`.
