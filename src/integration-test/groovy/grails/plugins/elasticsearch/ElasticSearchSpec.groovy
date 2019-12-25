@@ -107,7 +107,7 @@ trait ElasticSearchSpec {
     }
 
     String getIndexName(DomainEntity domainClass) {
-        String name = grailsApplication.config.getProperty("elasticSearch.index.name", String) ?: domainClass.fullName
+        String name = grailsApplication.config.getProperty("elasticSearch.index.name", String) ?: domainClass.packageName
         if (!name) {
             name = domainClass.defaultPropertyName
         }

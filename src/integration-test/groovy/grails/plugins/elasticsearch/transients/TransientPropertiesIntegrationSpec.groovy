@@ -1,11 +1,11 @@
 package grails.plugins.elasticsearch.transients
 
 import grails.core.GrailsApplication
+import grails.gorm.transactions.Rollback
 import grails.plugins.elasticsearch.ElasticSearchAdminService
 import grails.plugins.elasticsearch.ElasticSearchService
 import grails.plugins.elasticsearch.mapping.SearchableClassMappingConfigurator
 import grails.testing.mixin.integration.Integration
-import grails.transaction.Rollback
 import org.apache.lucene.search.join.ScoreMode
 import org.elasticsearch.index.query.NestedQueryBuilder
 import org.elasticsearch.index.query.QueryBuilders

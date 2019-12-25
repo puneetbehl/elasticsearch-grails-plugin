@@ -13,7 +13,7 @@ buildscript {
         classpath "org.grails:grails-gradle-plugin:$grailsVersion"
         classpath 'org.asciidoctor:asciidoctor-gradle-plugin:1.5.3'
         classpath 'org.ajoberstar:gradle-git:1.4.2'
-        classpath "org.grails.plugins:hibernate5:${gormVersion-".RELEASE"}"
+        classpath "org.grails.plugins:hibernate5:7.0.0"
     }
 }
 
@@ -21,10 +21,10 @@ plugins {
     id "com.jfrog.bintray" version "1.8.4"
     id 'com.jfrog.artifactory' version '4.9.8'
     id "de.undercouch.download" version "4.0.0"
-    id "cgoit.gradle.elasticsearch" version "0.1.0"
+    id "cgoit.gradle.elasticsearch" version "0.1.1"
 }
 
-version '2.7.0.RC1'
+version '2.8.0'
 group "org.grails.plugins"
 
 String repoName = 'elasticsearch-grails-plugin'
@@ -48,6 +48,13 @@ repositories {
     mavenLocal()
     mavenCentral()
     maven { url "https://repo.grails.org/grails/core" }
+}
+
+configurations {
+    developmentOnly
+    runtimeClasspath {
+        extendsFrom developmentOnly
+    }
 }
 
 dependencyManagement {
@@ -75,6 +82,7 @@ sourcesJar {
 }
 
 dependencies {
+    developmentOnly("org.springframework.boot:spring-boot-devtools")
     provided 'org.springframework.boot:spring-boot-starter-logging'
     provided "org.springframework.boot:spring-boot-starter-actuator"
     provided "org.springframework.boot:spring-boot-autoconfigure"
@@ -95,6 +103,7 @@ dependencies {
 
     compile "org.elasticsearch:elasticsearch:${elasticsearchVersion}"
     compile group: 'org.elasticsearch.client', name: 'elasticsearch-rest-high-level-client', version: elasticsearchVersion
+    compile group: 'org.elasticsearch.client', name: 'elasticsearch-rest-client', version: elasticsearchVersion
     compile group: 'org.locationtech.spatial4j', name: 'spatial4j', version: '0.6'
     //compile group: 'org.codehaus.gpars', name: 'gpars', version: '1.2.1'
 
@@ -107,21 +116,16 @@ dependencies {
     testRuntime 'org.apache.tomcat:tomcat-jdbc'
 
     testCompile "org.grails:grails-gorm-testing-support"
-    testCompile "org.grails:grails-plugin-testing"
     testCompile "org.grails:grails-web-testing-support"
 
     testCompile 'com.vividsolutions:jts:1.13'
     testCompile 'com.googlecode.json-simple:json-simple:1.1.1'
 
-    compile fileTree(dir: "libs/elasticsearch", include: '*.jar')
+    //compile fileTree(dir: "libs/elasticsearch", include: '*.jar')
 }
 
 task cleanLibsDir(type: Delete) {
     delete fileTree(dir: 'libs')
-}
-
-task wrapper(type: Wrapper) {
-    gradleVersion = gradleWrapperVersion
 }
 
 check.doLast {
@@ -157,7 +161,8 @@ integrationTest {
     }
 }
 
-gradle.taskGraph.afterTask { Task task, TaskState taskState ->
+gradle.taskGraph.afterTask { task ->
+
     if (task.name == "integrationTest") {
         stopElasticsearch {
             httpHost = "localhost"
@@ -168,10 +173,10 @@ gradle.taskGraph.afterTask { Task task, TaskState taskState ->
 
 bootRun {
     jvmArgs('-Dspring.output.ansi.enabled=always')
-    addResources = true
+    sourceResources sourceSets.main
 }
 // enable if you wish to package this plugin as a standalone application
-bootRepackage.enabled = false
+bootJar.enabled = false
 
 apply from: "gradle/documentation.gradle"
 

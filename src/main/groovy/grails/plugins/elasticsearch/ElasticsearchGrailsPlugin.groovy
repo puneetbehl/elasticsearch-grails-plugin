@@ -79,6 +79,7 @@ class ElasticsearchGrailsPlugin extends Plugin {
 
             elasticSearchContextHolder(ElasticSearchContextHolder) {
                 config = esConfig
+                proxyHandler = ref('proxyHandler')
             }
             elasticSearchHelper(ElasticSearchHelper) {
                 elasticSearchClient = ref('elasticSearchClient')

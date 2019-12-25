@@ -1,7 +1,6 @@
 package grails.plugins.elasticsearch.mapping
 
 import grails.core.GrailsApplication
-import grails.core.GrailsDomainClass
 import groovy.transform.CompileStatic
 import org.grails.core.artefact.DomainClassArtefactHandler
 import org.grails.datastore.mapping.model.MappingContext
@@ -30,17 +29,13 @@ class DomainReflectionService {
         if (!isDomainEntity(clazz)) return null
 
         entityCache.computeIfAbsent(clazz) {
-            def artefact = getDomainClassArtefact(clazz)
-
             PersistentEntity persistentEntity = mappingContext.getPersistentEntity(clazz.canonicalName)
-
-            artefact ? new DomainEntity(this, artefact, persistentEntity) : null
+            persistentEntity ? new DomainEntity(this, persistentEntity) : null
         }
     }
 
     Collection<DomainEntity> getDomainEntities() {
-        grailsApplication.getArtefacts(DomainClassArtefactHandler.TYPE).toList()
-                         .collect { getDomainEntity(((GrailsDomainClass) it).clazz) }
+        mappingContext.getPersistentEntities().collect { new DomainEntity(this, it) }
     }
 
     DomainEntity getAbstractDomainEntity(Class<?> clazz) {
@@ -54,10 +49,6 @@ class DomainReflectionService {
     SearchableDomainClassMapper createDomainClassMapper(DomainEntity entity) {
         def config = grailsApplication?.config?.elasticSearch as ConfigObject
         new SearchableDomainClassMapper(grailsApplication, this, entity, config)
-    }
-
-    private GrailsDomainClass getDomainClassArtefact(Class<?> clazz) {
-        (GrailsDomainClass) grailsApplication.getArtefact(DomainClassArtefactHandler.TYPE, clazz.canonicalName)
     }
 
     private void verifyDomainClass(Class<?> clazz) {

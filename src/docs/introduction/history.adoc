@@ -1,5 +1,13 @@
 === History
 
+==== Grails 4.x version
+
+* December 24, 2019
+** 2.8.0
+*** Upgraded to Grails 4.0.1
+*** Upgraded to Elasticsearch 7.5.1
+
+
 ==== Grails 3.x version
 
 * August 12, 2019

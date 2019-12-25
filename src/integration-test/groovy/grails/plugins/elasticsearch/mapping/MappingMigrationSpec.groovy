@@ -1,13 +1,13 @@
 package grails.plugins.elasticsearch.mapping
 
 import grails.core.GrailsApplication
+import grails.gorm.transactions.Rollback
 import grails.plugins.elasticsearch.ElasticSearchAdminService
 import grails.plugins.elasticsearch.ElasticSearchBootStrapHelper
 import grails.plugins.elasticsearch.ElasticSearchContextHolder
 import grails.plugins.elasticsearch.ElasticSearchService
 import grails.plugins.elasticsearch.exception.MappingException
 import grails.testing.mixin.integration.Integration
-import grails.transaction.Rollback
 import spock.lang.Specification
 import test.mapping.migration.Catalog
 import test.mapping.migration.Item

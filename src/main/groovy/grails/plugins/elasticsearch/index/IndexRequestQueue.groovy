@@ -36,7 +36,10 @@ import org.slf4j.LoggerFactory
 import org.springframework.util.Assert
 
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ConcurrentLinkedDeque
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.function.BiConsumer
 
 /**
@@ -51,9 +54,10 @@ class IndexRequestQueue {
 
     private static final Logger LOG = LoggerFactory.getLogger(this)
 
-    private JSONDomainFactory jsonDomainFactory
-    private ElasticSearchContextHolder elasticSearchContextHolder
-    private RestHighLevelClient elasticSearchClient
+    JSONDomainFactory jsonDomainFactory
+    ElasticSearchContextHolder elasticSearchContextHolder
+    RestHighLevelClient elasticSearchClient
+    DomainClassUnWrapperChain domainClassUnWrapperChain
 
     /**
      * A map containing the pending index requests.

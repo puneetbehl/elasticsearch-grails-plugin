@@ -1,5 +1,6 @@
 package grails.plugins.elasticsearch
 
+import grails.core.support.proxy.EntityProxyHandler
 import grails.plugins.elasticsearch.mapping.DomainEntity
 import grails.plugins.elasticsearch.mapping.SearchableClassMapping
 import groovy.transform.CompileStatic
@@ -7,6 +8,9 @@ import org.grails.datastore.mapping.proxy.EntityProxy
 
 @CompileStatic
 class ElasticSearchContextHolder {
+
+    EntityProxyHandler proxyHandler
+
     /**
      * The configuration of the ElasticSearch plugin
      */
@@ -56,8 +60,16 @@ class ElasticSearchContextHolder {
      * @return
      */
     SearchableClassMapping getMappingContextByType(Class clazz) {
-        if(clazz in EntityProxy) {
+        if (clazz in EntityProxy) {
             clazz = clazz.superclass
+        }
+        mapping.values().find { scm -> scm.domainClass.type == clazz }
+    }
+
+    SearchableClassMapping getMappingContextByObject(o) {
+        Class clazz = o.class
+        if(proxyHandler.isProxy(o)) {
+            clazz = o.class.superclass
         }
         mapping.values().find { scm -> scm.domainClass.type == clazz }
     }
@@ -69,7 +81,7 @@ class ElasticSearchContextHolder {
      * @return A boolean determining if the class is root-mapped or not
      */
     boolean isRootClass(Class clazz) {
-        if(clazz in EntityProxy) {
+        if (clazz in EntityProxy) {
             clazz = clazz.superclass
         }
         mapping.values().any { scm -> scm.domainClass.type == clazz && scm.isRoot() }

@@ -201,7 +201,7 @@ class DomainClassUnmarshaller implements DataBinder {
                 return unmarshallReference(refDomainClass, data, unmarshallingContext)
             }
 
-            if (data.containsKey("class") && (Boolean) grailsApplication.flatConfig.get('elasticSearch.unmarshallComponents')) {
+            if (data.containsKey("class") && (Boolean) grailsApplication.config.get('elasticSearch.unmarshallComponents')) {
                 // Embedded instance.
                 if (!scpm.isComponent()) {
                     // maybe ignore?

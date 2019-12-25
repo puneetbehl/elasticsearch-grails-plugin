@@ -1,11 +1,11 @@
 package grails.plugins.elasticsearch.conversion.unmarshall
 
 import grails.core.GrailsApplication
+import grails.gorm.transactions.Rollback
 import grails.plugins.elasticsearch.ElasticSearchContextHolder
 import grails.plugins.elasticsearch.ElasticSearchSpec
 import grails.plugins.elasticsearch.exception.MappingException
 import grails.testing.mixin.integration.Integration
-import grails.transaction.Rollback
 import org.apache.lucene.search.TotalHits
 import org.elasticsearch.common.bytes.BytesArray
 import org.elasticsearch.common.text.Text
