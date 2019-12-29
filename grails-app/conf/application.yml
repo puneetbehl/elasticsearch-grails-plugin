@@ -33,7 +33,7 @@ spring:
                 - grails-app/i18n/**
                 - grails-app/conf/**
 management:
-endpoints:
+    endpoints:
         enabled-by-default: false
 
 ---
@@ -96,6 +96,9 @@ elasticSearch:
         socketTimeout: 30
         hosts:
         - {host: localhost, port: 9200}
+        #proxy:
+        #    host: localhost
+        #    port: 8888
     defaultExcludedProperties: ['password']
     disableAutoIndex: false
     index:
@@ -105,18 +108,43 @@ elasticSearch:
         name: searchable
     includeTransients: false
 environments:
+    #development:
+    #    elasticSearch:
+    #        client:
+    #            mode: local
+    #            transport.sniff: true
+    #        bulkIndexOnStartup: true
     development:
         elasticSearch:
             client:
                 mode: local
-                transport.sniff: true
-            bulkIndexOnStartup: true
+                hosts:
+                    - {host: 127.0.0.1, port: 9200}
+                transport.sniff: false
+                username: zzb-elasticsearch
+                password: /+mh&K@2sF('X7J_
+            datastoreImpl: hibernateDatastore
+            index:
+                store.type: simplefs
+                settings:
+                    analysis:
+                        filter:
+                            replace_synonyms:
+                                type: synonym
+                                synonyms: ['abc => xyz']
+                        analyzer:
+                            test_analyzer:
+                                tokenizer: standard
+                                filter: ['lowercase']
+                            repl_analyzer:
+                                tokenizer: standard
+                                filter: ['lowercase', 'replace_synonyms']
     test:
         elasticSearch:
             client:
                 mode: local
                 hosts:
-                  - {host: 127.0.0.1, port: 9200}
+                    - {host: 127.0.0.1, port: 9200}
                 transport.sniff: false
                 username: zzb-elasticsearch
                 password: /+mh&K@2sF('X7J_
@@ -148,9 +176,9 @@ hibernate:
         use_query_cache: false
         region.factory_class: org.hibernate.cache.ehcache.SingletonEhCacheRegionFactory
 
-endpoints:
-    jmx:
-        unique-names: true
+#endpoints:
+#    jmx:
+#        unique-names: true
 
 dataSource:
     dbCreate: create-drop

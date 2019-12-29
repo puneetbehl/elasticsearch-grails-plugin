@@ -12,7 +12,7 @@ class MappingConflict {
     Exception exception
 
     String toString() {
-        "Conflict on ${scm.indexName}/${scm.elasticTypeName}, due to '${exception.message}'"
+        "Conflict on ${scm.indexName}, due to '${exception.message}'"
     }
 
 }

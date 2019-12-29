@@ -107,7 +107,7 @@ trait ElasticSearchSpec {
     }
 
     String getIndexName(DomainEntity domainClass) {
-        String name = grailsApplication.config.getProperty("elasticSearch.index.name", String) ?: domainClass.packageName
+        String name = grailsApplication.config.getProperty("elasticSearch.index.name", String) ?: domainClass.fullName
         if (!name) {
             name = domainClass.defaultPropertyName
         }
@@ -130,7 +130,7 @@ trait ElasticSearchSpec {
             GetIndexRequest request = new GetIndexRequest().indices(indexName)
             GetIndexResponse getIndexResponse = client.indices().get(request, RequestOptions.DEFAULT)
             ImmutableOpenMap<String, MappingMetaData> indexMappings = getIndexResponse.mappings.get(indexName)
-            indexMappings.get(documentType)
+            indexMappings.get('_doc')
         }
     }
 

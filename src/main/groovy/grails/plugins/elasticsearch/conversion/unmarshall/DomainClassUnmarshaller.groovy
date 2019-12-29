@@ -68,10 +68,10 @@ class DomainClassUnmarshaller implements DataBinder {
         TypeConverter typeConverter = new SimpleTypeConverter()
         List results = []
         for (SearchHit hit : hits) {
-            String type = hit.type
-            SearchableClassMapping scm = elasticSearchContextHolder.findMappingContextByElasticType(type)
+            String index = hit.index
+            SearchableClassMapping scm = elasticSearchContextHolder.findMappingContextByIndexName(index)
             if (scm == null) {
-                LOG.warn("Unknown SearchHit: ${hit.id}#${hit.type}: adding to result set as a raw object")
+                LOG.warn("Unknown SearchHit: ${hit.id}#${index}: adding to result set as a raw object")
                 results << hit.sourceAsMap
                 continue
             }
@@ -288,7 +288,6 @@ class DomainClassUnmarshaller implements DataBinder {
         // As a simplest scenario recover object directly from ElasticSearch.
         // todo add first-level caching and cycle ref checking
         String indexName = elasticSearchContextHolder.getMappingContext(domainClass).queryingIndex
-        String name = elasticSearchContextHolder.getMappingContext(domainClass).elasticTypeName
         TypeConverter typeConverter = new SimpleTypeConverter()
         // A property value is expected to be a map in the form [id:ident]
         Object id = data.id

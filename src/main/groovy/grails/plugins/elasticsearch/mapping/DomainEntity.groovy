@@ -14,17 +14,14 @@ import java.lang.reflect.Modifier
 class DomainEntity {
 
     private final DomainReflectionService reflectionService
-
     private final Class<?> entityClass
-
     private final PersistentEntity persistentEntity
-
     private final Map<String, DomainProperty> propertyCache = [:]
-
     private Map<String, Class<?>> _associationMap
     private final ClassPropertyFetcher cpf
 
     private static final List<String> IGNORED_PROPERTIES = []
+
     static  {
         IGNORED_PROPERTIES.add(GormProperties.DIRTY_PROPERTY_NAMES)
         IGNORED_PROPERTIES.add(GormProperties.ERRORS)

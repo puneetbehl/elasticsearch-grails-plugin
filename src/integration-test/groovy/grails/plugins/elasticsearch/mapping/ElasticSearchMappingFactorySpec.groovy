@@ -39,7 +39,7 @@ class ElasticSearchMappingFactorySpec extends Specification {
             Map mapping = ElasticSearchMappingFactory.getElasticMapping(scm)
 
         then:
-            mapping[clazz.simpleName.toLowerCase()]['properties'][property].type == expectedType
+            mapping['properties'][property].type == expectedType
 
         where:
             clazz    | property          | expectedType

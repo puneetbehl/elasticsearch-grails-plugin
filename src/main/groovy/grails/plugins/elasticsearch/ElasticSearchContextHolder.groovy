@@ -32,7 +32,7 @@ class ElasticSearchContextHolder {
      * @param scm The SearchableClassMapping instance to add
      */
     void addMappingContext(SearchableClassMapping scm) {
-        mapping[scm.domainClass.fullName] = scm
+        mapping[scm.indexName] = scm
     }
 
     /**
@@ -41,7 +41,7 @@ class ElasticSearchContextHolder {
      * @return
      */
     SearchableClassMapping getMappingContext(String type) {
-        mapping[type]
+        mapping[type.toLowerCase()]
     }
 
     /**
@@ -87,15 +87,15 @@ class ElasticSearchContextHolder {
         mapping.values().any { scm -> scm.domainClass.type == clazz && scm.isRoot() }
     }
 
-    /**
-     * Returns the Class that is associated to a specific elasticSearch type
-     *
-     * @param elasticTypeName
-     * @return A Class instance or NULL if the class was not found
-     */
-    Class findMappedClassByElasticType(String elasticTypeName) {
-        findMappingContextByElasticType(elasticTypeName)?.domainClass?.type
-    }
+//    /**
+//     * Returns the Class that is associated to a specific elasticSearch type
+//     *
+//     * @param elasticTypeName
+//     * @return A Class instance or NULL if the class was not found
+//     */
+//    Class findMappedClassByElasticType(String elasticTypeName) {
+//        findMappingContextByElasticType(elasticTypeName)?.domainClass?.type
+//    }
 
     /**
      * Returns all the Classes associated to a specific elasticSearch index
@@ -110,11 +110,20 @@ class ElasticSearchContextHolder {
     }
 
     /**
-     * Returns the SearchableClassMapping that is associated to a elasticSearch type
-     * @param elasticTypeName
+     * Returns the SearchableClassMapping that is associated to a index name
+     * @param indexName
      * @return
      */
-    SearchableClassMapping findMappingContextByElasticType(String elasticTypeName) {
-        mapping.values().find { scm -> scm.elasticTypeName == elasticTypeName }
+    SearchableClassMapping findMappingContextByIndexName(String indexName) {
+        mapping.values().find { scm -> scm.indexName.toLowerCase() == indexName?.split('_')[0]?.toLowerCase() }
     }
+
+//    /**
+//     * Returns the SearchableClassMapping that is associated to a elasticSearch type
+//     * @param elasticTypeName
+//     * @return
+//     */
+//    SearchableClassMapping findMappingContextByElasticType(String elasticTypeName) {
+//        mapping.values().find { scm -> scm.elasticTypeName == elasticTypeName }
+//    }
 }

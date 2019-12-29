@@ -47,7 +47,6 @@ class SearchableDomainClassMapperIntegrationSpec extends Specification implement
 
         then: 'the location is mapped as a geoPoint'
             classMapping.domainClass == entity
-            classMapping.elasticTypeName == 'building'
             def locationMapping = classMapping.propertiesMapping.find { it.propertyName == 'location' }
             locationMapping.isGeoPoint()
     }
@@ -62,7 +61,7 @@ class SearchableDomainClassMapperIntegrationSpec extends Specification implement
             def mapping = ElasticSearchMappingFactory.getElasticMapping(classMapping)
 
         then:
-            mapping.building?.properties?.location == [type: 'geo_point']
+            mapping.properties?.location == [type: 'geo_point']
     }
 
     void 'a mapping can be built from a domain class'() {
@@ -84,7 +83,6 @@ class SearchableDomainClassMapperIntegrationSpec extends Specification implement
 
         then: 'the date is aliased'
             classMapping.domainClass == entity
-            classMapping.elasticTypeName == 'building'
             def aliasMapping = classMapping.propertiesMapping.find { it.propertyName == 'date' }
             aliasMapping.isAlias()
     }
@@ -99,7 +97,6 @@ class SearchableDomainClassMapperIntegrationSpec extends Specification implement
 
         then: 'the date is aliased'
             classMapping.domainClass == entity
-            classMapping.elasticTypeName == 'building'
             def aliasMapping = classMapping.propertiesMapping.find { it.propertyName == 'date' }
             aliasMapping.getAlias() == '@timestamp'
     }

@@ -32,7 +32,8 @@ class ElasticSearchBootStrapHelper implements ElasticSearchConfigAware {
         //Update index aliases where needed
         MappingMigrationStrategy migrationStrategy = migrationConfig?.strategy ? MappingMigrationStrategy.valueOf(migrationConfig?.strategy as String) : MappingMigrationStrategy.none
         if (migrationStrategy == MappingMigrationStrategy.alias) {
-            elasticSearchContextHolder.indexesRebuiltOnMigration.each { String indexName ->
+            elasticSearchContextHolder.indexesRebuiltOnMigration.each { idxName ->
+                String indexName = idxName as String
                 int latestVersion = elasticSearchAdminService.getLatestVersion(indexName)
                 if(!migrationConfig?.disableAliasChange) {
                     elasticSearchAdminService.pointAliasTo IndexNamingUtils.queryingIndexFor(indexName), indexName, latestVersion

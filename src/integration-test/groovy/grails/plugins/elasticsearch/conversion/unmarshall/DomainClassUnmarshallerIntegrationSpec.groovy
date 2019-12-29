@@ -47,6 +47,7 @@ class DomainClassUnmarshallerIntegrationSpec extends Specification implements El
         given: 'a search hit with a geo_point'
         SearchHit hit = new SearchHit(1, '1', new Text('building'), [:])
                 .sourceRef(new BytesArray('{"location":{"class":"test.GeoPoint","id":"2", "lat":53.0,"lon":10.0},"name":"WatchTower"}'))
+        hit.index = 'test.building'
         SearchHit[] hits = [hit]
         def maxScore = 0.1534264087677002f
         def totalHits = 1
@@ -70,6 +71,7 @@ class DomainClassUnmarshallerIntegrationSpec extends Specification implements El
         given: 'a search hit with some temporal types'
         SearchHit hit = new SearchHit(1, '1', new Text('dates'), [:])
                 .sourceRef(new BytesArray('{"date":"2019-08-12T07:25:17.935Z","localDateTime":"2019-08-12T09:25:17.935Z","zonedDateTime":"2019-08-12T03:25:17.935-04:00","offsetTime":"03:25:17.935-04:00","name":"Object with java.util.time types","offsetDateTime":"2019-08-12T03:25:17.935-04:00","localDate":"2019-08-12"}'))
+        hit.index = 'test.dates'
         SearchHit[] hits = [hit]
         def maxScore = 0.1534264087677002f
         def totalHits = 1
@@ -95,6 +97,7 @@ class DomainClassUnmarshallerIntegrationSpec extends Specification implements El
         given: 'a search hit with a color with unhandled properties r-g-b'
             SearchHit hit = new SearchHit(1, '1', new Text('color'), [:])
                     .sourceRef(new BytesArray('{"name":"Orange", "red":255, "green":153, "blue":0}'))
+            hit.index = 'test.color'
             SearchHit[] hits = [hit]
             def maxScore = 0.1534264087677002f
             def totalHits = 1
@@ -125,6 +128,7 @@ class DomainClassUnmarshallerIntegrationSpec extends Specification implements El
         given: 'a search hit with a circle, within it a color with an unhandled properties "red"'
             SearchHit hit = new SearchHit(1, '1', new Text('circle'), [:])
                     .sourceRef(new BytesArray('{"radius":7, "color":{"class":"test.Color", "id":"2", "name":"Orange", "red":255}}'))
+            hit.index = 'test.circle'
             SearchHit[] hits = [hit]
             def maxScore = 0.1534264087677002f
             def totalHits = 1

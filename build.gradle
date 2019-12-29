@@ -39,6 +39,8 @@ apply plugin: 'maven-publish'
 ext {
     gradleWrapperVersion = project.gradleWrapperVersion
     elasticsearchVersion = project.elasticsearchVersion
+
+    bootstrapElasticsearch = Boolean.parseBoolean((findProperty('es') ?: 'true') as String)
 }
 
 sourceCompatibility = 1.8
@@ -143,20 +145,24 @@ task cleanDataDir(type: Delete) {
 
 integrationTest {
     doFirst {
-        startElasticsearch {
-            elasticsearchVersion = elasticsearchVersion
-            httpHost = "localhost"
-            httpPort = 9200
-            transportPort = 9300
-            dataDir = file("$buildDir/elastic")
-            logsDir = file("$buildDir/elastic/logs")
+        if (bootstrapElasticsearch) {
+            startElasticsearch {
+                elasticsearchVersion = elasticsearchVersion
+                httpHost = "localhost"
+                httpPort = 9200
+                transportPort = 9300
+                dataDir = file("$buildDir/elastic")
+                logsDir = file("$buildDir/elastic/logs")
+            }
         }
     }
 
     doLast {
-        stopElasticsearch {
-            httpHost = "localhost"
-            httpPort = 9200
+        if (bootstrapElasticsearch) {
+            stopElasticsearch {
+                httpHost = "localhost"
+                httpPort = 9200
+            }
         }
     }
 }
@@ -164,9 +170,11 @@ integrationTest {
 gradle.taskGraph.afterTask { task ->
 
     if (task.name == "integrationTest") {
-        stopElasticsearch {
-            httpHost = "localhost"
-            httpPort = 9200
+        if (bootstrapElasticsearch) {
+            stopElasticsearch {
+                httpHost = "localhost"
+                httpPort = 9200
+            }
         }
     }
 }

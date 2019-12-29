@@ -164,7 +164,7 @@ class GXContentBuilder extends GroovyObjectSupport {
         callable.delegate = this
         callable.resolveStrategy = Closure.DELEGATE_FIRST
         callable.call()
-        current = nestingStack.pop()
+        current = nestingStack.removeLast()
     }
 
     void setProperty(String propName, value) {

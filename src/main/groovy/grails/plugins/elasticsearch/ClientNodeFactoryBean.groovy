@@ -59,13 +59,27 @@ class ClientNodeFactoryBean implements FactoryBean {
         }
 
         // Configure username and password credentials
-        if (elasticSearchContextHolder.config.client.username) {
-            final CredentialsProvider credentialsProvider = new BasicCredentialsProvider()
-            credentialsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(elasticSearchContextHolder.config.client.username, elasticSearchContextHolder.config.client.password))
+        if (elasticSearchContextHolder.config.client.proxy.host || elasticSearchContextHolder.config.client.username) {
+            CredentialsProvider credentialsProvider = null
+            if (elasticSearchContextHolder.config.client.username) {
+                credentialsProvider = new BasicCredentialsProvider()
+                credentialsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(elasticSearchContextHolder.config.client.username, elasticSearchContextHolder.config.client.password))
+            }
+
+            HttpHost proxyHost = null
+            if (elasticSearchContextHolder.config.client.proxy.host) {
+                proxyHost = new HttpHost(elasticSearchContextHolder.config.client.proxy.host, elasticSearchContextHolder.config.client.proxy.port as int, "http")
+            }
             builder.setHttpClientConfigCallback(new RestClientBuilder.HttpClientConfigCallback() {
                 @Override
                 HttpAsyncClientBuilder customizeHttpClient(HttpAsyncClientBuilder httpClientBuilder) {
-                    return httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider)
+                    if (credentialsProvider) {
+                        httpClientBuilder = httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider)
+                    }
+                    if (proxyHost) {
+                        httpClientBuilder = httpClientBuilder.setProxy(proxyHost)
+                    }
+                    return httpClientBuilder
                 }
             })
         }

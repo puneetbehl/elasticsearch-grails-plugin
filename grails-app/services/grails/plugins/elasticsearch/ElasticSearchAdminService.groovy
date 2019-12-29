@@ -6,14 +6,13 @@ import groovy.json.JsonSlurper
 import org.apache.http.util.EntityUtils
 import org.elasticsearch.action.admin.indices.alias.IndicesAliasesRequest
 import org.elasticsearch.action.admin.indices.alias.get.GetAliasesRequest
-import org.elasticsearch.action.admin.indices.create.CreateIndexRequest
 import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest
-import org.elasticsearch.action.admin.indices.get.GetIndexRequest
-import org.elasticsearch.action.admin.indices.mapping.get.GetMappingsRequest
-import org.elasticsearch.action.admin.indices.mapping.put.PutMappingRequest
 import org.elasticsearch.action.admin.indices.refresh.RefreshRequest
 import org.elasticsearch.action.support.broadcast.BroadcastResponse
 import org.elasticsearch.client.*
+import org.elasticsearch.client.indices.CreateIndexRequest
+import org.elasticsearch.client.indices.GetIndexRequest
+import org.elasticsearch.client.indices.PutMappingRequest
 import org.elasticsearch.cluster.health.ClusterHealthStatus
 import org.elasticsearch.common.settings.Settings
 import org.elasticsearch.common.xcontent.XContentHelper
@@ -77,7 +76,7 @@ class ElasticSearchAdminService {
      * @param searchableClasses The indices represented by the specified searchable classes to refresh. If null, will refresh ALL indices.
      */
     void refresh(Class... searchableClasses) {
-        def toRefresh = []
+        Set<String> toRefresh = []
 
         // Retrieve indices to refresh
         searchableClasses.each {
@@ -136,7 +135,7 @@ class ElasticSearchAdminService {
      * @param indices The indices to delete in the form of searchable class(es).
      */
     void deleteIndex(Class... searchableClasses) {
-        def toDelete = []
+        Set<String> toDelete = []
 
         // Retrieve indices to delete
         searchableClasses.each {
@@ -163,22 +162,9 @@ class ElasticSearchAdminService {
         elasticSearchHelper.withElasticSearch { RestHighLevelClient client ->
             client.indices().putMapping(
                     new PutMappingRequest(index)
-                            .type(type)
                             .source(elasticMapping),
                     RequestOptions.DEFAULT
             )
-        }
-    }
-
-    /**
-     * Check whether a mapping exists
-     * @param index The name of the index to check on
-     * @param type The type which mapping is being checked
-     * @return true if the mapping exists
-     */
-    boolean mappingExists(String index, String type) {
-        elasticSearchHelper.withElasticSearch { RestHighLevelClient client ->
-            !client.indices().getMapping(new GetMappingsRequest().indices(index).types(type), RequestOptions.DEFAULT).mappings.empty
         }
     }
 
@@ -223,8 +209,10 @@ class ElasticSearchAdminService {
 
             }
             esMappings.each { String type, Map elasticMapping ->
-                request.mapping(type, elasticMapping)
+                request.mapping(elasticMapping)
             }
+
+            println request.mappings().utf8ToString()
 
             client.indices().create(request, RequestOptions.DEFAULT)
         }
@@ -250,8 +238,7 @@ class ElasticSearchAdminService {
     boolean indexExists(String index, Integer version = null) {
         index = versionIndex(index, version)
         elasticSearchHelper.withElasticSearch { RestHighLevelClient client ->
-            GetIndexRequest request = new GetIndexRequest()
-            request.indices(index)
+            GetIndexRequest request = new GetIndexRequest(index)
             request.humanReadable(true)
             client.indices().exists(request, RequestOptions.DEFAULT)
         }

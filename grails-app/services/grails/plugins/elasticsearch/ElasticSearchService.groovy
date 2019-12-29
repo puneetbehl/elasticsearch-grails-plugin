@@ -437,7 +437,7 @@ class ElasticSearchService implements GrailsApplicationAware {
      */
     private void doBulkRequest(Collection<GroovyObject> instances, int operationType) {
         instances.each {
-            def scm = elasticSearchContextHolder.getMappingContextByType(it.class)
+            def scm = elasticSearchContextHolder.getMappingContextByObject(it)
             if (scm && scm.root) {
                 if (operationType == INDEX_REQUEST) {
                     indexRequestQueue.addIndexRequest(it)

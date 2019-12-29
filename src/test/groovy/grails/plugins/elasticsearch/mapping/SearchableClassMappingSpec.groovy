@@ -39,8 +39,8 @@ class SearchableClassMappingSpec extends Specification implements DataTest, Auto
 
         where:
         className       || packageName
-        Post.class.name || "test.all"
-        Toy.class.name  || "test.custom.id"
+        Post.class.name || "test.all.post"
+        Toy.class.name  || "test.custom.id.toy"
     }
 
     void testGetIndexName() throws Exception {
@@ -49,7 +49,7 @@ class SearchableClassMappingSpec extends Specification implements DataTest, Auto
         SearchableClassMapping mapping = new SearchableClassMapping(grailsApplication, new DomainEntity(domainReflectionService, persistentEntity), null)
 
         then:
-        'test' == mapping.getIndexName()
+        'test.photo' == mapping.getIndexName()
     }
 
     void testManuallyConfiguredIndexName() throws Exception {
@@ -70,7 +70,7 @@ class SearchableClassMappingSpec extends Specification implements DataTest, Auto
             String indexName = mapping.getIndexName()
 
         then:
-        'test.uppercase' == indexName
+        'test.uppercase.uppercase' == indexName
     }
 
     void cleanup() {

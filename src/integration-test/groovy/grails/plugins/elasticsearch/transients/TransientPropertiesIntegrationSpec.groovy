@@ -9,24 +9,32 @@ import grails.testing.mixin.integration.Integration
 import org.apache.lucene.search.join.ScoreMode
 import org.elasticsearch.index.query.NestedQueryBuilder
 import org.elasticsearch.index.query.QueryBuilders
+import org.springframework.beans.factory.annotation.Autowired
 import spock.lang.Specification
-import test.transients.*
+import test.transients.Anagram
+import test.transients.Calculation
+import test.transients.Color
+import test.transients.Palette
+import test.transients.Player
+import test.transients.Team
+import test.transients.Fan
 
 @Integration
 @Rollback
 class TransientPropertiesIntegrationSpec extends Specification {
 
+    @Autowired
     GrailsApplication grailsApplication
+    @Autowired
     ElasticSearchService elasticSearchService
+    @Autowired
     ElasticSearchAdminService elasticSearchAdminService
+    @Autowired
     SearchableClassMappingConfigurator searchableClassMappingConfigurator
 
     void 'when includeTransients config is false only properties explicitly included in only are indexed and searchable'() {
-        given: "the configuration says to always include transients"
-            grailsApplication.config.elasticSearch.includeTransients = false
-
-            elasticSearchAdminService.deleteIndex()
-            searchableClassMappingConfigurator.configureAndInstallMappings()
+        expect:
+            grailsApplication.config.elasticSearch.includeTransients == false
 
         when: "Indexing some instances"
             def toIndex = []

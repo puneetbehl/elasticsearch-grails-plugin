@@ -200,12 +200,12 @@ class IndexRequestQueue {
 
                     if (LOG.isDebugEnabled()) {
                         try {
-                            LOG.debug("Indexing $key.clazz (index: $scm.indexingIndex , type: $scm.elasticTypeName) of id $key.id and source ${json.getOutputStream().toString()}")
+                            LOG.debug("Indexing $key.clazz (index: $scm.indexingIndex) of id $key.id and source ${json.getOutputStream().toString()}")
                         } catch (IOException e) {
                         }
                     }
                 } catch (Exception e) {
-                    LOG.error("Error Indexing $key.clazz (index: $scm.indexingIndex , type: $scm.elasticTypeName) of id $key.id", e)
+                    LOG.error("Error Indexing $key.clazz (index: $scm.indexingIndex) of id $key.id", e)
                 }
             }
 
@@ -213,9 +213,9 @@ class IndexRequestQueue {
             toDelete.each {
                 SearchableClassMapping scm = elasticSearchContextHolder.getMappingContextByType(it.clazz)
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug("Deleting object from index $scm.indexingIndex and type $scm.elasticTypeName and ID $it.id")
+                    LOG.debug("Deleting object from index $scm.indexingIndex and ID $it.id")
                 }
-                bulkProcessor.add(new DeleteRequest(scm.indexingIndex, scm.elasticTypeName, it.id))
+                bulkProcessor.add(new DeleteRequest(scm.indexingIndex, it.id))
             }
 
             bulkProcessor.awaitClose(30L, TimeUnit.SECONDS)
