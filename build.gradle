@@ -2,7 +2,7 @@ buildscript {
     ext {
         grailsVersion = project.grailsVersion
         gormVersion = project.gormVersion
-        elasticsearchVersion = project.elasticsearchVersion
+        esVersion = project.elasticsearchVersion
     }
     repositories {
         mavenLocal()
@@ -21,7 +21,7 @@ plugins {
     id "com.jfrog.bintray" version "1.8.4"
     id 'com.jfrog.artifactory' version '4.9.8'
     id "de.undercouch.download" version "4.0.0"
-    id "cgoit.gradle.elasticsearch" version "0.1.1"
+    id "cgoit.gradle.elasticsearch" version "0.2.1"
 }
 
 version '2.8.0'
@@ -38,7 +38,7 @@ apply plugin: 'maven-publish'
 
 ext {
     gradleWrapperVersion = project.gradleWrapperVersion
-    elasticsearchVersion = project.elasticsearchVersion
+    esVersion = project.elasticsearchVersion
 
     bootstrapElasticsearch = Boolean.parseBoolean((findProperty('es') ?: 'true') as String)
 }
@@ -103,12 +103,10 @@ dependencies {
     compile "org.apache.logging.log4j:log4j-api:2.7"
     compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.7'
 
-    compile "org.elasticsearch:elasticsearch:${elasticsearchVersion}"
-    compile group: 'org.elasticsearch.client', name: 'elasticsearch-rest-high-level-client', version: elasticsearchVersion
-    compile group: 'org.elasticsearch.client', name: 'elasticsearch-rest-client', version: elasticsearchVersion
-    compile group: 'org.locationtech.spatial4j', name: 'spatial4j', version: '0.6'
-    //compile group: 'org.codehaus.gpars', name: 'gpars', version: '1.2.1'
-
+    compile "org.elasticsearch:elasticsearch:${esVersion}"
+    compile "org.elasticsearch.client:elasticsearch-rest-high-level-client:${esVersion}"
+    compile "org.elasticsearch.client:elasticsearch-rest-client:${esVersion}"
+    compile "org.locationtech.spatial4j:spatial4j:0.6"
 
     console "org.grails:grails-console"
 
@@ -147,7 +145,7 @@ integrationTest {
     doFirst {
         if (bootstrapElasticsearch) {
             startElasticsearch {
-                elasticsearchVersion = elasticsearchVersion
+                elasticsearchVersion = esVersion
                 httpHost = "localhost"
                 httpPort = 9200
                 transportPort = 9300
