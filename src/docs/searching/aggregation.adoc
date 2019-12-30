@@ -1,0 +1,86 @@
+[[aggregation]]
+=== Aggregation
+
+You can use AggregationBuilders while searching. The aggregations framework helps provide aggregated data based on a search query.
+It is based on simple building blocks called aggregations, that can be composed in order to build complex summaries of the data.
+
+You could use preconstructed AggregationBuilders or use the standard DSL based aggregations
+
+*Examples*
+
+_Use of AggregationBuilders_
+
+[source, groovy]
+----
+
+// build your aggregation(s)
+def aggregations = []
+aggregations << AggregationBuilders.filters('types',
+        new FiltersAggregator.KeyedFilter('jpg', QueryBuilders.matchQuery('type', 'jpg')),
+        new FiltersAggregator.KeyedFilter('png', QueryBuilders.matchQuery('type', 'png'))
+)
+aggregations << AggregationBuilders.terms('names').field('name')
+aggregations << AggregationBuilders.avg('avg_size').field('size')
+
+// Use it
+
+Photo.search('xyz', null as Closure, aggregations)
+
+// or
+
+elasticSearchService.search(
+                    'xyz',
+                    null as Closure,
+                    aggregations,
+                    [ indices: Photo, types: Photo ])
+----
+
+_Use of DSL_
+
+[source, groovy]
+----
+
+Photo.search('xyz', null as Closure, {
+            "types" {
+                filters {
+                    "filters" {
+                        "jpg" { match(type: 'jpg') }
+                        "png" { match(type: 'png') }
+                    }
+                }
+            }
+
+            "names" {
+                terms(field: 'name')
+            }
+
+            "avg_size" {
+                avg(field: 'size')
+            }
+        })
+
+// or
+
+elasticSearchService.search(
+                    'xyz',
+                    null as Closure,
+                    {
+                        "types" {
+                            filters {
+                                "filters" {
+                                    "jpg" { match(type: 'jpg') }
+                                    "png" { match(type: 'png') }
+                                }
+                            }
+                        }
+
+                        "names" {
+                            terms(field: 'name')
+                        }
+
+                        "avg_size" {
+                            avg(field: 'size')
+                        }
+                    },
+                    [ indices: Photo, types: Photo ])
+----

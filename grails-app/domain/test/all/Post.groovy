@@ -9,9 +9,8 @@ class Post {
     String body
 
     static searchable = {
-        all = [analyzer: 'repl_analyzer']
-        subject analyzer: 'test_analyzer'
-        body analyzer: 'test_analyzer'
+        subject analyzer: 'test_analyzer', search_analyzer: 'standard'
+        body analyzer: 'test_analyzer', search_analyzer: 'standard'
     }
 
 }

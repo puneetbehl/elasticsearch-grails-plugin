@@ -3,8 +3,8 @@ package test
 class Store {
 
     String name
-    String description = "A description of a store"
-    String owner = "Owner of the store"
+    String description = 'A description of a store'
+    String owner = 'Owner of the store'
 
     static searchable = true
 
@@ -18,7 +18,7 @@ class Store {
         autoImport(false)
     }
 
-    public String toString() {
+    String toString() {
         name
     }
 }

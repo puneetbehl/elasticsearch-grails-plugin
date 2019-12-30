@@ -1,6 +1,9 @@
 [[parentChildExample]]
 === Parent/Child mapping
 
+Mapping types being removed, please see:
+https://www.elastic.co/guide/en/elasticsearch/reference/current/removal-of-types.html
+
 A store with many departments
 
 [source, groovy]
@@ -31,7 +34,7 @@ class Department {
     }
 
     static searchable = {
-        store parent: true, component:true
+        store join: true, component:true
     }
 }
 

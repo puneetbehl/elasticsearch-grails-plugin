@@ -2,13 +2,13 @@ package grails.plugins.elasticsearch
 
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
-import org.elasticsearch.client.Client
+import org.elasticsearch.client.RestHighLevelClient
 
 class ElasticSearchHelper {
 
-    Client elasticSearchClient
+    RestHighLevelClient elasticSearchClient
 
-    def <R> R withElasticSearch(@ClosureParams(value=SimpleType.class, options="org.elasticsearch.client.Client") Closure<R> callable) {
+    def <R> R withElasticSearch(@ClosureParams(value = SimpleType, options = 'org.elasticsearch.client.RestHighLevelClient') Closure<R> callable) {
         callable.call(elasticSearchClient)
     }
 

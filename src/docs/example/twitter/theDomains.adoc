@@ -32,9 +32,9 @@ class User {
   static searchable = {
     except = 'password'
     lastname boost:20
-    firstname boost:15, index:'not_analyzed'
-    listOfThings index:'no'
-    someThings index:'no'
+    firstname boost:15, index:'true'
+    listOfThings index:'false'
+    someThings index:'false'
     tweets component:true
   }
 

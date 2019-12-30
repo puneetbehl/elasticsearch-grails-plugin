@@ -1,7 +1,7 @@
 package grails.plugins.elasticsearch
 
+import grails.gorm.transactions.Rollback
 import grails.testing.mixin.integration.Integration
-import grails.transaction.Rollback
 import org.springframework.beans.factory.annotation.Autowired
 import spock.lang.Specification
 import test.File
@@ -31,13 +31,13 @@ class AttachmentMappingIntegrationSpec extends Specification {
         elasticSearchAdminService.refresh() // Ensure the latest operations have been exposed on the ES instance
 
         and:
-        elasticSearchService.search('best', [indices: File, types: File]).total == 1
+        elasticSearchService.search('best', [indices: File, types: File]).total.value == 1
 
         then:
         elasticSearchService.unindex(file)
         elasticSearchAdminService.refresh()
 
         and:
-        elasticSearchService.search('best', [indices: File, types: File]).total == 0
+        elasticSearchService.search('best', [indices: File, types: File]).total.value == 0
     }
 }

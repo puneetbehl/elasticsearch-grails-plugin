@@ -36,7 +36,7 @@ class SearchableClassMapping implements ElasticSearchConfigAware {
     /** Searchable root? */
     private boolean root = true
 
-    protected all = true
+    protected all = false // _all is deprecated in ES 6
     String indexName
 
     SearchableClassMapping(GrailsApplication grailsApplication,
@@ -61,8 +61,8 @@ class SearchableClassMapping implements ElasticSearchConfigAware {
     }
 
     void setAll(all) {
-        if (all != null)
-            this.all = all
+        //if (all != null)
+        //    this.all = all // _all is deprecated in ES 6
     }
 
     Collection<SearchableClassPropertyMapping> getPropertiesMapping() {
@@ -84,7 +84,7 @@ class SearchableClassMapping implements ElasticSearchConfigAware {
     }
 
     String calculateIndexName() {
-        String name = (esConfig?.get('index') as ConfigObject)?.name ?: domainClass.packageName
+        String name = (esConfig?.get('index') as ConfigObject)?.name ?: domainClass.fullName
 
         if (name == null || name.length() == 0) {
             name = domainClass.defaultPropertyName
@@ -110,12 +110,13 @@ class SearchableClassMapping implements ElasticSearchConfigAware {
     }
 
     boolean isAll() {
-        if (all instanceof Boolean) {
+        false
+        /*if (all instanceof Boolean) {
             return all
         } else if (all instanceof Map) {
             return (all as Map).enabled instanceof Boolean ? (all as Map).enabled : true
         }
-        true
+        true*/ // _all is deprecated in ES 6
     }
 
     @Override

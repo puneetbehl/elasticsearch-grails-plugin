@@ -60,7 +60,7 @@ class GXContentBuilder extends GroovyObjectSupport {
         XContentBuilder builder = XContentFactory.contentBuilder(contentType)
         def json = build(c)
         builder.map(json)
-        def bytes = builder.bytes()
+        def bytes = BytesReference.bytes(builder)
         return BytesReference.toBytes(bytes)
     }
 
@@ -164,7 +164,7 @@ class GXContentBuilder extends GroovyObjectSupport {
         callable.delegate = this
         callable.resolveStrategy = Closure.DELEGATE_FIRST
         callable.call()
-        current = nestingStack.pop()
+        current = nestingStack.removeLast()
     }
 
     void setProperty(String propName, value) {

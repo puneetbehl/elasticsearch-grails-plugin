@@ -1,48 +1,58 @@
 package grails.plugins.elasticsearch.mapping
 
-import grails.core.GrailsDomainClass
-import grails.core.GrailsDomainClassProperty
 import grails.util.GrailsClassUtils
 import grails.util.GrailsNameUtils
 import groovy.transform.CompileStatic
-import org.grails.core.util.ClassPropertyFetcher
 import org.grails.datastore.mapping.model.PersistentEntity
+import org.grails.datastore.mapping.model.PersistentProperty
+import org.grails.datastore.mapping.model.config.GormProperties
+import org.grails.datastore.mapping.reflect.ClassPropertyFetcher
 
-import static java.util.Collections.emptyList
+import java.lang.reflect.Modifier
 
 @CompileStatic
 class DomainEntity {
 
     private final DomainReflectionService reflectionService
-
     private final Class<?> entityClass
-
-    private final GrailsDomainClass grailsDomainClass
     private final PersistentEntity persistentEntity
-
     private final Map<String, DomainProperty> propertyCache = [:]
-
     private Map<String, Class<?>> _associationMap
+    private final ClassPropertyFetcher cpf
 
-    DomainEntity(DomainReflectionService reflectionService, Class<?> entityClass) {
-        this(reflectionService, null, null, entityClass)
+    private static final List<String> IGNORED_PROPERTIES = []
+
+    static  {
+        IGNORED_PROPERTIES.add(GormProperties.DIRTY_PROPERTY_NAMES)
+        IGNORED_PROPERTIES.add(GormProperties.ERRORS)
+        IGNORED_PROPERTIES.add(GormProperties.DIRTY)
+        IGNORED_PROPERTIES.add(GormProperties.ATTACHED)
+        IGNORED_PROPERTIES.add(GormProperties.PROPERTIES)
+        IGNORED_PROPERTIES.add(GormProperties.META_CLASS)
+        // GORM for mongodb ignores
+        IGNORED_PROPERTIES.add("dbo")
     }
 
-    DomainEntity(DomainReflectionService reflectionService, GrailsDomainClass entityDelegate,
-                 PersistentEntity persistentEntity)
-    {
-        this(reflectionService, entityDelegate, persistentEntity, entityDelegate.clazz)
+    DomainEntity(DomainReflectionService reflectionService, Class<?> entityClass) {
+        this(reflectionService, null, entityClass)
+    }
+
+    DomainEntity(DomainReflectionService reflectionService, PersistentEntity persistentEntity) {
+        this(reflectionService, persistentEntity, persistentEntity.javaClass)
     }
 
     private DomainEntity(DomainReflectionService reflectionService,
-                         GrailsDomainClass grailsDomainClass,
                          PersistentEntity persistentEntity,
-                         Class<?> entityClass)
-    {
+                         Class<?> entityClass) {
+
         this.persistentEntity = persistentEntity
         this.reflectionService = reflectionService
         this.entityClass = entityClass
-        this.grailsDomainClass = grailsDomainClass
+        this.cpf = ClassPropertyFetcher.forClass(entityClass)
+    }
+
+    PersistentEntity getPersistentEntity() {
+        return persistentEntity
     }
 
     Class<?> getType() {
@@ -50,31 +60,31 @@ class DomainEntity {
     }
 
     String getFullName() {
-        grailsDomainClass?.fullName
+        persistentEntity.name
     }
 
     String getPackageName() {
-        grailsDomainClass?.packageName
+        persistentEntity.javaClass.package.name
     }
 
     MetaClass getDelegateMetaClass() {
-        grailsDomainClass?.metaClass
+        persistentEntity.javaClass.metaClass
     }
 
     boolean isRoot() {
-        grailsDomainClass?.root ?: false
+        persistentEntity.isRoot()
     }
 
     DomainProperty getIdentifier() {
-        getPropertyAdapter(grailsDomainClass?.identifier)
+        getPropertyAdapter(persistentEntity.identity)
     }
 
     String getIdentifierName() {
-        grailsDomainClass?.identifier?.name
+        persistentEntity.identity.name
     }
 
     String getDefaultPropertyName() {
-        grailsDomainClass?.propertyName
+        persistentEntity.decapitalizedName
     }
 
     String getPropertyNameRepresentation() {
@@ -82,11 +92,22 @@ class DomainEntity {
     }
 
     boolean hasProperty(String name) {
-        grailsDomainClass?.hasProperty(name) ?: false
+        cpf.metaProperties.find {it.name == name}
+    }
+
+    boolean hasSearchableProperty(String searchablePropertyName) {
+        entityClass.declaredFields.find { it.name == searchablePropertyName && Modifier.isStatic(it.modifiers) }
     }
 
     DomainProperty getPropertyByName(String name) {
-        getPropertyAdapter(grailsDomainClass?.getPropertyByName(name))
+        PersistentProperty persistentProperty = persistentEntity.getPropertyByName(name)
+        if (persistentProperty != null) {
+            return getPropertyAdapter(persistentProperty)
+        }
+        MetaProperty metaProperty = cpf.getMetaProperties().find { it.name.equals(name) }
+        if (metaProperty != null) {
+            return getPropertyAdapter(metaProperty)
+        }
     }
 
     Collection<DomainProperty> getProperties() {
@@ -94,21 +115,36 @@ class DomainEntity {
     }
 
     Collection<DomainProperty> getAllProperties() {
-        def properties = grailsDomainClass?.properties?.toList()
-        if (!properties) return emptyList()
+        Collection<DomainProperty> allProps = []
+        final List<PersistentProperty> persistentProperties = persistentEntity.persistentProperties
+        persistentProperties
+                .forEach({ PersistentProperty property ->
+                    if (!(property.name in IGNORED_PROPERTIES)) allProps.add(getPropertyAdapter(property))
+                })
+        cpf.getMetaProperties().forEach({ MetaProperty metaProperty ->
+            if (!(metaProperty.name in IGNORED_PROPERTIES) &&
+                    !Modifier.isStatic(metaProperty.modifiers) &&
+                    notInPersistentProperties(persistentProperties, metaProperty)) {
 
-        properties.collect { getPropertyAdapter(it) }
+                allProps.add(getPropertyAdapter(metaProperty))
+            }
+        })
+        allProps
     }
 
     Collection<DomainProperty> getPersistentProperties() {
-        def properties = grailsDomainClass?.persistentProperties?.toList()
-        if (!properties) return emptyList()
-
-        properties.collect { getPropertyAdapter(it) }
+        persistentEntity.persistentProperties
+                .collect {
+                    if (it.name in IGNORED_PROPERTIES || it.name == GormProperties.VERSION) {
+                        return null
+                    }
+                    getPropertyAdapter(it)
+                }
+                .findAll { it }
     }
 
     Object getInitialPropertyValue(String name) {
-        grailsDomainClass?.getPropertyValue(name)
+        ClassPropertyFetcher.forClass(persistentEntity.javaClass).getPropertyValue(name)
     }
 
     boolean isPropertyInherited(DomainProperty property) {
@@ -121,7 +157,7 @@ class DomainEntity {
 
     Map<String, Class<?>> getAssociationMap() {
         if (!_associationMap) {
-            _associationMap = getMergedConfigurationMap(type, GrailsDomainClassProperty.HAS_MANY)
+            _associationMap = getMergedConfigurationMap(type, GormProperties.HAS_MANY)
 
             getProperties().each {
                 if (reflectionService.isDomainEntity(it.type)) {
@@ -157,19 +193,32 @@ class DomainEntity {
                 configurationMap.putAll(superRelationshipMap)
             }
         }
-        return configurationMap;
+        return configurationMap
     }
 
     private static <T> T getStaticPropertyValue(Class<?> clazz, String propertyName, Class<T> propertyClass) {
         ClassPropertyFetcher.forClass(clazz).getStaticPropertyValue(propertyName, propertyClass)
     }
 
-    private DomainProperty getPropertyAdapter(GrailsDomainClassProperty property) {
+    private DomainProperty getPropertyAdapter(PersistentProperty property) {
         if (!property) return null
 
         propertyCache.computeIfAbsent(property.name) {
             new DomainProperty(reflectionService, this, property)
         }
+    }
+
+    private DomainProperty getPropertyAdapter(MetaProperty property) {
+        if (!property) return null
+
+        propertyCache.computeIfAbsent(property.name) {
+            new DomainProperty(reflectionService, this, null, property)
+        }
+    }
+
+    @SuppressWarnings("GrMethodMayBeStatic")
+    private boolean notInPersistentProperties(List<PersistentProperty> persistentProperties, MetaProperty metaProperty) {
+        !persistentProperties.find { (it.name == metaProperty.name) }
     }
 
 }

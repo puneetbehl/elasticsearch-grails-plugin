@@ -89,7 +89,7 @@ class SearchableDomainClassMapper extends GroovyObjectSupport {
     SearchableClassMapping buildClassMapping() {
         String searchablePropertyName = getSearchablePropertyName()
 
-        if (!domainClass.hasProperty(searchablePropertyName)) return null
+        if (!domainClass.hasSearchableProperty(searchablePropertyName)) return null
 
         // Process inheritance.
         List<DomainEntity> superMappings = []
@@ -112,7 +112,7 @@ class SearchableDomainClassMapper extends GroovyObjectSupport {
                     break
                 }
 
-                if (superDomainClass.hasProperty(searchablePropertyName) &&
+                if (superDomainClass.hasSearchableProperty(searchablePropertyName) &&
                         superDomainClass.getInitialPropertyValue(searchablePropertyName) == Boolean.FALSE) {
                     // hierarchy explicitly terminated. Do not browse any more properties.
                     break
@@ -137,7 +137,7 @@ class SearchableDomainClassMapper extends GroovyObjectSupport {
 
         // Process inherited mappings in reverse order.
         for (DomainEntity domainClass : superMappings) {
-            if (domainClass.hasProperty(searchablePropertyName)) {
+            if (domainClass.hasSearchableProperty(searchablePropertyName)) {
                 Object searchable = domainClass.getInitialPropertyValue(searchablePropertyName)
                 if (searchable instanceof Boolean) {
                     buildDefaultMapping(domainClass)
@@ -288,7 +288,9 @@ class SearchableDomainClassMapper extends GroovyObjectSupport {
         }
         if (arg instanceof Collection) {
             //noinspection unchecked
-            return new HashSet<String>(arg)
+            Set<String> set = new HashSet<>()
+            set.addAll(arg)
+            return set
         }
         throw new IllegalArgumentException("Unknown argument: $arg")
     }

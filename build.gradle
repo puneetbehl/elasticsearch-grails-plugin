@@ -1,32 +1,33 @@
-import de.undercouch.gradle.tasks.download.Download
-
 buildscript {
     ext {
         grailsVersion = project.grailsVersion
         gormVersion = project.gormVersion
-        elasticsearchVersion = project.elasticsearchVersion
-        elasticsearchAttachmentsVersion = project.elasticsearchAttachmentsVersion
+        esVersion = project.elasticsearchVersion
     }
     repositories {
         mavenLocal()
         maven { url "https://repo.grails.org/grails/core" }
+        maven { url 'https://artifacts.elastic.co/maven' }
     }
     dependencies {
         classpath "org.grails:grails-gradle-plugin:$grailsVersion"
         classpath 'org.asciidoctor:asciidoctor-gradle-plugin:1.5.3'
         classpath 'org.ajoberstar:gradle-git:1.4.2'
-        classpath "org.grails.plugins:hibernate5:${gormVersion-".RELEASE"}"
+        classpath "org.grails.plugins:hibernate5:7.0.0"
     }
 }
 
 plugins {
-    id "com.jfrog.bintray" version "1.2"
-    id 'com.jfrog.artifactory' version '4.0.0'
-    id "de.undercouch.download" version "3.2.0"
+    id "com.jfrog.bintray" version "1.8.4"
+    id 'com.jfrog.artifactory' version '4.9.8'
+    id "de.undercouch.download" version "4.0.0"
+    id "cgoit.gradle.elasticsearch" version "0.2.1"
 }
 
-version "2.5.0.BUILD-SNAPSHOT"
+version '2.8.0'
 group "org.grails.plugins"
+
+String repoName = 'elasticsearch-grails-plugin'
 
 apply plugin: 'eclipse'
 apply plugin: 'idea'
@@ -37,17 +38,25 @@ apply plugin: 'maven-publish'
 
 ext {
     gradleWrapperVersion = project.gradleWrapperVersion
-    elasticsearchVersion = project.elasticsearchVersion
-    elasticsearchAttachmentsVersion = project.elasticsearchAttachmentsVersion
+    esVersion = project.elasticsearchVersion
+
+    bootstrapElasticsearch = Boolean.parseBoolean((findProperty('es') ?: 'true') as String)
 }
 
-sourceCompatibility = 1.7
-targetCompatibility = 1.7
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
 
 repositories {
     mavenLocal()
     mavenCentral()
     maven { url "https://repo.grails.org/grails/core" }
+}
+
+configurations {
+    developmentOnly
+    runtimeClasspath {
+        extendsFrom developmentOnly
+    }
 }
 
 dependencyManagement {
@@ -70,9 +79,12 @@ groovydoc {
 sourcesJar {
     exclude "test/**"
     exclude "test/**/**"
+
+    classifier = 'sources'
 }
 
 dependencies {
+    developmentOnly("org.springframework.boot:spring-boot-devtools")
     provided 'org.springframework.boot:spring-boot-starter-logging'
     provided "org.springframework.boot:spring-boot-starter-actuator"
     provided "org.springframework.boot:spring-boot-autoconfigure"
@@ -91,8 +103,10 @@ dependencies {
     compile "org.apache.logging.log4j:log4j-api:2.7"
     compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.7'
 
-    compile "org.elasticsearch:elasticsearch:${elasticsearchVersion}"
-    compile group: 'org.elasticsearch.client', name: 'transport', version: elasticsearchVersion
+    compile "org.elasticsearch:elasticsearch:${esVersion}"
+    compile "org.elasticsearch.client:elasticsearch-rest-high-level-client:${esVersion}"
+    compile "org.elasticsearch.client:elasticsearch-rest-client:${esVersion}"
+    compile "org.locationtech.spatial4j:spatial4j:0.6"
 
     console "org.grails:grails-console"
 
@@ -102,43 +116,16 @@ dependencies {
     testRuntime 'org.apache.tomcat:tomcat-jdbc'
 
     testCompile "org.grails:grails-gorm-testing-support"
-    testCompile "org.grails:grails-plugin-testing"
     testCompile "org.grails:grails-web-testing-support"
 
     testCompile 'com.vividsolutions:jts:1.13'
     testCompile 'com.googlecode.json-simple:json-simple:1.1.1'
 
-    //compile "org.elasticsearch.plugin:mapper-attachments:${elasticsearchAttachmentsVersion}"
-    compile fileTree(dir: "libs/elasticsearch", include: '*.jar')
-}
-
-task("downloadAttachmentsPlugin", type: Download) {
-    src "https://artifacts.elastic.co/downloads/elasticsearch-plugins/mapper-attachments/mapper-attachments-${elasticsearchVersion}.zip"
-    dest "libs/mapper-attachments-${elasticsearchVersion}.zip"
-    overwrite true
-    onlyIfNewer true
-}
-
-task("downloadAndUnzipAttachmentsPlugin", dependsOn: downloadAttachmentsPlugin) {
-    doLast {
-        copy {
-            from zipTree(downloadAttachmentsPlugin.dest)
-            into 'libs/'
-        }
-        delete 'libs/elasticsearch/commons-codec-1.10.jar'
-    }
-}
-
-compileJava{
-    dependsOn downloadAndUnzipAttachmentsPlugin
+    //compile fileTree(dir: "libs/elasticsearch", include: '*.jar')
 }
 
 task cleanLibsDir(type: Delete) {
     delete fileTree(dir: 'libs')
-}
-
-task wrapper(type: Wrapper) {
-    gradleVersion = gradleWrapperVersion
 }
 
 check.doLast {
@@ -154,12 +141,48 @@ task cleanDataDir(type: Delete) {
     delete fileTree(dir: 'data')
 }
 
+integrationTest {
+    doFirst {
+        if (bootstrapElasticsearch) {
+            startElasticsearch {
+                elasticsearchVersion = esVersion
+                httpHost = "localhost"
+                httpPort = 9200
+                transportPort = 9300
+                dataDir = file("$buildDir/elastic")
+                logsDir = file("$buildDir/elastic/logs")
+            }
+        }
+    }
+
+    doLast {
+        if (bootstrapElasticsearch) {
+            stopElasticsearch {
+                httpHost = "localhost"
+                httpPort = 9200
+            }
+        }
+    }
+}
+
+gradle.taskGraph.afterTask { task ->
+
+    if (task.name == "integrationTest") {
+        if (bootstrapElasticsearch) {
+            stopElasticsearch {
+                httpHost = "localhost"
+                httpPort = 9200
+            }
+        }
+    }
+}
+
 bootRun {
     jvmArgs('-Dspring.output.ansi.enabled=always')
-    addResources = true
+    sourceResources sourceSets.main
 }
 // enable if you wish to package this plugin as a standalone application
-bootRepackage.enabled = false
+bootJar.enabled = false
 
 apply from: "gradle/documentation.gradle"
 
@@ -170,14 +193,40 @@ grailsPublish {
     license {
         name = 'Apache-2.0'
     }
-    title = "Elasticserach"
+    title = "Elasticsearch Grails Plugin"
     //rep = "grails-plugins"
     desc = "An Elasticsearch plugin for Grails"
     developers = [
             noam: 'Noam Y. Tenne',
             macrcos: 'Marcos Carceles',
             puneet: 'Puneet Behl',
-            james: 'James Kleeh'
+            james: 'James Kleeh',
+            cgoit: 'Carsten Götzinger'
     ]
 }
+
+bintray {
+    user = System.getenv("BINTRAY_USER")
+    key = System.getenv("BINTRAY_KEY")
+
+    publications = ['maven']
+
+    publish = true
+
+    pkg {
+        repo = 'maven'
+        name = project.name
+        websiteUrl = "https://github.com/cgoIT/$repoName"
+        issueTrackerUrl = "https://github.com/cgoIT/$repoName/issues"
+        vcsUrl = "https://github.com/cgoIT/${repoName}.git"
+        licenses = ['Apache-2.0']
+        labels = ['grails', 'plugin', 'elastic', 'ElasticSearch', repoName]
+        version {
+            name = project.version
+        }
+    }
+}
+
+bintrayUpload.dependsOn = [sourcesJar]
+publish.dependsOn = [bintrayUpload]
 

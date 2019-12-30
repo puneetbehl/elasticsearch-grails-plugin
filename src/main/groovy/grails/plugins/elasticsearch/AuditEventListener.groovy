@@ -157,7 +157,12 @@ class AuditEventListener extends AbstractPersistenceEventListener {
         }
 
         Set roots = getRootIndexedEntity(entity)
-        roots?.each { pushToDelete(it) }
+        if (elasticSearchContextHolder.isRootClass(entity.class)) {
+            roots?.each { pushToDelete(it) }
+        } else {
+            // if a child gets deleted, we need to reindex the parent
+            roots?.each { pushToIndex(it) }
+        }
     }
 
     Map getPendingObjects() {

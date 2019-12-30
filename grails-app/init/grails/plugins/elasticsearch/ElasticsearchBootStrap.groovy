@@ -1,4 +1,4 @@
-import grails.plugins.elasticsearch.ElasticSearchBootStrapHelper
+package grails.plugins.elasticsearch
 
 class ElasticsearchBootStrap {
 
