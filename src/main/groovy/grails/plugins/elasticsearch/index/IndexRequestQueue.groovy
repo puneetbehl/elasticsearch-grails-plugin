@@ -152,45 +152,9 @@ class IndexRequestQueue {
         }
 
         try {
-            BulkProcessor.Listener listener = new BulkProcessor.Listener() {
-                int count = 0
+            BulkProcessor bulkProcessor = getBulkProcessor()
 
-                @Override
-                void beforeBulk(long l, BulkRequest bulkRequest1) {
-                    count = count + bulkRequest1.numberOfActions()
-                    LOG.debug("Executed " + count + " so far")
-                }
-
-                @Override
-                void afterBulk(long l, BulkRequest bulkRequest1, BulkResponse bulkResponse) {
-                    if (bulkResponse.hasFailures()) {
-                        for (BulkItemResponse bulkItemResponse : bulkResponse) {
-                            if (bulkItemResponse.isFailed()) {
-                                BulkItemResponse.Failure failure = bulkItemResponse.getFailure()
-                                LOG.error("Error " + failure.toString())
-                            }
-                        }
-                    }
-                }
-
-                @Override
-                void afterBulk(long l, BulkRequest bulkRequest1, Throwable throwable) {
-                    LOG.error("Big errors " + throwable.toString())
-                }
-            }
-
-            BiConsumer<BulkRequest, ActionListener<BulkResponse>> bulkConsumer = ({ request, bulkListener ->
-                elasticSearchClient.bulkAsync(request, RequestOptions.DEFAULT, bulkListener)
-            } as BiConsumer)
-            BulkProcessor bulkProcessor = BulkProcessor.builder(bulkConsumer, listener)
-                    .setBulkActions(10000)
-                    .setBulkSize(new ByteSizeValue(5, ByteSizeUnit.MB))
-                    .setFlushInterval(TimeValue.timeValueSeconds(5))
-                    .setConcurrentRequests(1)
-                    .setBackoffPolicy(
-                    BackoffPolicy.exponentialBackoff(TimeValue.timeValueMillis(100), 3))
-                    .build()
-
+            // add index requests
             toIndex.each { key, value ->
                 SearchableClassMapping scm = elasticSearchContextHolder.getMappingContextByType(key.clazz)
 
@@ -209,7 +173,7 @@ class IndexRequestQueue {
                 }
             }
 
-            // Execute delete requests
+            // add delete requests
             toDelete.each {
                 SearchableClassMapping scm = elasticSearchContextHolder.getMappingContextByType(it.clazz)
                 if (LOG.isDebugEnabled()) {
@@ -221,6 +185,46 @@ class IndexRequestQueue {
             bulkProcessor.awaitClose(30L, TimeUnit.SECONDS)
         } catch (Exception e) {
             throw new IndexException("Failed to index/delete ${bulkProcessor.numberOfActions()}", e)
+        }
+    }
+
+    private BulkProcessor getBulkProcessor() {
+        BiConsumer<BulkRequest, ActionListener<BulkResponse>> bulkConsumer = ({ BulkRequest request,  ActionListener<BulkResponse> bulkListener ->
+            elasticSearchClient.bulkAsync(request, RequestOptions.DEFAULT, bulkListener)
+        } as BiConsumer)
+        BulkProcessor bulkProcessor = BulkProcessor.builder(bulkConsumer, new BulkListener())
+                .setBulkActions(10000)
+                .setBulkSize(new ByteSizeValue(5, ByteSizeUnit.MB))
+                .setFlushInterval(TimeValue.timeValueSeconds(5))
+                .setConcurrentRequests(1)
+                .setBackoffPolicy(BackoffPolicy.exponentialBackoff(TimeValue.timeValueMillis(100), 3))
+                .build()
+    }
+
+    class BulkListener implements BulkProcessor.Listener {
+        int count = 0
+
+        @Override
+        void beforeBulk(long l, BulkRequest bulkRequest1) {
+            count = count + bulkRequest1.numberOfActions()
+            LOG.debug("Executed " + count + " so far")
+        }
+
+        @Override
+        void afterBulk(long l, BulkRequest bulkRequest1, BulkResponse bulkResponse) {
+            if (bulkResponse.hasFailures()) {
+                for (BulkItemResponse bulkItemResponse : bulkResponse) {
+                    if (bulkItemResponse.isFailed()) {
+                        BulkItemResponse.Failure failure = bulkItemResponse.getFailure()
+                        LOG.error("Error " + failure.toString())
+                    }
+                }
+            }
+        }
+
+        @Override
+        void afterBulk(long l, BulkRequest bulkRequest1, Throwable throwable) {
+            LOG.error("Big errors " + throwable.toString())
         }
     }
 }
