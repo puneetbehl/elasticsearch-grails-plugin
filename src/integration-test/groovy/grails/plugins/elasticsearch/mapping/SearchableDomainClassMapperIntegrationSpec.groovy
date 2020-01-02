@@ -18,6 +18,10 @@ class SearchableDomainClassMapperIntegrationSpec extends Specification implement
         resetElasticsearch()
     }
 
+    void cleanup() {
+
+    }
+
     def 'elasticSearch.defaultExcludedProperties are not mapped'() {
         expect:
             elasticSearchContextHolder.config.defaultExcludedProperties.contains('password')
@@ -99,6 +103,37 @@ class SearchableDomainClassMapperIntegrationSpec extends Specification implement
             classMapping.domainClass == entity
             def aliasMapping = classMapping.propertiesMapping.find { it.propertyName == 'date' }
             aliasMapping.getAlias() == '@timestamp'
+    }
+
+    void 'the domain type name is passed to the ES server'() {
+        given: 'a class mapping for Building'
+            def entity = domainReflectionService.getDomainEntity(Building)
+            def mapper = domainReflectionService.createDomainClassMapper(entity)
+            def classMapping = mapper.buildClassMapping()
+
+        when:
+            def mapping = ElasticSearchMappingFactory.getElasticMapping(classMapping)
+
+        then:
+            mapping.properties?._domainTypeName == [type: 'keyword', index: 'true']
+    }
+
+
+    void 'the domain type name is not passed to the ES server if includeDomainTypeName is set to false'() {
+        given: 'a class mapping for Building'
+            grailsApplication.config.elasticSearch.includeDomainTypeName = false
+            def entity = domainReflectionService.getDomainEntity(Building)
+            def mapper = domainReflectionService.createDomainClassMapper(entity)
+            def classMapping = mapper.buildClassMapping()
+
+        when:
+            def mapping = ElasticSearchMappingFactory.getElasticMapping(classMapping)
+
+        then:
+            mapping.properties?._domainTypeName == null
+
+        cleanup:
+            grailsApplication.config.elasticSearch.includeDomainTypeName = true
     }
 
 }

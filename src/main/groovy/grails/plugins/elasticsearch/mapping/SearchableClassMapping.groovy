@@ -94,6 +94,16 @@ class SearchableClassMapping implements ElasticSearchConfigAware {
         name.toLowerCase()
     }
 
+    boolean getIncludeDomainTypeName() {
+        String includeDomainTypeName = esConfig?.get('includeDomainTypeName')
+
+        if (!(includeDomainTypeName in ['true', 'false'])) {
+            includeDomainTypeName = 'true'
+        }
+
+        Boolean.parseBoolean(includeDomainTypeName)
+    }
+
     String getIndexingIndex() {
         return IndexNamingUtils.indexingIndexFor(indexName)
     }

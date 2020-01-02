@@ -107,6 +107,7 @@ elasticSearch:
     searchableProperty:
         name: searchable
     includeTransients: false
+    includeDomainTypeName: true
 environments:
     #development:
     #    elasticSearch:

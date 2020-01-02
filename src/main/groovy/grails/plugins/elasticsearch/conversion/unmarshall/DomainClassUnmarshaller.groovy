@@ -94,6 +94,8 @@ class DomainClassUnmarshaller implements DataBinder {
                 if (aliasFields.contains(key)) {
                     continue
                 }
+                if (entry.key == '_domainTypeName') continue
+
                 try {
                     unmarshallingContext.unmarshallingStack.push(key)
                     def unmarshalledProperty = unmarshallProperty(scm.domainClass, key, entry.value, unmarshallingContext)
@@ -108,6 +110,10 @@ class DomainClassUnmarshaller implements DataBinder {
                 }
             }
             bindData(instance, rebuiltProperties)
+
+            if (scm.includeDomainTypeName && hit.sourceAsMap._domainTypeName) {
+                instance.metaClass._domainTypeName = hit.sourceAsMap._domainTypeName
+            }
 
             results << instance
         }

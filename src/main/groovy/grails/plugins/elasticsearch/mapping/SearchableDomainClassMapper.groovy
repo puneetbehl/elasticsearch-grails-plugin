@@ -18,6 +18,7 @@ package grails.plugins.elasticsearch.mapping
 
 import grails.core.GrailsApplication
 import groovy.transform.CompileStatic
+import groovy.transform.TypeCheckingMode
 import org.apache.commons.logging.Log
 import org.apache.commons.logging.LogFactory
 import org.springframework.util.Assert
@@ -86,6 +87,7 @@ class SearchableDomainClassMapper extends GroovyObjectSupport {
     /**
      * @return searchable domain class mapping
      */
+    @CompileStatic(TypeCheckingMode.SKIP)
     SearchableClassMapping buildClassMapping() {
         String searchablePropertyName = getSearchablePropertyName()
 

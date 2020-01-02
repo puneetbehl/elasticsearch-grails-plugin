@@ -114,9 +114,12 @@ class ElasticSearchMappingFactory {
 
                     if(idType == 'text') idType = 'keyword'
 
-                    props.put('id', defaultDescriptor(idType, 'true', true))
-                    props.put('class', defaultDescriptor('keyword', 'false', true))
-                    props.put('ref', defaultDescriptor('keyword', 'false', true))
+                    props.put('id', defaultDescriptor(idType, 'true'))
+                    props.put('class', defaultDescriptor('keyword', 'false'))
+                    props.put('ref', defaultDescriptor('keyword', 'false'))
+
+                    // remove _domainTypeName from inner types
+                    props.remove('_domainTypeName')
                 }
             }
             propOptions.type = propType
@@ -162,6 +165,11 @@ class ElasticSearchMappingFactory {
             }
             elasticTypeMappingProperties.put(scpm.getPropertyName(), propOptions)
         }
+
+        if (scm.includeDomainTypeName) {
+            elasticTypeMappingProperties.put('_domainTypeName', defaultDescriptor('keyword', 'true'))
+        }
+
         elasticTypeMappingProperties
     }
 
@@ -270,7 +278,7 @@ class ElasticSearchMappingFactory {
         BigDecimal.isAssignableFrom(type)
     }
 
-    private static Map<String, Object> defaultDescriptor(String type, String index, boolean excludeFromAll) {
+    private static Map<String, Object> defaultDescriptor(String type, String index) {
         [type: type, index: index] as Map<String, Object>
     }
 }

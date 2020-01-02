@@ -10,6 +10,14 @@
 
 ==== Grails 3.x version
 
+* January 2, 2020
+** 2.7.2
+*** Upgraded to Grails 3.3.11
+*** Upgraded to Elasticsearch 7.5.1
+*** Don't use old _type in mapping (deprecated in ES)
+*** Optionally add _domainTypeName in mapping
+
+
 * August 12, 2019
 ** 2.7.0
 *** Upgraded to Grails 3.3.10

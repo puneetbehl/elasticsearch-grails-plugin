@@ -166,6 +166,11 @@ class JSONDomainFactory {
                 json.field(scpm.getAlias(), res)
             }
         }
+
+        if (scm.includeDomainTypeName) {
+            json.field('_domainTypeName', scm.domainClass.fullName)
+        }
+
         marshallingContext.pop()
         json.endObject()
         json.close()

@@ -13,7 +13,7 @@ buildscript {
         classpath "org.grails:grails-gradle-plugin:$grailsVersion"
         classpath 'org.asciidoctor:asciidoctor-gradle-plugin:1.5.3'
         classpath 'org.ajoberstar:gradle-git:1.4.2'
-        classpath "org.grails.plugins:hibernate5:7.0.0"
+        classpath "org.grails.plugins:hibernate5:${gormVersion-".RELEASE"}"
     }
 }
 
@@ -24,7 +24,7 @@ plugins {
     id "cgoit.gradle.elasticsearch" version "0.2.1"
 }
 
-version '2.8.0'
+version '2.7.2'
 group "org.grails.plugins"
 
 String repoName = 'elasticsearch-grails-plugin'
@@ -39,8 +39,6 @@ apply plugin: 'maven-publish'
 ext {
     gradleWrapperVersion = project.gradleWrapperVersion
     esVersion = project.elasticsearchVersion
-
-    bootstrapElasticsearch = Boolean.parseBoolean((findProperty('es') ?: 'true') as String)
 }
 
 sourceCompatibility = 1.8
@@ -50,13 +48,6 @@ repositories {
     mavenLocal()
     mavenCentral()
     maven { url "https://repo.grails.org/grails/core" }
-}
-
-configurations {
-    developmentOnly
-    runtimeClasspath {
-        extendsFrom developmentOnly
-    }
 }
 
 dependencyManagement {
@@ -84,7 +75,6 @@ sourcesJar {
 }
 
 dependencies {
-    developmentOnly("org.springframework.boot:spring-boot-devtools")
     provided 'org.springframework.boot:spring-boot-starter-logging'
     provided "org.springframework.boot:spring-boot-starter-actuator"
     provided "org.springframework.boot:spring-boot-autoconfigure"
@@ -104,9 +94,10 @@ dependencies {
     compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.7'
 
     compile "org.elasticsearch:elasticsearch:${esVersion}"
-    compile "org.elasticsearch.client:elasticsearch-rest-high-level-client:${esVersion}"
-    compile "org.elasticsearch.client:elasticsearch-rest-client:${esVersion}"
-    compile "org.locationtech.spatial4j:spatial4j:0.6"
+    compile group: 'org.elasticsearch.client', name: 'elasticsearch-rest-high-level-client', version: esVersion
+    compile group: 'org.locationtech.spatial4j', name: 'spatial4j', version: '0.6'
+    //compile group: 'org.codehaus.gpars', name: 'gpars', version: '1.2.1'
+
 
     console "org.grails:grails-console"
 
@@ -116,16 +107,21 @@ dependencies {
     testRuntime 'org.apache.tomcat:tomcat-jdbc'
 
     testCompile "org.grails:grails-gorm-testing-support"
+    testCompile "org.grails:grails-plugin-testing"
     testCompile "org.grails:grails-web-testing-support"
 
     testCompile 'com.vividsolutions:jts:1.13'
     testCompile 'com.googlecode.json-simple:json-simple:1.1.1'
 
-    //compile fileTree(dir: "libs/elasticsearch", include: '*.jar')
+    compile fileTree(dir: "libs/elasticsearch", include: '*.jar')
 }
 
 task cleanLibsDir(type: Delete) {
     delete fileTree(dir: 'libs')
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = gradleWrapperVersion
 }
 
 check.doLast {
@@ -143,46 +139,39 @@ task cleanDataDir(type: Delete) {
 
 integrationTest {
     doFirst {
-        if (bootstrapElasticsearch) {
-            startElasticsearch {
-                elasticsearchVersion = esVersion
-                httpHost = "localhost"
-                httpPort = 9200
-                transportPort = 9300
-                dataDir = file("$buildDir/elastic")
-                logsDir = file("$buildDir/elastic/logs")
-            }
+        startElasticsearch {
+            elasticsearchVersion = esVersion
+            httpHost = "localhost"
+            httpPort = 9200
+            transportPort = 9300
+            dataDir = file("$buildDir/elastic")
+            logsDir = file("$buildDir/elastic/logs")
         }
     }
 
     doLast {
-        if (bootstrapElasticsearch) {
-            stopElasticsearch {
-                httpHost = "localhost"
-                httpPort = 9200
-            }
+        stopElasticsearch {
+            httpHost = "localhost"
+            httpPort = 9200
         }
     }
 }
 
-gradle.taskGraph.afterTask { task ->
-
+gradle.taskGraph.afterTask { Task task, TaskState taskState ->
     if (task.name == "integrationTest") {
-        if (bootstrapElasticsearch) {
-            stopElasticsearch {
-                httpHost = "localhost"
-                httpPort = 9200
-            }
+        stopElasticsearch {
+            httpHost = "localhost"
+            httpPort = 9200
         }
     }
 }
 
 bootRun {
     jvmArgs('-Dspring.output.ansi.enabled=always')
-    sourceResources sourceSets.main
+    addResources = true
 }
 // enable if you wish to package this plugin as a standalone application
-bootJar.enabled = false
+bootRepackage.enabled = false
 
 apply from: "gradle/documentation.gradle"
 

@@ -642,6 +642,23 @@ class ElasticSearchServiceIntegrationSpec extends Specification implements Elast
             result.captain.lastName == 'Lambert'
     }
 
+    void 'The domain type name is returned'() {
+        given: 'a product is indexed'
+            def product = save new Product(productName: 'My Product', price: 0.45)
+
+            index(product)
+            refreshIndices()
+
+        when: 'a search is performed'
+            def result = search(Product, 'my product')
+
+        then: 'the correct result-part is returned with '
+            result.total.value == 1
+            result.searchResults.size() == 1
+            result.searchResults*.productName == ['My Product']
+            result.searchResults*._domainTypeName == [Product.name]
+    }
+
     void 'dynamicly mapped JSON strings should be searchable'() {
         given: 'A Spaceship with some cool canons'
             def spaceship = new Spaceship(
