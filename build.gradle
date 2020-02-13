@@ -24,7 +24,7 @@ plugins {
     id "cgoit.gradle.elasticsearch" version "0.2.1"
 }
 
-version '2.7.2'
+version '2.7.3'
 group "org.grails.plugins"
 
 String repoName = 'elasticsearch-grails-plugin'

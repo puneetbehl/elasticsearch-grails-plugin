@@ -1,9 +1,12 @@
 package grails.plugins.elasticsearch.conversion.binders
 
+import groovy.util.logging.Slf4j
+
 import java.beans.PropertyEditorSupport
 import java.text.ParseException
 import java.text.SimpleDateFormat
 
+@Slf4j
 class JSONDateBinder extends PropertyEditorSupport {
 
     final utcTimeZone = TimeZone.getTimeZone('UTC')
@@ -33,11 +36,11 @@ class JSONDateBinder extends PropertyEditorSupport {
                 if (counter > 0) {
                     //println "Will try one of the other(s) [${counter}] pattern(s) left"
                 } else {
-                    println "Date ${s} did not match any of the pattern registered! You may want to add the pattern to the [elasticSearch.date.formats] setting."
-                    println "Error : ${e.message}"
+                    log.error "Date ${s} did not match any of the pattern registered! You may want to add the pattern to the [elasticSearch.date.formats] setting."
+                    log.error "Error : ${e.message}"
                 }
             } catch (Throwable t) {
-                println "An error has occured ${t.message} ${format}"
+                log.error "An error has occured ${t.message} ${format}"
             }
         }
     }

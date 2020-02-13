@@ -13,6 +13,7 @@ import org.elasticsearch.search.SearchHit
 import org.elasticsearch.search.SearchHits
 import org.slf4j.Logger
 import spock.lang.Specification
+import test.Converter
 import test.GeoPoint
 
 import java.lang.reflect.Field
@@ -89,6 +90,27 @@ class DomainClassUnmarshallerIntegrationSpec extends Specification implements El
         results[0].zonedDateTime != null && results[0].zonedDateTime instanceof ZonedDateTime
         results[0].offsetDateTime != null && results[0].offsetDateTime instanceof OffsetDateTime
         results[0].offsetTime != null && results[0].offsetTime instanceof OffsetTime
+    }
+
+    void 'An unmarshalled type with configured converter is marshalled into a corresponding object'() {
+        def unmarshaller = new DomainClassUnmarshaller(elasticSearchContextHolder: elasticSearchContextHolder, grailsApplication: grailsApplication)
+
+        given: 'a search hit with some types with a configured converter'
+        SearchHit hit = new SearchHit(1, '1', new Text('converted'), [:])
+                .sourceRef(new BytesArray('{"status":"abc","name":"Object with converted property"}'))
+        hit.index = 'test.converter'
+        SearchHit[] hits = [hit]
+        def maxScore = 0.1534264087677002f
+        def totalHits = 1
+        def searchHits = new SearchHits(hits, new TotalHits(totalHits, TotalHits.Relation.EQUAL_TO), maxScore)
+
+        when: 'a property with configured converter is unmarshalled'
+        def results = unmarshaller.buildResults(searchHits)
+        results.size() == 1
+
+        then: 'this results in a valid domain object'
+        results[0].name == 'Object with converted property'
+        results[0].status != null && results[0].status instanceof Converter.Status && results[0].status == Converter.Status.STATUS1
     }
 
     void 'An unhandled property in the indexed domain root is ignored'() {

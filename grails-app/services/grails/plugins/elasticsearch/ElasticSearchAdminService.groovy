@@ -212,8 +212,6 @@ class ElasticSearchAdminService {
                 request.mapping(elasticMapping)
             }
 
-            println request.mappings().utf8ToString()
-
             client.indices().create(request, RequestOptions.DEFAULT)
         }
     }

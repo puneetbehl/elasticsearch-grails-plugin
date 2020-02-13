@@ -10,6 +10,11 @@
 
 ==== Grails 3.x version
 
+* February 12, 2020
+** 2.7.3
+*** Ignore _domainTypeName in DomainClassUnmarshaller
+
+
 * January 2, 2020
 ** 2.7.2
 *** Upgraded to Grails 3.3.11

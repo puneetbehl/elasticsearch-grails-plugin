@@ -314,7 +314,7 @@ class DomainClassUnmarshaller implements DataBinder {
         GroovyObject instance = (GroovyObject) domainClass.type.newInstance()
         instance.setProperty(identifier.name, id)
         for (Map.Entry<String, Object> entry : data.entrySet()) {
-            if (entry.key != 'class' && entry.key != 'id') {
+            if (entry.key != 'class' && entry.key != 'id' && entry.key != '_domainTypeName') {
                 try {
                     unmarshallingContext.unmarshallingStack.push(entry.key)
                     Object propertyValue = unmarshallProperty(domainClass, entry.key, entry.value, unmarshallingContext)
