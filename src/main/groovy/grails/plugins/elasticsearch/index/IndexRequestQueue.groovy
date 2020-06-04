@@ -167,6 +167,7 @@ class IndexRequestQueue {
                         try {
                             LOG.debug("Indexing $key.clazz (index: $scm.indexingIndex) of id $key.id and source ${json.getOutputStream().toString()}")
                         } catch (IOException e) {
+                            LOG.debug('Could not get the output stream from json.', e)
                         }
                     }
                 } catch (Exception e) {
@@ -192,8 +193,8 @@ class IndexRequestQueue {
     private BulkProcessor getBulkProcessor() {
         BiConsumer<BulkRequest, ActionListener<BulkResponse>> bulkConsumer = ({ BulkRequest request,  ActionListener<BulkResponse> bulkListener ->
             elasticSearchClient.bulkAsync(request, RequestOptions.DEFAULT, bulkListener)
-        } as BiConsumer)
-        BulkProcessor bulkProcessor = BulkProcessor.builder(bulkConsumer, new BulkListener())
+        } as BiConsumer<BulkRequest, ActionListener<BulkResponse>>)
+        BulkProcessor.builder(bulkConsumer, new BulkListener())
                 .setBulkActions(10000)
                 .setBulkSize(new ByteSizeValue(5, ByteSizeUnit.MB))
                 .setFlushInterval(TimeValue.timeValueSeconds(5))

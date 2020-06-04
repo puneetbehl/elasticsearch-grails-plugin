@@ -282,7 +282,7 @@ class ElasticSearchAdminService {
      */
     void deleteAlias(String alias) {
         elasticSearchHelper.withElasticSearch { RestHighLevelClient client ->
-            IndicesAliasesRequest request = new IndicesAliasesRequest();
+            IndicesAliasesRequest request = new IndicesAliasesRequest()
             IndicesAliasesRequest.AliasActions removeAction =
                     new IndicesAliasesRequest.AliasActions(IndicesAliasesRequest.AliasActions.Type.REMOVE)
                             .index(indexPointedBy(alias))
@@ -420,7 +420,7 @@ class ElasticSearchAdminService {
             request.addParameter("wait_for_status", "yellow")
             Response response = client.getLowLevelClient().performRequest(request)
 
-            ClusterHealthStatus healthStatus
+            ClusterHealthStatus healthStatus = null
 
             response.getEntity().getContent().withStream { is ->
                 Map<String, Object> map = XContentHelper.convertToMap(XContentType.JSON.xContent(), is, true)
@@ -432,9 +432,9 @@ class ElasticSearchAdminService {
 
     //From http://groovy.329449.n5.nabble.com/Flatten-Map-using-closure-td364360.html
     Map flattenMap(map) {
-        [:].putAll(map.entrySet().flatten {
+        [:].putAll(map.entrySet().flatten(({
             it.value instanceof Map ? it.value.collect { k, v -> new MapEntry(it.key + '.' + k, v) } : it
-        })
+        } as Closure<? extends Map.Entry<Object, Object>>)))
     }
 
 }

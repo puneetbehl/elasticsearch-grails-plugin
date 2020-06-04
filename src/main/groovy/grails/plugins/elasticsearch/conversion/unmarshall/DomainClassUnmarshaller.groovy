@@ -26,6 +26,7 @@ import grails.plugins.elasticsearch.mapping.SearchableClassMapping
 import grails.plugins.elasticsearch.mapping.SearchableClassPropertyMapping
 import grails.web.databinding.DataBinder
 import org.codehaus.groovy.runtime.DefaultGroovyMethods
+import org.codehaus.groovy.runtime.StringGroovyMethods
 import org.elasticsearch.action.get.GetRequest
 import org.elasticsearch.action.get.GetResponse
 import org.elasticsearch.client.RequestOptions
@@ -125,7 +126,7 @@ class DomainClassUnmarshaller implements DataBinder {
         }
     }
 
-    private resolvePath(String path, instance, Map<String, Object> rebuiltProperties) {
+    private static resolvePath(String path, instance, Map<String, Object> rebuiltProperties) {
         if (!path || path == '') {
             return instance
         }
@@ -135,16 +136,17 @@ class DomainClassUnmarshaller implements DataBinder {
             String part = st.nextToken()
             try {
                 int index = Integer.parseInt(part)
-                currentProperty = DefaultGroovyMethods.getAt(DefaultGroovyMethods.asList((Collection) currentProperty), index)
+                currentProperty = DefaultGroovyMethods.getAt(DefaultGroovyMethods.asList((Iterable) currentProperty), index)
             } catch (NumberFormatException e) {
+                LOG.debug('Could not parse as number.', e)
                 currentProperty = DefaultGroovyMethods.getAt(currentProperty, part)
             }
         }
         currentProperty
     }
 
-    private void populateProperty(String path, Map<String, Object> rebuiltProperties, value) {
-        String last
+    private static void populateProperty(String path, Map<String, Object> rebuiltProperties, value) {
+        String last = ''
         Object currentProperty = rebuiltProperties
         StringTokenizer st = new StringTokenizer(path, '/')
         int size = st.countTokens()
@@ -155,13 +157,14 @@ class DomainClassUnmarshaller implements DataBinder {
                 try {
                     if (currentProperty instanceof Collection) {
                         //noinspection unchecked
-                        currentProperty = DefaultGroovyMethods.getAt(((Collection<Object>) currentProperty).iterator(), DefaultGroovyMethods.toInteger(part))
+                        currentProperty = DefaultGroovyMethods.getAt(((Collection<Object>) currentProperty).iterator(), StringGroovyMethods.toInteger((CharSequence)part))
                     } else {
                         currentProperty = DefaultGroovyMethods.getAt(currentProperty, part)
                     }
                 } catch (Exception e) {
                     LOG.warn("/!\\ Error when trying to populate $path")
                     LOG.warn("Cannot get $part on $currentProperty from $rebuiltProperties")
+                    LOG.debug('', e)
                 }
             }
             if (!st.hasMoreTokens()) {
@@ -173,6 +176,7 @@ class DomainClassUnmarshaller implements DataBinder {
             Integer.parseInt(last)
             ((Collection) currentProperty).add(value)
         } catch (NumberFormatException e) {
+            LOG.debug('Could not parse number.', e)
             DefaultGroovyMethods.putAt(currentProperty, last, value)
         }
     }

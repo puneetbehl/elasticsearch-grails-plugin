@@ -167,7 +167,7 @@ class DomainDynamicMethodsUtils {
             }
             // index() method on domain instance
             domain.delegateMetaClass.index << {
-                elasticSearchService.index(delegate)
+                elasticSearchService.index(delegate as Class)
             }
 
             // Inject the unindex method
@@ -192,7 +192,7 @@ class DomainDynamicMethodsUtils {
             }
             // unindex() method on domain instance
             domain.delegateMetaClass.unindex << {
-                elasticSearchService.unindex(delegate)
+                elasticSearchService.unindex(delegate as Class)
             }
         }
     }
