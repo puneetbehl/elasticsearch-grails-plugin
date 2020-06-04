@@ -22,4 +22,4 @@ Many thanks to all the users who reported issues and sent me pull requests.
 
 Graeme Rocher started the first draft which this plugin is based on.
 
-Get the full and updated list of contributors on the https://github.com/puneetbehl/elasticsearch-grails-plugin/graphs/contributors[github] repository.
+Get the full and updated list of contributors on the https://github.com/cgoIT/elasticsearch-grails-plugin/graphs/contributors[github] repository.

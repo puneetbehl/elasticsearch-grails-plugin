@@ -1,4 +1,4 @@
-== Elasticsearch Grails plugin image:https://travis-ci.org/puneetbehl/elasticsearch-grails-plugin.svg?branch=master["Build Status", link="https://travis-ci.org/puneetbehl/elasticsearch-grails-plugin"]
+== Elasticsearch Grails plugin image:https://travis-ci.org/cgoIT/elasticsearch-grails-plugin.svg?branch=master["Build Status", link="https://travis-ci.org/cgoIT/elasticsearch-grails-plugin"]
 
 An Elasticsearch plugin for Grails; This project is a fork based on the great work done by the guys at:
 
@@ -11,9 +11,9 @@ The original Elasticsearch plugin relies on *Hibernate-specific* GORM components
 
 === Documentation
 
-The plugin documentation can be found at https://puneetbehl.github.io/elasticsearch-grails-plugin/index.html
+The plugin documentation can be found at https://cgoit.github.io/elasticsearch-grails-plugin/index.html
 
-For latest stable version of plugin documentation, https://puneetbehl.github.io/elasticsearch-grails-plugin/latest/index.html[Click Here]
+For latest stable version of plugin documentation, https://cgoit.github.io/elasticsearch-grails-plugin/latest/index.html[Click Here]
 
 === How can I obtain the plugin?
 
@@ -34,9 +34,13 @@ dependencies {
 |===
 |Plugin Version | Grails Version | Elasticsearch Version
 
-|2.8.0
+|2.8.0 (wip)
 |4.0.y
-|7.5.1
+|7.6.0
+
+|2.7.3
+|3.3.y
+|7.6.0
 
 |2.7.2
 |3.3.y

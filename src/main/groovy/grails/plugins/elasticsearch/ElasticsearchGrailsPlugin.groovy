@@ -63,8 +63,11 @@ class ElasticsearchGrailsPlugin extends Plugin {
     def author = 'Carsten Götzinger'
     def authorEmail = 'carsten@cgo-it.de'
     def title = 'ElasticSearch Grails Plugin'
-    def description = """The revived++ Elasticsearch plugin for Grails."""
-    def documentation = 'http://puneetbehl.github.io/elasticsearch-grails-plugin'
+    def description = """Elasticsearch is a search server based on Lucene. It provides a distributed, multitenant-capable 
+full-text search engine with an HTTP web interface and schema-free JSON documents. Elasticsearch is developed in 
+Java and is released as open source under the terms of the Apache License. 
+This is the Grails 3 plugin to support Elasticsearch up to Version 7.7.1."""
+    def documentation = 'http://cgoit.github.io/elasticsearch-grails-plugin'
 
     def profiles = ['web']
 
