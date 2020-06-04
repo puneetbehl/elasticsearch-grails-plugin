@@ -6,7 +6,7 @@ https://www.elastic.co/guide/en/elasticsearch/reference/current/removal-of-types
 
 A store with many departments
 
-[source, groovy]
+[source,groovy]
 ----
 class Store {
 
@@ -42,7 +42,7 @@ class Department {
 
 Search for all departments which are childs of a store with the owner "Shopowner"
 
-[source, groovy]
+[source,groovy]
 ----
 def result = elasticSearchService.search(
     QueryBuilders.hasParentQuery("store", QueryBuilders.matchQuery("owner", "Shopowner")),

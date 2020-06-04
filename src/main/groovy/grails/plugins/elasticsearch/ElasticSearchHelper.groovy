@@ -8,8 +8,8 @@ class ElasticSearchHelper {
 
     RestHighLevelClient elasticSearchClient
 
-    def <R> R withElasticSearch(@ClosureParams(value = SimpleType, options = 'org.elasticsearch.client.RestHighLevelClient') Closure<R> callable) {
+    def <R> R withElasticSearch(@ClosureParams(value =
+            SimpleType, options = 'org.elasticsearch.client.RestHighLevelClient') Closure<R> callable) {
         callable.call(elasticSearchClient)
     }
-
 }

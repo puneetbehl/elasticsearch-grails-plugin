@@ -1,7 +1,7 @@
 [[theDomains]]
 ==== The Domains
 
-[source, groovy]
+[source,groovy]
 ----
 class Tweet {
   static searchable = {
@@ -26,7 +26,7 @@ class Tweet {
 
 ----
 
-[source, groovy]
+[source,groovy]
 ----
 class User {
   static searchable = {
@@ -58,7 +58,7 @@ class User {
 
 ----
 
-[source, groovy]
+[source,groovy]
 ----
 class Tag {
   static searchable = {

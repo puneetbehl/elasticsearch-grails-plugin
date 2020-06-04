@@ -100,7 +100,8 @@ class GXContentBuilder extends GroovyObjectSupport {
                 // switch root to an array if elements used at top level
                 if ((current == root) && (methodName == NODE_ELEMENT) && !(root instanceof List)) {
                     if (root.size()) {
-                        throw new IllegalArgumentException('Cannot have array elements in root node if properties of root have already been set')
+                        throw new IllegalArgumentException(
+                                'Cannot have array elements in root node if properties of root have already been set')
                     }
                     root = []
                     current = root
@@ -117,12 +118,14 @@ class GXContentBuilder extends GroovyObjectSupport {
                 handleClosureNode(methodName, callable)
             } else if (args.size() == 1) {
                 if (methodName != NODE_ELEMENT) {
-                    throw new IllegalArgumentException('Array elements must be defined with the "element" method call eg: element(value)')
+                    throw new IllegalArgumentException(
+                            'Array elements must be defined with the "element" method call eg: element(value)')
                 }
                 // switch root to an array if elements used at top level
                 if (current == root) {
                     if (root.size() && methodName != NODE_ELEMENT) {
-                        throw new IllegalArgumentException('Cannot have array elements in root node if properties of root have already been set')
+                        throw new IllegalArgumentException(
+                                'Cannot have array elements in root node if properties of root have already been set')
                     }
                     if (!(root instanceof List)) {
                         root = []
@@ -135,7 +138,8 @@ class GXContentBuilder extends GroovyObjectSupport {
                     throw new IllegalArgumentException('Array elements can only be defined under "array" nodes')
                 }
             } else {
-                throw new IllegalArgumentException("This builder does not support invocation of [$methodName] with arg list ${args.dump()}")
+                throw new IllegalArgumentException(
+                        "This builder does not support invocation of [$methodName] with arg list ${args.dump()}")
             }
         } else {
             current[methodName] = []

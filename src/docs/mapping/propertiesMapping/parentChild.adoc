@@ -6,7 +6,7 @@ This component must be mapped as a parent in the child element.
 
 *Example*
 
-[source, groovy]
+[source,groovy]
 ----
 class ParentElement {
 …

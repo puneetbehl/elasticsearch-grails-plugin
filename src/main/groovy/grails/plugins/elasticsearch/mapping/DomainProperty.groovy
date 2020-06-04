@@ -13,9 +13,9 @@ class DomainProperty {
     private final MetaProperty metaProperty
 
     DomainProperty(DomainReflectionService reflectionService,
-                   DomainEntity owningEntity,
-                   PersistentProperty persistentProperty,
-                   MetaProperty metaProperty = null) {
+            DomainEntity owningEntity,
+            PersistentProperty persistentProperty,
+            MetaProperty metaProperty = null) {
 
         this.reflectionService = reflectionService
         this.owningEntity = owningEntity
@@ -57,12 +57,15 @@ class DomainProperty {
 
     String getTypePropertyName() {
         String className = persistenceProperty?.type?.name ?: metaProperty?.type?.name
-        if (className) GrailsNameUtils.getPropertyName(className)
+        if (className) {
+            return GrailsNameUtils.getPropertyName(className)
+        }
+
+        null
     }
 
     @Override
     String toString() {
         "DomainProperty{name=$name, type=${type.simpleName}, domainClass=$domainEntity.fullName}"
     }
-
 }

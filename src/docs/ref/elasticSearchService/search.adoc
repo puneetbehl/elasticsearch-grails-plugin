@@ -1,14 +1,14 @@
 [[search]]
 === search
 
-#### Purpose
+==== Purpose
 
 Search through indices for the specified search query.
 The returned result may contain different type of domain.
 
-#### Examples
+==== Examples
 
-[source, groovy]
+[source,groovy]
 ----
 def highlighter = {
   field 'message', 0, 0
@@ -45,11 +45,11 @@ def result = elasticSearchService.search(hasParentQuery)
 
 ----
 
-##### Description
+===== Description
 
 `search` signatures:
 
-[source, groovy]
+[source,groovy]
 ----
 def search(Map params, Closure query, filter = null)
 def search(Map params, QueryBuilder query, filter = null)
@@ -60,7 +60,7 @@ def search(QueryBuilder query, filter = null, Map params = [:])
 
 ----
 
-##### Parameters
+===== Parameters
 
 * `query` - The search query.
 ** As a `String`, the query is parsed by the Lucene query parser for advanced searching.
@@ -76,12 +76,13 @@ def search(QueryBuilder query, filter = null, Map params = [:])
 ** `sort` - Sort based on different fields including ElasticSearch's internal ones (like `_score`)
 *** As a `String`, sort by the field with this name (e.g. `sort: 'name'` means 'sort by `name`')
 *** Can also be a `SortBuilder`
-** `order` - Sort order ("ASC" or "DESC", case insensitive). Default: "ASC"
+** `order` - Sort order ("ASC" or "DESC", case insensitive).
+Default: "ASC"
 ** `indices` - Limit the search only to the specified indices (may be a `String`, or `Collection` of `String`)
 ** `types` - Limit the search only to the specified types (domains) (may be a `String`, or `Collection` of `String`).
 ** `highlight` - A `Closure` containing the <<highlighting, highlighting>> settings.
 
-##### Returned value
+===== Returned value
 
 Return a `Map` containing:
 
@@ -89,10 +90,11 @@ Return a `Map` containing:
 * a `searchResults` entry, containing the hits.
 * a `scores` entry, containing the hits' scores.
 * a `highlight` entry if the `highlighter` parameter was set.
-* a `sort` entry if the `sort` parameter was set. Contains all `sortValue`s of the search. Maps the id of a search hit to the sort values
+* a `sort` entry if the `sort` parameter was set.
+Contains all `sortValue`s of the search. Maps the id of a search hit to the sort values
 ** Example: `[id: [12.34]]`
 
-### ElasticSearch Builders
+=== ElasticSearch Builders
 
 ElasticSearch provides many builders (e.g. QueryBuilders) and builder factories (ending with *Builders*, e.g. QueryBuilders).
 The factories provide methods for creating the concrete builders - e.g. QueryBuilders.matchQuery() produces a MatchQueryBuilder, which can be used to create a match query.
@@ -106,15 +108,15 @@ Here is a list of builder factories:
 * org.elasticsearch.search.facet.FacetBuilders
 * org.elasticsearch.cluster.routing.RoutingBuilders
 
-### JSON vs. closure syntax comparison for queries and filters
+=== JSON vs. closure syntax comparison for queries and filters
 
 Since there seems to be no obvious rule for the conversion of queries and filters between the JSON syntax and the closure syntax, I just provide some examples.
 
-#### Range filter
+==== Range filter
 
 *JSON*
 
-[source, json]
+[source,json]
 ----
 {
     "range" : {
@@ -129,7 +131,7 @@ Since there seems to be no obvious rule for the conversion of queries and filter
 
 *Closure*
 
-[source, groovy]
+[source,groovy]
 ----
 {
     range {
@@ -139,12 +141,11 @@ Since there seems to be no obvious rule for the conversion of queries and filter
 
 ----
 
-
-#### Wildcard Query
+==== Wildcard Query
 
 *JSON*
 
-[source, json]
+[source,json]
 ----
 {
     "wildcard" : {
@@ -157,7 +158,7 @@ Since there seems to be no obvious rule for the conversion of queries and filter
 
 *Closure*
 
-[source, groovy]
+[source,groovy]
 ----
 {
     wildcard("name": "*st")
@@ -169,7 +170,7 @@ Since there seems to be no obvious rule for the conversion of queries and filter
 
 *JSON*
 
-[source, json]
+[source,json]
 ----
 {
     "bool" : {
@@ -183,7 +184,7 @@ Since there seems to be no obvious rule for the conversion of queries and filter
 
 *Closure*
 
-[source, groovy]
+[source,groovy]
 ----
 {
   bool {
@@ -195,11 +196,11 @@ Since there seems to be no obvious rule for the conversion of queries and filter
 
 ----
 
-#### Geo_reference filter
+==== Geo_reference filter
 
 *JSON*
 
-[source, json]
+[source,json]
 ----
 {
     "filtered" : {
@@ -219,7 +220,7 @@ Since there seems to be no obvious rule for the conversion of queries and filter
 
 *Closure*
 
-[source, groovy]
+[source,groovy]
 ----
 {
     geo_distance(

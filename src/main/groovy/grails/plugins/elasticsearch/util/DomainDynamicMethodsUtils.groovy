@@ -22,14 +22,11 @@ import grails.plugins.elasticsearch.exception.IndexException
 import grails.plugins.elasticsearch.mapping.DomainEntity
 import grails.plugins.elasticsearch.mapping.DomainReflectionService
 import grails.plugins.elasticsearch.mapping.SearchableClassMapping
-import org.apache.commons.logging.LogFactory
 import org.elasticsearch.index.query.QueryBuilder
 import org.elasticsearch.search.aggregations.BaseAggregationBuilder
 import org.springframework.context.ApplicationContext
 
 class DomainDynamicMethodsUtils {
-
-    static final LOG = LogFactory.getLog(this)
 
     /**
      * Injects the dynamic methods in the searchable domain classes.
@@ -48,17 +45,23 @@ class DomainDynamicMethodsUtils {
         for (DomainEntity domain in domainEntityService.domainEntities) {
             String searchablePropertyName = getSearchablePropertyName(grailsApplication)
 
-            if (!domain.getInitialPropertyValue(searchablePropertyName)) continue
+            if (!domain.getInitialPropertyValue(searchablePropertyName)) {
+                continue
+            }
 
             def domainCopy = domain
             // Only inject the methods if the domain is mapped as "root"
             SearchableClassMapping scm = elasticSearchContextHolder.getMappingContext(domainCopy)
-            if (!scm || !scm.root) continue
+            if (!scm || !scm.root) {
+                continue
+            }
 
             def indexAndType = [indices: scm.queryingIndex, types: domainCopy.type]
 
-			String searchMethodName = grailsApplication.config.getProperty('elasticSearch.searchMethodName', String, 'search')
-			String countHitsMethodName = grailsApplication.config.getProperty('elasticSearch.countHitsMethodName', String, 'countHits')
+            String searchMethodName =
+                    grailsApplication.config.getProperty('elasticSearch.searchMethodName', String, 'search')
+            String countHitsMethodName =
+                    grailsApplication.config.getProperty('elasticSearch.countHitsMethodName', String, 'countHits')
 
             // Inject the search method
             domain.delegateMetaClass.static."$searchMethodName" << { String q, Map params = [:] ->
@@ -73,8 +76,9 @@ class DomainDynamicMethodsUtils {
             domain.delegateMetaClass.static."$searchMethodName" << { Closure q, Closure f, Map params = [:] ->
                 elasticSearchService.search(q, f, null, params + indexAndType)
             }
-            domain.delegateMetaClass.static."$searchMethodName" << { Closure q, Closure f, Closure a, Map params = [:] ->
-                elasticSearchService.search(q, f, a, params + indexAndType)
+            domain.delegateMetaClass.static."$searchMethodName" << {
+                Closure q, Closure f, Closure a, Map params = [:] ->
+                    elasticSearchService.search(q, f, a, params + indexAndType)
             }
             domain.delegateMetaClass.static."$searchMethodName" << { Map params, Closure q, Closure f ->
                 elasticSearchService.search(params + indexAndType, q, f)
@@ -82,11 +86,13 @@ class DomainDynamicMethodsUtils {
             domain.delegateMetaClass.static."$searchMethodName" << { Map params, Closure q, Closure f, Closure a ->
                 elasticSearchService.search(params + indexAndType, q, f, a)
             }
-            domain.delegateMetaClass.static."$searchMethodName" << { Map params, QueryBuilder q, Closure f = null, Closure a = null ->
-                elasticSearchService.search(params + indexAndType, q, f, a)
+            domain.delegateMetaClass.static."$searchMethodName" << {
+                Map params, QueryBuilder q, Closure f = null, Closure a = null ->
+                    elasticSearchService.search(params + indexAndType, q, f, a)
             }
-            domain.delegateMetaClass.static."$searchMethodName" << { QueryBuilder q, Closure f = null, Closure a = null, Map params = [:] ->
-                elasticSearchService.search(q, f, a, params + indexAndType)
+            domain.delegateMetaClass.static."$searchMethodName" << {
+                QueryBuilder q, Closure f = null, Closure a = null, Map params = [:] ->
+                    elasticSearchService.search(q, f, a, params + indexAndType)
             }
             domain.delegateMetaClass.static."$searchMethodName" << { Closure q, f, Map params = [:] ->
                 elasticSearchService.search(q, f, null, params + indexAndType)
@@ -106,32 +112,41 @@ class DomainDynamicMethodsUtils {
             domain.delegateMetaClass.static."$searchMethodName" << { Map params, QueryBuilder q, f = null, a = null ->
                 elasticSearchService.search(params + indexAndType, q, f, a)
             }
-            domain.delegateMetaClass.static."$searchMethodName" << { QueryBuilder q, f = null, a = null, Map params = [:] ->
-                elasticSearchService.search(q, f, a, params + indexAndType)
+            domain.delegateMetaClass.static."$searchMethodName" << {
+                QueryBuilder q, f = null, a = null, Map params = [:] ->
+                    elasticSearchService.search(q, f, a, params + indexAndType)
             }
-            domain.delegateMetaClass.static."$searchMethodName" << { Map params, QueryBuilder q, QueryBuilder f, a = null ->
-                elasticSearchService.search(params + indexAndType, q, f, a)
+            domain.delegateMetaClass.static."$searchMethodName" << {
+                Map params, QueryBuilder q, QueryBuilder f, a = null ->
+                    elasticSearchService.search(params + indexAndType, q, f, a)
             }
-            domain.delegateMetaClass.static."$searchMethodName" << { QueryBuilder q, QueryBuilder f, a = null, Map params = [:] ->
-                elasticSearchService.search(q, f, a, params + indexAndType)
+            domain.delegateMetaClass.static."$searchMethodName" << {
+                QueryBuilder q, QueryBuilder f, a = null, Map params = [:] ->
+                    elasticSearchService.search(q, f, a, params + indexAndType)
             }
-            domain.delegateMetaClass.static."$searchMethodName" << { Map params, QueryBuilder q, QueryBuilder f, BaseAggregationBuilder a ->
-                elasticSearchService.search(params + indexAndType, q, f, a)
+            domain.delegateMetaClass.static."$searchMethodName" << {
+                Map params, QueryBuilder q, QueryBuilder f, BaseAggregationBuilder a ->
+                    elasticSearchService.search(params + indexAndType, q, f, a)
             }
-            domain.delegateMetaClass.static."$searchMethodName" << { Map params, QueryBuilder q, QueryBuilder f, Collection<BaseAggregationBuilder> a ->
-                elasticSearchService.search(params + indexAndType, q, f, a)
+            domain.delegateMetaClass.static."$searchMethodName" << {
+                Map params, QueryBuilder q, QueryBuilder f, Collection<BaseAggregationBuilder> a ->
+                    elasticSearchService.search(params + indexAndType, q, f, a)
             }
-            domain.delegateMetaClass.static."$searchMethodName" << { QueryBuilder q, QueryBuilder f, BaseAggregationBuilder a, Map params = [:] ->
-                elasticSearchService.search(q, f, a, params + indexAndType)
+            domain.delegateMetaClass.static."$searchMethodName" << {
+                QueryBuilder q, QueryBuilder f, BaseAggregationBuilder a, Map params = [:] ->
+                    elasticSearchService.search(q, f, a, params + indexAndType)
             }
-            domain.delegateMetaClass.static."$searchMethodName" << { QueryBuilder q, QueryBuilder f, Collection<BaseAggregationBuilder> a, Map params = [:] ->
-                elasticSearchService.search(q, f, a, params + indexAndType)
+            domain.delegateMetaClass.static."$searchMethodName" << {
+                QueryBuilder q, QueryBuilder f, Collection<BaseAggregationBuilder> a, Map params = [:] ->
+                    elasticSearchService.search(q, f, a, params + indexAndType)
             }
-            domain.delegateMetaClass.static."$searchMethodName" << { QueryBuilder q, BaseAggregationBuilder a, Map params = [:] ->
-                elasticSearchService.search(q, null, a, params + indexAndType)
+            domain.delegateMetaClass.static."$searchMethodName" << {
+                QueryBuilder q, BaseAggregationBuilder a, Map params = [:] ->
+                    elasticSearchService.search(q, null, a, params + indexAndType)
             }
-            domain.delegateMetaClass.static."$searchMethodName" << { QueryBuilder q, Collection<BaseAggregationBuilder> a, Map params = [:] ->
-                elasticSearchService.search(q, null, a, params + indexAndType)
+            domain.delegateMetaClass.static."$searchMethodName" << {
+                QueryBuilder q, Collection<BaseAggregationBuilder> a, Map params = [:] ->
+                    elasticSearchService.search(q, null, a, params + indexAndType)
             }
 
             // Inject the countHits method
@@ -158,7 +173,8 @@ class DomainDynamicMethodsUtils {
                 if (!invalidTypes) {
                     elasticSearchService.index(instances)
                 } else {
-                    throw new IndexException("[${domainCopy.defaultPropertyName}] index() method can only be applied its own type. Please use the elasticSearchService if you want to index mixed values.")
+                    throw new IndexException(
+                            "[${domainCopy.defaultPropertyName}] index() method can only be applied its own type. Please use the elasticSearchService if you want to index mixed values.")
                 }
             }
             // static index( domainInstances ) index every instances specified as arguments (ellipsis styled)
@@ -183,7 +199,8 @@ class DomainDynamicMethodsUtils {
                 if (!invalidTypes) {
                     elasticSearchService.unindex(instances)
                 } else {
-                    throw new IndexException("[${domainCopy.defaultPropertyName}] unindex() method can only be applied on its own type. Please use the elasticSearchService if you want to unindex mixed values.")
+                    throw new IndexException(
+                            "[${domainCopy.defaultPropertyName}] unindex() method can only be applied on its own type. Please use the elasticSearchService if you want to unindex mixed values.")
                 }
             }
             // static unindex( domainInstances ) unindex every instances specified as arguments (ellipsis styled)
@@ -198,7 +215,8 @@ class DomainDynamicMethodsUtils {
     }
 
     private static String getSearchablePropertyName(GrailsApplication grailsApplication) {
-        String searchablePropertyName = grailsApplication.config.getProperty('elasticSearch.searchableProperty.name', String)
+        String searchablePropertyName =
+                grailsApplication.config.getProperty('elasticSearch.searchableProperty.name', String)
 
         if (searchablePropertyName) {
             return searchablePropertyName

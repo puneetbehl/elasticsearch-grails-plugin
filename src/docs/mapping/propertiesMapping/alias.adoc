@@ -1,14 +1,14 @@
 [[alias]]
 === Alias
 
-A field can be aliased.  This is useful in situations where another service may expect certain tags.
+A field can be aliased.
+This is useful in situations where another service may expect certain tags.
 
-For example, http://www.elasticsearch.org/overview/kibana/[Kibana] uses an `\@timestamp` field to filter
-report records by date.
+For example, http://www.elasticsearch.org/overview/kibana/[Kibana] uses an `\@timestamp` field to filter report records by date.
 
 *Example*
 
-[source, groovy]
+[source,groovy]
 ----
 class Session {
 

@@ -3,7 +3,7 @@
 
 Searching for all buildings sorted by distance with 5km radius around geo location (lat=41.141, lon=11.57)
 
-[source, groovy]
+[source,groovy]
 ----
 def searchForBuildings() {
     Closure filter = {
@@ -33,7 +33,7 @@ The calculated distances are not part of the search results themselves but are p
 
 *Example*
 
-[source, groovy]
+[source,groovy]
 ----
 assert [1:[23, 42], 2: [24, 40]] == result.sort
 

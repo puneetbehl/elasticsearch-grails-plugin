@@ -17,13 +17,21 @@ class EntityKey {
     }
 
     boolean equals(Object o) {
-        if (is(o)) return true
-        if (getClass() != o.getClass()) return false
+        if (is(o)) {
+            return true
+        }
+        if (getClass() != o.getClass()) {
+            return false
+        }
 
         EntityKey entityKey = (EntityKey) o
 
-        if (entityName != entityKey.entityName) return false
-        if (id != entityKey.id) return false
+        if (entityName != entityKey.entityName) {
+            return false
+        }
+        if (id != entityKey.id) {
+            return false
+        }
 
         return true
     }
@@ -34,5 +42,4 @@ class EntityKey {
         result = 31 * result + (id != null ? id.hashCode() : 0)
         return result
     }
-
 }

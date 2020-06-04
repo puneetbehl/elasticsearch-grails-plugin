@@ -12,7 +12,7 @@ class JSONDateBinder extends PropertyEditorSupport {
     final utcTimeZone = TimeZone.getTimeZone('UTC')
     final List<String> formats
 
-    JSONDateBinder(List formats) {
+    JSONDateBinder(List<String> formats) {
         this.formats = Collections.unmodifiableList(formats)
     }
 
@@ -36,7 +36,8 @@ class JSONDateBinder extends PropertyEditorSupport {
                 if (counter > 0) {
                     //println "Will try one of the other(s) [${counter}] pattern(s) left"
                 } else {
-                    log.error "Date ${s} did not match any of the pattern registered! You may want to add the pattern to the [elasticSearch.date.formats] setting."
+                    log.
+                            error "Date ${s} did not match any of the pattern registered! You may want to add the pattern to the [elasticSearch.date.formats] setting."
                     log.error "Error : ${e.message}"
                 }
             } catch (Throwable t) {

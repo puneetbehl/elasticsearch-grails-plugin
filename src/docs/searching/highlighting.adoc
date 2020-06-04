@@ -1,8 +1,7 @@
 [[highlighting]]
 === Highlighting
 
-The search method support highlighting: automatic wrapping of the matching terms in the search results with
-HTML/XML/Whatever tags.
+The search method support highlighting: automatic wrapping of the matching terms in the search results with HTML/XML/Whatever tags.
 
 You can activate this with a `Closure` containing the highlight settings in the search method `highlight` parameter.
 
@@ -11,7 +10,7 @@ http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/search-req
 
 *Example*
 
-[source, groovy]
+[source,groovy]
 ----
 // Define the pre & post tag that will wrap each term matched in the document.
 def highlighter = {
@@ -32,7 +31,7 @@ If a search result is found, the `search` method will add a `highlight` entry in
 
 That entry contains a `List`with every highlighted fragments/fields found for each hit.
 
-[source, groovy]
+[source,groovy]
 ----
 def results = Tweet.search("${params.query}", [highlight: { field 'message' }])
 def highlighted = results.highlight
@@ -56,7 +55,7 @@ You can call the `field` setting as many time as you want to add any field.
 
 *Signature*
 
-[source, groovy]
+[source,groovy]
 ----
 field <fieldName>, <fragmentSize>, <numberOfFragment>
 
@@ -64,7 +63,7 @@ field <fieldName>, <fragmentSize>, <numberOfFragment>
 
 *Examples*
 
-[source, groovy]
+[source,groovy]
 ----
 def highlightSettings = {
 
@@ -95,7 +94,7 @@ By default, ElasticSearch will use emphasis tag "`<em>...</em>`" to wrap the mat
 
 You can customize the tags with the `preTags` and `postTags` settings.
 
-[source, groovy]
+[source,groovy]
 ----
 def highlightSettings = {
     field 'message'

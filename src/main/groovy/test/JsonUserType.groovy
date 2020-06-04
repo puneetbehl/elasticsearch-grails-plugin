@@ -30,13 +30,15 @@ class JsonUserType implements UserType {
     }
 
     @Override
-    Object nullSafeGet(ResultSet rs, String[] names, SessionImplementor session, Object owner) throws HibernateException, SQLException {
+    Object nullSafeGet(ResultSet rs, String[] names, SessionImplementor session, Object owner) throws
+            HibernateException, SQLException {
         String str = rs.getString(names[0])
         str ? JSON.parse(str) : null
     }
 
     @Override
-    void nullSafeSet(PreparedStatement st, Object value, int index, SessionImplementor session) throws HibernateException, SQLException {
+    void nullSafeSet(PreparedStatement st, Object value, int index, SessionImplementor session) throws
+            HibernateException, SQLException {
         if (value == null) {
             st.setNull(index, sqlTypes()[0])
         } else {

@@ -1,13 +1,13 @@
 [[refresh]]
 === refresh
 
-#### Purpose
+==== Purpose
 
 Explicitly refresh one or more index, making all operations performed since the last refresh available for search.
 
-#### Examples
+==== Examples
 
-[source, groovy]
+[source,groovy]
 ----
 elasticSearchService.index(domain)
 // Some code...
@@ -24,11 +24,11 @@ elasticSearchAdminService.refresh() // Ensure that the 3 previous index requests
 
 ----
 
-##### Description
+===== Description
 
 `refresh` signatures:
 
-[source, groovy]
+[source,groovy]
 ----
 public void refresh()   // Refresh all indices
 public void refresh(String... indices)
@@ -36,7 +36,7 @@ public void refresh(Class... searchableClasses)
 
 ----
 
-##### Parameters
+===== Parameters
 
 Without parameters, refreshes all indices.
 

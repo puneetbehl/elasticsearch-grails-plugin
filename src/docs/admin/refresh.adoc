@@ -6,7 +6,7 @@ It will also flush the current IndexRequestQueue if there are pending index or d
 
 The refresh method is not asynchronous, meaning that it will wait for all operations to complete before resuming the execution of your application.
 
-[source, groovy]
+[source,groovy]
 ----
 elasticSearchService.index(domain)
 // Some code...

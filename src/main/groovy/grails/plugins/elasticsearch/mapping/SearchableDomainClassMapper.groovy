@@ -55,9 +55,9 @@ class SearchableDomainClassMapper extends GroovyObjectSupport {
      * @param esConfig ElasticSearch configuration
      */
     SearchableDomainClassMapper(GrailsApplication grailsApplication,
-                                DomainReflectionService reflectionService,
-                                DomainEntity domainClass,
-                                ConfigObject esConfig) {
+            DomainReflectionService reflectionService,
+            DomainEntity domainClass,
+            ConfigObject esConfig) {
         this.grailsApplication = grailsApplication
         this.reflectionService = reflectionService
         this.esConfig = esConfig
@@ -91,7 +91,9 @@ class SearchableDomainClassMapper extends GroovyObjectSupport {
     SearchableClassMapping buildClassMapping() {
         String searchablePropertyName = getSearchablePropertyName()
 
-        if (!domainClass.hasSearchableProperty(searchablePropertyName)) return null
+        if (!domainClass.hasSearchableProperty(searchablePropertyName)) {
+            return null
+        }
 
         // Process inheritance.
         List<DomainEntity> superMappings = []
@@ -150,7 +152,8 @@ class SearchableDomainClassMapper extends GroovyObjectSupport {
                     Set<String> inheritedProperties = getInheritedProperties(domainClass)
                     buildClosureMapping(domainClass, searchable as Closure, inheritedProperties)
                 } else {
-                    throw new IllegalArgumentException("'$searchablePropertyName' property has unknown type: ${searchable.getClass()}")
+                    throw new IllegalArgumentException(
+                            "'$searchablePropertyName' property has unknown type: ${searchable.getClass()}")
                 }
             }
         }
@@ -169,7 +172,8 @@ class SearchableDomainClassMapper extends GroovyObjectSupport {
             }
         }
 
-        SearchableClassMapping scm = new SearchableClassMapping(grailsApplication, domainClass, customMappedProperties.values())
+        SearchableClassMapping scm = new SearchableClassMapping(grailsApplication, domainClass,
+                customMappedProperties.values())
         scm.root = root
         scm.all = all
         return scm
@@ -177,8 +181,8 @@ class SearchableDomainClassMapper extends GroovyObjectSupport {
 
     private Set<String> getInheritedProperties(DomainEntity domainClass) {
         getDomainProperties(domainClass).findAll { domainClass.isPropertyInherited(it) }
-                                        .collect { it.name }
-                                        .toSet()
+                .collect { it.name }
+                .toSet()
     }
 
     void buildDefaultMapping(DomainEntity domainClass) {
@@ -213,7 +217,8 @@ class SearchableDomainClassMapper extends GroovyObjectSupport {
         Set<String> propsOnly = convertToSet(only)
         Set<String> propsExcept = convertToSet(except)
         if (!propsOnly.empty && !propsExcept.empty) {
-            throw new IllegalArgumentException("Both 'only' and 'except' were used in '${this.domainClass.defaultPropertyName}#${searchablePropertyName}': provide one or neither but not both")
+            throw new IllegalArgumentException(
+                    "Both 'only' and 'except' were used in '${this.domainClass.defaultPropertyName}#${searchablePropertyName}': provide one or neither but not both")
         }
 
         Boolean alwaysInheritProperties = (Boolean) esConfig.get("alwaysInheritProperties")
@@ -221,7 +226,8 @@ class SearchableDomainClassMapper extends GroovyObjectSupport {
 
         def defaultExcludedProperties = esConfig.get("defaultExcludedProperties")
         if (defaultExcludedProperties instanceof Collection) {
-            log.debug("Removing default excluded properties ${defaultExcludedProperties} from mappable properties for class ${domainClass.type} : ${mappableProperties}")
+            log.
+                    debug("Removing default excluded properties ${defaultExcludedProperties} from mappable properties for class ${domainClass.type} : ${mappableProperties}")
             mappableProperties.removeAll(defaultExcludedProperties)
         }
 
@@ -235,7 +241,8 @@ class SearchableDomainClassMapper extends GroovyObjectSupport {
             log.debug("'only' found on class ${domainClass.type}.")
             // If we have inherited properties, we keep them nonetheless
             if (inherit) {
-                log.debug("'only' found on class ${domainClass.type}. Keeping inherited properties : ${inheritedProperties}")
+                log.
+                        debug("'only' found on class ${domainClass.type}. Keeping inherited properties : ${inheritedProperties}")
                 mappableProperties.retainAll(inheritedProperties)
             } else {
                 mappableProperties.clear()
@@ -252,12 +259,13 @@ class SearchableDomainClassMapper extends GroovyObjectSupport {
      *
      * @param name synthetic method name
      * @param args method arguments.
-     * @return <code>null</code>
+     * @return <code> null</code>
      */
     def invokeMethod(String name, args) {
         // Custom properties mapping options
         DomainProperty property = domainClass.getPropertyByName(name)
-        Assert.notNull(property, "Unable to find property [$name] used in [$domainClass.defaultPropertyName]#${searchablePropertyName}].")
+        Assert.notNull(property,
+                "Unable to find property [$name] used in [$domainClass.defaultPropertyName]#${searchablePropertyName}].")
 
         // Check if we already has mapping for this property.
         SearchableClassPropertyMapping propertyMapping = customMappedProperties.get(name)
@@ -267,18 +275,20 @@ class SearchableDomainClassMapper extends GroovyObjectSupport {
         }
         //noinspection unchecked
         def attributes = (Map<String, Object>) ((Object[]) args)[0]
-        if(attributes?.containsKey('multi_field')){
+        if (attributes?.containsKey('multi_field')) {
             boolean addUntouched = attributes.multi_field
             attributes.remove('multi_field')
-            if(addUntouched){
-                attributes.fields = (LinkedHashMap<String, LinkedHashMap<String, String>>)(['untouched': ['type': 'keyword']]) // To preserve compatibility with ElasticSearchMappingFactory
+            if (addUntouched) {
+                attributes.
+                        fields = (LinkedHashMap<String, LinkedHashMap<String, String>>) (['untouched': ['type': 'keyword']])
+                // To preserve compatibility with ElasticSearchMappingFactory
             }
         }
         propertyMapping.addAttributes(attributes)
         return null
     }
 
-    private Set<String> convertToSet(arg) {
+    private static Set<String> convertToSet(arg) {
         if (arg == null) {
             return Collections.emptySet()
         }

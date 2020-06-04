@@ -7,7 +7,6 @@
 *** Upgraded to Grails 4.0.1
 *** Upgraded to Elasticsearch 7.5.1
 
-
 ==== Grails 3.x version
 
 * February 12, 2020
@@ -84,15 +83,17 @@
 ==== Grails 2.x version
 
 * April 3, 2016
-** 0.1.0 
+** 0.1.0
 *** New Elasticsearch 2.1.2 release
-*** Immutable Settings Removed  - Use `Settings.builder()` instead of `ImmutableSettings.builder()`
+*** Immutable Settings Removed - Use `Settings.builder()` instead of `ImmutableSettings.builder()`
 *** `BroadcastOperationResponse` got renamed to `BroadcastResponse`
 *** Removed `deleteMapping`
 *** `memory` type is now deprecated
-*** Query/filter refactoring - `org.elasticsearch.index.queries.FilterBuilders` has been removed as part of the merge of queries and filters. These filters are now available in `QueryBuilders` with the same name. All methods that used to accept a `FilterBuilder` now accept a `QueryBuilder` instead.
+*** Query/filter refactoring - `org.elasticsearch.index.queries.FilterBuilders` has been removed as part of the merge of queries and filters.
+These filters are now available in `QueryBuilders` with the same name.
+All methods that used to accept a `FilterBuilder` now accept a `QueryBuilder` instead.
 *** For more information related to changes in underline Java API https://www.elastic.co/guide/en/elasticsearch/reference/current/breaking_20_java_api_changes.html#_query_filter_refactoring[click here]
- 
+
 * June 30, 2015
 ** 0.0.4.5
 *** Upgrade to ElasticSearch 1.6.0

@@ -13,7 +13,6 @@ class Photo extends AbstractImage {
         url index: true
     }
 
-
     public String toString() {
         return "Photo{" +
                 "id=" + id +

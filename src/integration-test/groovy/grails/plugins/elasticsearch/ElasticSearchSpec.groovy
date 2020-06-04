@@ -133,5 +133,4 @@ trait ElasticSearchSpec {
             indexMappings.get('_doc')
         }
     }
-
 }

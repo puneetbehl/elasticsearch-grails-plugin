@@ -1,16 +1,14 @@
 [[searchableReference]]
 ==== Searchable Reference
 
-The searchable-reference mapping mode is the default mode used for association, and requires the
-searchable class of the association to be root-mapped in order to have its own index.
+The searchable-reference mapping mode is the default mode used for association, and requires the searchable class of the association to be root-mapped in order to have its own index.
 With this mode, the associated domains are not completely marshalled in the resulting JSON document:
 only the id and the type of the instances are kept.
-When the document is retrieved from the index, the plugin will automatically rebuild the association from the
-indices using the stored id.
+When the document is retrieved from the index, the plugin will automatically rebuild the association from the indices using the stored id.
 
 *Example*
 
-[source, groovy]
+[source,groovy]
 ----
 class MyDomain {
     // odom is an association with the OtherDomain class, set as a reference
@@ -33,10 +31,9 @@ class OtherDomain {
 
 ----
 
-
 When indexing an instance of MyDomain, the resulting JSON documents will be sent to ElasticSearch:
 
-[source, json]
+[source,json]
 ----
 {
     "mydomain": {

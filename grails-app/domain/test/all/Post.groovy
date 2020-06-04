@@ -1,7 +1,7 @@
 package test.all
 
 /**
- * @author <a href='mailto:donbeave@gmail.com'>Alexey Zhokhov</a>
+ * @author <ahref='mailto:donbeave@gmail.com' > Alexey Zhokhov</a>
  */
 class Post {
 
@@ -12,5 +12,4 @@ class Post {
         subject analyzer: 'test_analyzer', search_analyzer: 'standard'
         body analyzer: 'test_analyzer', search_analyzer: 'standard'
     }
-
 }

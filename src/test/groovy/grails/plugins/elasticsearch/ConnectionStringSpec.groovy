@@ -16,7 +16,8 @@ class ConnectionStringSpec extends Specification {
         connectionString.connections == connections
 
         where:
-        configValue                                                      || hosts                                              | connections
+        configValue                                                      || hosts                                              |
+                connections
         "elasticsearch://user:pwd@elasticsearch.dev.internal:9300"       || ["elasticsearch.dev.internal:9300"]                | [[host: 'elasticsearch.dev.internal', port: 9300]]
         "elasticsearch://elasticsearch.dev.internal:9300"                || ["elasticsearch.dev.internal:9300"]                | [[host: 'elasticsearch.dev.internal', port: 9300]]
         "elasticsearch://example.com:9300"                               || ["example.com:9300"]                               | [[host: 'example.com', port: 9300]]
@@ -36,7 +37,8 @@ class ConnectionStringSpec extends Specification {
         connectionString.connections == connections
 
         where:
-        configValue                                                                        || hosts                                                                   | connections
+        configValue                                                                        || hosts                                                                   |
+                connections
 
         "elasticsearch://elasticsearch.dev.internal:9300,elasticsearch2.dev.internal:9300" || ["elasticsearch.dev.internal:9300", "elasticsearch2.dev.internal:9300"] | [[host: 'elasticsearch.dev.internal', port: 9300], [host: 'elasticsearch2.dev.internal', port: 9300]]
 

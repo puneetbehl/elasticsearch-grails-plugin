@@ -3,7 +3,7 @@
 You can customize the mapping for each domain properties using the closure mapping.
 The syntax is simple:
 
-[source, groovy]
+[source,groovy]
 ----
 static searchable = {
     propertyName option1:value, option2:value, ...
@@ -16,23 +16,23 @@ static searchable = {
 |===
 | Option Name | Values | Description
 
-| boost 
-| Number 
+| boost
+| Number
 | A decimal boost value. With a positive value, promotes search results for hits in this property; with a negative value, demotes search results that hit this property.
 
-| <<searchableComponent, component>> 
-| `true`, `false` 
+| <<searchableComponent, component>>
+| `true`, `false`
 | To use only on domain (or collection of domains), make the property a searchable component.
 
-| converter 
-| A `Class` 
+| converter
+| A `Class`
 | A `Class` to use as a converter during the marshalling/un-marshalling process for that peculiar property. That class must extends the `PropertyEditorSupport` java class.
 
-| excludeFromAll 
-| `true`, `false` 
+| excludeFromAll
+| `true`, `false`
 | determines if the property is to append in the `"_all"` field. Default to `true`.
 
-| index 
+| index
 | `false`, `true`.
 | The index option controls whether field values are indexed. It accepts `true` or `false` and defaults to `true`. Fields that are not indexed are not queryable.
 
@@ -40,32 +40,32 @@ static searchable = {
 |  `true`, `false`
 | Enables the use of text fields in sorting and aggregation. Be careful as fielddata can consume a lot of heap space, especially when loading high cardinality text fields. Default `false`
 
-| <<searchableReference, reference>> 
-| `true`, `false` 
+| <<searchableReference, reference>>
+| `true`, `false`
 | To use only on domain (or collection of domains), make the property a searchable reference.
 
-| <<parentChild, parent>> 
-| `true`, `false` 
+| <<parentChild, parent>>
+| `true`, `false`
 | A boolean value to be used in conjunction with the `reference` or `component` property . Set to `true` if the referenced field should be mapped as the parent of this document. Default set to `false`.
 
-| multi_field 
-| `true`, `false` 
+| multi_field
+| `true`, `false`
 | A boolean value. Maps the value of the field twice; Once with it being analyzed, and once with it being not_analyzed under the name untouched. Default set to `false`.
 
 | fields
 | A map describing the extra fields
 | Maps the value of the field more than once; it is useful when you want to index a field with different analyzers. See the https://www.elastic.co/guide/en/elasticsearch/reference/current/multi-fields.html[ElasticSearch documentation]. Default set to `null`.
 
-| <<geoPoint, geoPoint>> 
-| `true`, `false` 
+| <<geoPoint, geoPoint>>
+| `true`, `false`
 | Maps the field to a geo_point. Default: `false`
 
-| <<alias, alias>> 
-| String 
+| <<alias, alias>>
+| String
 | A string value. The field noted with this parameter will be duplicated to an alias
 
-| <<dynamic, dynamic>> 
-| `true`, `false` 
+| <<dynamic, dynamic>>
+| `true`, `false`
 | Only available for String properties. Determines whether this field should be dynamically mapped by elasticsearch.
 
 |===

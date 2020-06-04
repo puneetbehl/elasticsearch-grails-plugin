@@ -81,12 +81,13 @@ class DomainClassUnmarshaller implements DataBinder {
             GroovyObject instance = (GroovyObject) scm.domainClass.type.newInstance()
             instance.setProperty(identifier.name, id)
 
-            def aliasFields = elasticSearchContextHolder.getMappingContext(scm.domainClass).getPropertiesMapping().findResults {
-                if (it.isAlias()) {
-                    return it.getAlias()
-                }
-                null
-            }
+            def aliasFields =
+                    elasticSearchContextHolder.getMappingContext(scm.domainClass).getPropertiesMapping().findResults {
+                        if (it.isAlias()) {
+                            return it.getAlias()
+                        }
+                        null
+                    }
 
             Map rebuiltProperties = new HashMap()
             for (Map.Entry<String, Object> entry : hit.sourceAsMap.entrySet()) {
@@ -94,17 +95,22 @@ class DomainClassUnmarshaller implements DataBinder {
                 if (aliasFields.contains(key)) {
                     continue
                 }
-                if (entry.key == '_domainTypeName') continue
+                if (entry.key == '_domainTypeName') {
+                    continue
+                }
 
                 try {
                     unmarshallingContext.unmarshallingStack.push(key)
-                    def unmarshalledProperty = unmarshallProperty(scm.domainClass, key, entry.value, unmarshallingContext)
+                    def unmarshalledProperty =
+                            unmarshallProperty(scm.domainClass, key, entry.value, unmarshallingContext)
                     rebuiltProperties[key] = unmarshalledProperty
                     populateCyclicReference(instance, rebuiltProperties, unmarshallingContext)
                 } catch (MappingException e) {
-                    LOG.debug("Error unmarshalling property '$key' of Class ${scm.domainClass.type.name} with id $id", e)
+                    LOG.debug("Error unmarshalling property '$key' of Class ${scm.domainClass.type.name} with id $id",
+                            e)
                 } catch (Throwable t) {
-                    LOG.error("Error unmarshalling property '$key' of Class ${scm.domainClass.type.name} with id $id", t)
+                    LOG.error("Error unmarshalling property '$key' of Class ${scm.domainClass.type.name} with id $id",
+                            t)
                 } finally {
                     unmarshallingContext.resetContext()
                 }
@@ -120,7 +126,8 @@ class DomainClassUnmarshaller implements DataBinder {
         results
     }
 
-    private void populateCyclicReference(instance, Map<String, Object> rebuiltProperties, DefaultUnmarshallingContext unmarshallingContext) {
+    private void populateCyclicReference(instance, Map<String, Object> rebuiltProperties,
+            DefaultUnmarshallingContext unmarshallingContext) {
         for (CycleReferenceSource cr : unmarshallingContext.cycleRefStack) {
             populateProperty(cr.cyclePath, rebuiltProperties, resolvePath(cr.sourcePath, instance, rebuiltProperties))
         }
@@ -136,7 +143,8 @@ class DomainClassUnmarshaller implements DataBinder {
             String part = st.nextToken()
             try {
                 int index = Integer.parseInt(part)
-                currentProperty = DefaultGroovyMethods.getAt(DefaultGroovyMethods.asList((Iterable) currentProperty), index)
+                currentProperty = DefaultGroovyMethods.getAt(DefaultGroovyMethods.asList((Iterable) currentProperty),
+                        index)
             } catch (NumberFormatException e) {
                 LOG.debug('Could not parse as number.', e)
                 currentProperty = DefaultGroovyMethods.getAt(currentProperty, part)
@@ -157,7 +165,9 @@ class DomainClassUnmarshaller implements DataBinder {
                 try {
                     if (currentProperty instanceof Collection) {
                         //noinspection unchecked
-                        currentProperty = DefaultGroovyMethods.getAt(((Collection<Object>) currentProperty).iterator(), StringGroovyMethods.toInteger((CharSequence)part))
+                        currentProperty = DefaultGroovyMethods.
+                                getAt(((Collection<Object>) currentProperty).iterator(), StringGroovyMethods.toInteger(
+                                        (CharSequence) part))
                     } else {
                         currentProperty = DefaultGroovyMethods.getAt(currentProperty, part)
                     }
@@ -181,13 +191,16 @@ class DomainClassUnmarshaller implements DataBinder {
         }
     }
 
-    private unmarshallProperty(DomainEntity domainClass, String propertyName, propertyValue, DefaultUnmarshallingContext unmarshallingContext) {
+    private unmarshallProperty(DomainEntity domainClass, String propertyName, propertyValue,
+            DefaultUnmarshallingContext unmarshallingContext) {
         // TODO : adapt behavior if the mapping option "component" or "reference" are set
         // below is considering the "component" behavior
-        SearchableClassPropertyMapping scpm = elasticSearchContextHolder.getMappingContext(domainClass).getPropertyMapping(propertyName)
+        SearchableClassPropertyMapping scpm =
+                elasticSearchContextHolder.getMappingContext(domainClass).getPropertyMapping(propertyName)
         Object parseResult
         if (scpm == null) {
-            throw new MappingException("Property ${domainClass.type.simpleName}.${propertyName} found in index, but is not defined as searchable.")
+            throw new MappingException(
+                    "Property ${domainClass.type.simpleName}.${propertyName} found in index, but is not defined as searchable.")
         }
 
         if (scpm?.dynamic && null != propertyValue) {
@@ -210,17 +223,21 @@ class DomainClassUnmarshaller implements DataBinder {
                 return unmarshallReference(refDomainClass, data, unmarshallingContext)
             }
 
-            if (data.containsKey("class") && (Boolean) grailsApplication.config.get('elasticSearch.unmarshallComponents')) {
+            if (
+            data.containsKey("class") && (Boolean) grailsApplication.config.get('elasticSearch.unmarshallComponents')) {
                 // Embedded instance.
                 if (!scpm.isComponent()) {
                     // maybe ignore?
-                    throw new IllegalStateException("Property ${domainClass.type.name}.${propertyName} is not mapped as [component], but broken search hit found.")
+                    throw new IllegalStateException(
+                            "Property ${domainClass.type.name}.${propertyName} is not mapped as [component], but broken search hit found.")
                 }
-                DomainEntity nestedDomainClass = elasticSearchContextHolder.getMappingContext((String) data.get('class'))?.domainClass
+                DomainEntity nestedDomainClass = elasticSearchContextHolder.getMappingContext((String) data.get(
+                        'class'))?.domainClass
                 if (domainClass != null) {
                     // Unmarshall 'component' instance.
                     if (!scpm.isComponent()) {
-                        throw new IllegalStateException("Object ${data.get('class')} found in index, but [$propertyName] is not mapped as component.")
+                        throw new IllegalStateException(
+                                "Object ${data.get('class')} found in index, but [$propertyName] is not mapped as component.")
                     }
                     parseResult = unmarshallDomain(nestedDomainClass, data.get('id'), data, unmarshallingContext)
                 }
@@ -247,19 +264,22 @@ class DomainClassUnmarshaller implements DataBinder {
                         propertyEditor.setAsText((String) propertyValue)
                         parseResult = propertyEditor.value
                     } catch (Exception e) {
-                        throw new IllegalArgumentException("Unable to unmarshall $propertyName using $scpm.converter", e)
+                        throw new IllegalArgumentException("Unable to unmarshall $propertyName using $scpm.converter",
+                                e)
                     }
                 }
             } else if (scpm.reference != null) {
 
                 // This is a reference and it MUST be null because it's not a Map.
                 if (propertyValue != null) {
-                    throw new IllegalStateException("Found searchable reference which is not a Map: ${domainClass}.${propertyName} = $propertyValue")
+                    throw new IllegalStateException(
+                            "Found searchable reference which is not a Map: ${domainClass}.${propertyName} = $propertyValue")
                 }
 
                 parseResult = null
             } else if (scpm.grailsProperty.type == Date && propertyValue != null) {
-                DateTimeFormatter dateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").withZone(DateTimeZone.UTC)
+                DateTimeFormatter dateTimeFormatter =
+                        DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").withZone(DateTimeZone.UTC)
                 parseResult = DateTime.parse(propertyValue, dateTimeFormatter)
             } else if (Temporal.isAssignableFrom(scpm.grailsProperty.type) && propertyValue != null) {
                 switch (scpm.grailsProperty.type) {
@@ -268,7 +288,8 @@ class DomainClassUnmarshaller implements DataBinder {
                         parseResult = LocalDate.parse(propertyValue, dateTimeFormatter)
                         break
                     case LocalDateTime:
-                        JDateTimeFormatter dateTimeFormatter = JDateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSX")
+                        JDateTimeFormatter dateTimeFormatter =
+                                JDateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSX")
                         parseResult = LocalDateTime.parse(propertyValue, dateTimeFormatter)
                         break
                     case ZonedDateTime:
@@ -293,7 +314,8 @@ class DomainClassUnmarshaller implements DataBinder {
         propertyValue
     }
 
-    private unmarshallReference(DomainEntity domainClass, Map<String, Object> data, DefaultUnmarshallingContext unmarshallingContext) {
+    private unmarshallReference(DomainEntity domainClass, Map<String, Object> data,
+            DefaultUnmarshallingContext unmarshallingContext) {
         // As a simplest scenario recover object directly from ElasticSearch.
         // todo add first-level caching and cycle ref checking
         String indexName = elasticSearchContextHolder.getMappingContext(domainClass).queryingIndex
@@ -310,7 +332,8 @@ class DomainClassUnmarshaller implements DataBinder {
         unmarshallDomain(domainClass, response.id, resolvedReferenceData, unmarshallingContext)
     }
 
-    private unmarshallDomain(DomainEntity domainClass, providedId, Map<String, Object> data, DefaultUnmarshallingContext unmarshallingContext) {
+    private unmarshallDomain(DomainEntity domainClass, providedId, Map<String, Object> data,
+            DefaultUnmarshallingContext unmarshallingContext) {
         DomainProperty identifier = domainClass.identifier
         TypeConverter typeConverter = new SimpleTypeConverter()
         Object id = typeConverter.convertIfNecessary(providedId, identifier.type)

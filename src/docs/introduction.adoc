@@ -1,10 +1,9 @@
 == Introduction
 
-The ElasticSearch plugin intends to implement a simple integration with Grails of the Open Source Search Engine http://www.elasticsearch.org/[ElasticSearch],
-which is based on Lucene and provide distributed capabilities.
+The ElasticSearch plugin intends to implement a simple integration with Grails of the Open Source Search Engine http://www.elasticsearch.org/[ElasticSearch], which is based on Lucene and provide distributed capabilities.
 
-The plugin focus on exposing Grails domain classes for the moment. It highly takes the existing http://grails.org/plugin/searchable[Searchable Plugin] as
-reference for its syntax and behaviour.
+The plugin focuses on exposing Grails domain classes for the moment.
+It highly takes the existing http://grails.org/plugin/searchable[Searchable Plugin] as reference for its syntax and behaviour.
 
 Note that the plugin is still under development, so you may not be able to use all the features of ElasticSearch yet.
 

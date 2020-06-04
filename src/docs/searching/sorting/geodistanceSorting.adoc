@@ -5,7 +5,7 @@ To sort for geo distances, a SortBuilder must be passed to `search()`
 
 *Example*
 
-[source, groovy]
+[source,groovy]
 ----
 def sortBuilder = SortBuilders.geoDistanceSort("location")
     .point(48.141, 11.57)
@@ -27,7 +27,7 @@ def result = elasticSearchService.search(
 The calculated distances are not part of the search results themselves but are part of `result.sort`.
 `sort` contains all search values calculated by the ElasticSearch server as a list mapped to the id of the respective domain objects
 
-[source, groovy]
+[source,groovy]
 ----
 assert [1:[2.34567], 2: [2.4402342]] == result.sort
 

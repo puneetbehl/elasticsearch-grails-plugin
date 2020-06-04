@@ -18,15 +18,17 @@ class DomainReflectionService {
 
     private final Map<Class<?>, DomainEntity> abstractEntityCache = [:]
 
-    boolean isDomainEntity(Class<?> clazz) {
-        if(clazz in EntityProxy) {
+    static boolean isDomainEntity(Class<?> clazz) {
+        if (clazz in EntityProxy) {
             clazz = clazz.superclass
         }
         DomainClassArtefactHandler.isDomainClass(clazz)
     }
 
     DomainEntity getDomainEntity(Class<?> clazz) {
-        if (!isDomainEntity(clazz)) return null
+        if (!isDomainEntity(clazz)) {
+            return null
+        }
 
         entityCache.computeIfAbsent(clazz) {
             PersistentEntity persistentEntity = mappingContext.getPersistentEntity(clazz.canonicalName)
@@ -51,10 +53,9 @@ class DomainReflectionService {
         new SearchableDomainClassMapper(grailsApplication, this, entity, config)
     }
 
-    private void verifyDomainClass(Class<?> clazz) {
+    private static void verifyDomainClass(Class<?> clazz) {
         if (!isDomainEntity(clazz)) {
             throw new IllegalStateException("Class ${clazz.canonicalName} is not a domain class")
         }
     }
-
 }

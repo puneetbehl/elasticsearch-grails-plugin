@@ -34,13 +34,21 @@ class IndexEntityKey implements Serializable {
     }
 
     boolean equals(o) {
-        if (is(o)) return true
-        if (getClass() != o.getClass()) return false
+        if (is(o)) {
+            return true
+        }
+        if (getClass() != o.getClass()) {
+            return false
+        }
 
         IndexEntityKey that = (IndexEntityKey) o
 
-        if (clazz != that.clazz) return false
-        if (id != that.id) return false
+        if (clazz != that.clazz) {
+            return false
+        }
+        if (id != that.id) {
+            return false
+        }
 
         true
     }
@@ -56,5 +64,4 @@ class IndexEntityKey implements Serializable {
     String toString() {
         "IndexEntityKey{id=$id, clazz=$clazz}"
     }
-
 }

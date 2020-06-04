@@ -21,6 +21,5 @@ class Dates {
     }
 
     static searchable = {
-
     }
 }

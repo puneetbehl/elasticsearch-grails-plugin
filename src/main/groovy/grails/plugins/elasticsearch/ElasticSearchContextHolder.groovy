@@ -68,7 +68,7 @@ class ElasticSearchContextHolder {
 
     SearchableClassMapping getMappingContextByObject(o) {
         Class clazz = o.class
-        if(proxyHandler.isProxy(o)) {
+        if (proxyHandler.isProxy(o)) {
             clazz = o.class.superclass
         }
         mapping.values().find { scm -> scm.domainClass.type == clazz }

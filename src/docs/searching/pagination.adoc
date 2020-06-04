@@ -5,7 +5,7 @@ To return paginated results one can pass `from` and `size` to search method quer
 
 *Example*
 
-[source, groovy]
+[source,groovy]
 ----
 
 Post.search('xyz', [ indices: Post, types: Post, from: 0, size: 10 ] )

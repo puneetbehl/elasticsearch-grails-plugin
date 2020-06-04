@@ -12,9 +12,11 @@ import test.upperCase.UpperCase
 
 class SearchableClassMappingSpec extends Specification implements DataTest, AutowiredTest {
 
-    Closure doWithSpring() { { ->
+    Closure doWithSpring() {
+        { ->
             domainReflectionService DomainReflectionService
-        } }
+        }
+    }
 
     DomainReflectionService domainReflectionService
 
@@ -27,15 +29,16 @@ class SearchableClassMappingSpec extends Specification implements DataTest, Auto
         PersistentEntity persistentEntity = dataStore.mappingContext.getPersistentEntity(className)
 
         when:
-        SearchableClassMapping scm = new SearchableClassMapping(grailsApplication, new DomainEntity(domainReflectionService, persistentEntity), [])
+        SearchableClassMapping scm = new SearchableClassMapping(grailsApplication,
+                new DomainEntity(domainReflectionService, persistentEntity), [])
 
         then:
         scm.indexName == packageName
         scm.queryingIndex == IndexNamingUtils.queryingIndexFor(packageName)
         scm.indexingIndex == IndexNamingUtils.indexingIndexFor(packageName)
-            scm.queryingIndex != scm.indexingIndex
-            scm.indexName != scm.queryingIndex
-            scm.indexName != scm.indexingIndex
+        scm.queryingIndex != scm.indexingIndex
+        scm.indexName != scm.queryingIndex
+        scm.indexName != scm.indexingIndex
 
         where:
         className       || packageName
@@ -46,7 +49,8 @@ class SearchableClassMappingSpec extends Specification implements DataTest, Auto
     void testGetIndexName() throws Exception {
         when:
         PersistentEntity persistentEntity = dataStore.mappingContext.getPersistentEntity(Photo.class.name)
-        SearchableClassMapping mapping = new SearchableClassMapping(grailsApplication, new DomainEntity(domainReflectionService, persistentEntity), null)
+        SearchableClassMapping mapping = new SearchableClassMapping(grailsApplication,
+                new DomainEntity(domainReflectionService, persistentEntity), null)
 
         then:
         'test.photo' == mapping.getIndexName()
@@ -55,19 +59,20 @@ class SearchableClassMappingSpec extends Specification implements DataTest, Auto
     void testManuallyConfiguredIndexName() throws Exception {
 
         when:
-            DomainEntity dc = domainReflectionService.getAbstractDomainEntity(Photo.class)
-            grailsApplication.config.elasticSearch.index.name = 'index-name'
-            SearchableClassMapping mapping = new SearchableClassMapping(grailsApplication, dc, null)
+        DomainEntity dc = domainReflectionService.getAbstractDomainEntity(Photo.class)
+        grailsApplication.config.elasticSearch.index.name = 'index-name'
+        SearchableClassMapping mapping = new SearchableClassMapping(grailsApplication, dc, null)
 
         then:
-            'index-name' == mapping.getIndexName()
+        'index-name' == mapping.getIndexName()
     }
 
     void testIndexNameIsLowercaseWhenPackageNameIsLowercase() throws Exception {
         when:
         PersistentEntity persistentEntity = dataStore.mappingContext.getPersistentEntity(UpperCase.class.name)
-        SearchableClassMapping mapping = new SearchableClassMapping(grailsApplication, new DomainEntity(domainReflectionService, persistentEntity), null)
-            String indexName = mapping.getIndexName()
+        SearchableClassMapping mapping = new SearchableClassMapping(grailsApplication,
+                new DomainEntity(domainReflectionService, persistentEntity), null)
+        String indexName = mapping.getIndexName()
 
         then:
         'test.uppercase.uppercase' == indexName

@@ -25,17 +25,21 @@ class MappingMigrationManager implements ElasticSearchConfigAware {
 
     private static final Logger LOG = LoggerFactory.getLogger(this)
 
-    def applyMigrations(MappingMigrationStrategy migrationStrategy, Map<SearchableClassMapping, Map> elasticMappings, List<MappingConflict> mappingConflicts, Map indexSettings) {
+    def applyMigrations(MappingMigrationStrategy migrationStrategy, Map<SearchableClassMapping, Map> elasticMappings,
+            List<MappingConflict> mappingConflicts, Map indexSettings) {
         switch (migrationStrategy) {
             case delete:
-                LOG.error("Delete a Mapping is no longer supported since Elasticsearch 2.0 (see https://www.elastic.co/guide/en/elasticsearch/reference/2.0/indices-delete-mapping.html)." +
-                        " To prevent data loss, this strategy has been replaced by 'deleteIndex'")
+                LOG.
+                        error("Delete a Mapping is no longer supported since Elasticsearch 2.0 (see https://www.elastic.co/guide/en/elasticsearch/reference/2.0/indices-delete-mapping.html)." +
+                                " To prevent data loss, this strategy has been replaced by 'deleteIndex'")
                 throw new MappingException()
             case deleteIndex:
-                elasticSearchContextHolder.indexesRebuiltOnMigration = applyDeleteIndexStrategy(elasticMappings, mappingConflicts, indexSettings)
+                elasticSearchContextHolder.indexesRebuiltOnMigration =
+                        applyDeleteIndexStrategy(elasticMappings, mappingConflicts, indexSettings)
                 break
             case alias:
-                elasticSearchContextHolder.indexesRebuiltOnMigration = applyAliasStrategy(elasticMappings, mappingConflicts, indexSettings)
+                elasticSearchContextHolder.indexesRebuiltOnMigration =
+                        applyAliasStrategy(elasticMappings, mappingConflicts, indexSettings)
                 break
             case none:
                 LOG.error("Could not install mappings : ${mappingConflicts}. No migration strategy selected.")
@@ -43,7 +47,8 @@ class MappingMigrationManager implements ElasticSearchConfigAware {
         }
     }
 
-    Set applyDeleteIndexStrategy(Map<SearchableClassMapping, Map> elasticMappings, List<MappingConflict> mappingConflicts, Map indexSettings) {
+    Set applyDeleteIndexStrategy(Map<SearchableClassMapping, Map> elasticMappings,
+            List<MappingConflict> mappingConflicts, Map indexSettings) {
         Set<String> indices = mappingConflicts.collect { it.scm.indexName } as Set<String>
         indices.each { String indexName ->
 
@@ -56,7 +61,8 @@ class MappingMigrationManager implements ElasticSearchConfigAware {
         indices
     }
 
-    Set applyAliasStrategy(Map<SearchableClassMapping, Map> elasticMappings, List<MappingConflict> mappingConflicts, Map indexSettings) {
+    Set applyAliasStrategy(Map<SearchableClassMapping, Map> elasticMappings, List<MappingConflict> mappingConflicts,
+            Map indexSettings) {
 
         Set<String> indices = mappingConflicts.collect { it.scm.indexName } as Set<String>
 
@@ -70,17 +76,19 @@ class MappingMigrationManager implements ElasticSearchConfigAware {
                 }
 
                 int nextVersion = es.getNextVersion(indexName)
-                boolean buildQueryingAlias = (!esConfig.bulkIndexOnStartup) && (!conflictOnAlias || !migrationConfig?.disableAliasChange)
+                boolean buildQueryingAlias = (!esConfig.bulkIndexOnStartup) && (!conflictOnAlias || !
+                        migrationConfig?.disableAliasChange)
                 rebuildIndexWithMappings(indexName, nextVersion, indexSettings, elasticMappings, buildQueryingAlias)
-
             } else {
-                throw new MappingException("Could not create alias ${indexName} to solve error installing mappings, index with the same name already exists.")
+                throw new MappingException(
+                        "Could not create alias ${indexName} to solve error installing mappings, index with the same name already exists.")
             }
         }
         indices
     }
 
-    private void rebuildIndexWithMappings(String indexName, int nextVersion, Map indexSettings, Map<SearchableClassMapping, Map> elasticMappings, boolean buildQueryingAlias) {
+    private void rebuildIndexWithMappings(String indexName, int nextVersion, Map indexSettings,
+            Map<SearchableClassMapping, Map> elasticMappings, boolean buildQueryingAlias) {
         Map<String, Map> esMappings = elasticMappings.findAll { SearchableClassMapping scm, Map esMapping ->
             scm.indexName == indexName && scm.isRoot()
         }.collectEntries { SearchableClassMapping scm, Map esMapping ->

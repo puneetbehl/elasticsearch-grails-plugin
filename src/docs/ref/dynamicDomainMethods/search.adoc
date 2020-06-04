@@ -1,7 +1,7 @@
 [[search]]
 === search
 
-#### Purpose
+==== Purpose
 
 Search through an index for the specified search query.
 
@@ -12,9 +12,9 @@ The returned result only contains hits for the corresponding domain.
 Only domains that are [root-mapped|guide:classMapping] have this method injected.
 ====
 
-#### Examples
+==== Examples
 
-[source, groovy]
+[source,groovy]
 ----
 def highlighter = {
   field 'message', 0, 0
@@ -34,11 +34,11 @@ def res = MyDomain.search(from:0, size:30) {
 
 ----
 
-##### Description
+===== Description
 
 `search` signature:
 
-[source, groovy]
+[source,groovy]
 ----
 def search(Closure query, Map params)
 def search(Map params, Closure query)
@@ -46,15 +46,16 @@ def search(String query, Map params)
 
 ----
 
-##### Parameters
+===== Parameters
 
-* `query` - The search query. You may use one or more terms to look for, or use the Lucene syntax for advanced searching.
+* `query` - The search query.
+You may use one or more terms to look for, or use the Lucene syntax for advanced searching.
 * `params` - A list of additional parameters to customize the searching process
 ** `from` and `size` - From (hit) and the size (number of hits) to return.
 ** `sort` - Sort based on different fields including ElasticSearch's internal ones (like `_score`)
 ** `highlighter` - A `Closure` containing the <<highlighting, highlighting>> settings.
 
-##### Returned value
+===== Returned value
 
 Return an object of `ElasticSearchResult` containing:
 

@@ -204,13 +204,11 @@ class ElasticSearchAdminService {
                         it.value.eachWithIndex { entry, int i ->
                             settingsBuilder.put("${it.key.toString()}.${i}", entry.toString())
                         }
-
                     } else {
                         settingsBuilder.put(it.key.toString(), it.value.toString())
                     }
                 }
                 request.settings(settingsBuilder)
-
             }
             esMappings.each { String type, Map elasticMapping ->
                 request.mapping(elasticMapping)
@@ -254,7 +252,8 @@ class ElasticSearchAdminService {
     void waitForIndex(String index, int version) {
         int retries = WAIT_FOR_INDEX_MAX_RETRIES
         while (getLatestVersion(index) < version && retries--) {
-            LOG.debug("Index ${versionIndex(index, version)} not found, sleeping for ${WAIT_FOR_INDEX_SLEEP_INTERVAL}...")
+            LOG.
+                    debug("Index ${versionIndex(index, version)} not found, sleeping for ${WAIT_FOR_INDEX_SLEEP_INTERVAL}...")
             Thread.sleep(WAIT_FOR_INDEX_SLEEP_INTERVAL)
         }
     }
@@ -266,7 +265,8 @@ class ElasticSearchAdminService {
      */
     String indexPointedBy(String alias) {
         elasticSearchHelper.withElasticSearch { RestHighLevelClient client ->
-            GetAliasesResponse aliasesResponse = client.indices().getAlias(new GetAliasesRequest(alias), RequestOptions.DEFAULT)
+            GetAliasesResponse aliasesResponse = client.indices().getAlias(new GetAliasesRequest(alias),
+                    RequestOptions.DEFAULT)
             if (aliasesResponse.error) {
                 LOG.debug(aliasesResponse.error)
             }
@@ -338,14 +338,13 @@ class ElasticSearchAdminService {
      */
     String indexNameByAlias(String alias) {
         elasticSearchHelper.withElasticSearch { RestHighLevelClient client ->
-            GetAliasesResponse aliasesResponse = client.indices().getAlias(new GetAliasesRequest(alias), RequestOptions.DEFAULT)
+            GetAliasesResponse aliasesResponse = client.indices().getAlias(new GetAliasesRequest(alias),
+                    RequestOptions.DEFAULT)
             if (aliasesResponse.status() == RestStatus.NOT_FOUND) {
                 alias
             } else {
                 aliasesResponse.getAliases()?.entrySet()?.iterator()?.next()?.getKey()
             }
-
-
         }
     }
 
@@ -353,7 +352,7 @@ class ElasticSearchAdminService {
      * Builds an index name based on a base index and a version number
      * @param index
      * @param version
-     * @return <index>   _v<version> if version is provided, <index> otherwise
+     * @return <index>    _v<version> if version is provided, <index> otherwise
      */
     String versionIndex(String index, Integer version = null) {
         version == null ? index : index + "_v${version}"
@@ -414,10 +413,21 @@ class ElasticSearchAdminService {
      * Waits for the cluster to be on Yellow status
      */
     void waitForClusterStatus(ClusterHealthStatus status = ClusterHealthStatus.YELLOW) {
+        String waitForStatus
+        switch (status) {
+            case ClusterHealthStatus.GREEN:
+                waitForStatus = 'green'
+                break
+            case ClusterHealthStatus.RED:
+                waitForStatus = 'red'
+                break
+            default:
+                waitForStatus = 'yellow'
+        }
         elasticSearchHelper.withElasticSearch { RestHighLevelClient client ->
 
             Request request = new Request("GET", "/_cluster/health")
-            request.addParameter("wait_for_status", "yellow")
+            request.addParameter("wait_for_status", waitForStatus)
             Response response = client.getLowLevelClient().performRequest(request)
 
             ClusterHealthStatus healthStatus = null
@@ -436,5 +446,4 @@ class ElasticSearchAdminService {
             it.value instanceof Map ? it.value.collect { k, v -> new MapEntry(it.key + '.' + k, v) } : it
         } as Closure<? extends Map.Entry<Object, Object>>)))
     }
-
 }

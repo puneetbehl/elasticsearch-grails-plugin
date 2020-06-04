@@ -135,7 +135,8 @@ class SearchableClassPropertyMapping {
             return grailsProperty.referencedPropertyType
         }
 
-        throw new IllegalStateException("$parentClassName property '$propertyName' is not an association, cannot be defined as 'reference'")
+        throw new IllegalStateException(
+                "$parentClassName property '$propertyName' is not an association, cannot be defined as 'reference'")
     }
 
     private String getParentClassName() {
@@ -149,11 +150,13 @@ class SearchableClassPropertyMapping {
      */
     void validate(ElasticSearchContextHolder contextHolder) {
         if (component && reference != null) {
-            throw new IllegalArgumentException("$parentClassName property '$propertyName' cannot be 'component' and 'reference' at once.")
+            throw new IllegalArgumentException(
+                    "$parentClassName property '$propertyName' cannot be 'component' and 'reference' at once.")
         }
 
         if (component && componentPropertyMapping == null) {
-            throw new IllegalArgumentException("$parentClassName property '$propertyName' is mapped as 'component', but dependent mapping is not injected.")
+            throw new IllegalArgumentException(
+                    "$parentClassName property '$propertyName' is mapped as 'component', but dependent mapping is not injected.")
         }
 
         // Are we referencing searchable class?
@@ -163,11 +166,13 @@ class SearchableClassPropertyMapping {
             // May not be correct to inheritance model.
             SearchableClassMapping scm = contextHolder.getMappingContextByType(myReferenceType)
             if (scm == null) {
-                throw new IllegalArgumentException("$parentClassName property '$propertyName' declared as reference to non-searchable class $myReferenceType")
+                throw new IllegalArgumentException(
+                        "$parentClassName property '$propertyName' declared as reference to non-searchable class $myReferenceType")
             }
             // Should it be a root class????
             if (!scm.root) {
-                throw new IllegalArgumentException("$parentClassName property '$propertyName' declared as reference to non-root class $myReferenceType")
+                throw new IllegalArgumentException(
+                        "$parentClassName property '$propertyName' declared as reference to non-root class $myReferenceType")
             }
         }
     }

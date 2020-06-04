@@ -286,7 +286,6 @@ class ElasticSearchService implements GrailsApplicationAware {
             } else {
                 mappings << elasticSearchContextHolder.getMappingContextByType(clazz)
             }
-
         } else {
             mappings = elasticSearchContextHolder.mapping.values() as List
         }
@@ -302,7 +301,8 @@ class ElasticSearchService implements GrailsApplicationAware {
                 if (total > 0) {
                     // compute the number of rounds
                     int rounds = Math.ceil(total / max) as int
-                    log.debug "Maximum entries allowed in each bulk request is $max, so indexing is split to $rounds iterations"
+                    log.
+                            debug "Maximum entries allowed in each bulk request is $max, so indexing is split to $rounds iterations"
 
                     // Couldn't get to work with hibernate due to lost/closed hibernate session errors
                     /*GParsPool.withPool(Runtime.getRuntime().availableProcessors()) {
@@ -355,7 +355,8 @@ class ElasticSearchService implements GrailsApplicationAware {
                             persistenceInterceptor.init()
                             persistenceInterceptor.setReadOnly()
 
-                            List<Class<?>> results = domainClass.listOrderById([offset: offset, max: max, readOnly: true, sort: 'id', order: "asc"])
+                            List<Class<?>> results = domainClass.listOrderById(
+                                    [offset: offset, max: max, readOnly: true, sort: 'id', order: "asc"])
 
                             // set lastId for next run
                             offset = round * max
@@ -384,7 +385,6 @@ class ElasticSearchService implements GrailsApplicationAware {
                         }
                     }
                 }
-
 
                 /*if (operationType == INDEX_REQUEST) {
                      log.debug("Indexing all instances of $domainClass")
@@ -521,8 +521,8 @@ class ElasticSearchService implements GrailsApplicationAware {
 
         SearchRequest request = new SearchRequest()
         String searchType = params.searchType ?:
-                elasticSearchContextHolder.config.defaultSearchType ?:
-                        'query_then_fetch'
+                            elasticSearchContextHolder.config.defaultSearchType ?:
+                            'query_then_fetch'
         request.searchType searchType.toLowerCase()
         request.source source
 
@@ -564,11 +564,13 @@ class ElasticSearchService implements GrailsApplicationAware {
         source
     }
 
-    SearchSourceBuilder setAggregationInSource(SearchSourceBuilder source, BaseAggregationBuilder aggregationBuilder, Map params = [:]) {
+    SearchSourceBuilder setAggregationInSource(SearchSourceBuilder source, BaseAggregationBuilder aggregationBuilder,
+            Map params = [:]) {
         source.aggregation(aggregationBuilder)
     }
 
-    SearchSourceBuilder setAggregationInSource(SearchSourceBuilder source, Collection<BaseAggregationBuilder> aggregationBuilder, Map params = [:]) {
+    SearchSourceBuilder setAggregationInSource(SearchSourceBuilder source,
+            Collection<BaseAggregationBuilder> aggregationBuilder, Map params = [:]) {
         aggregationBuilder.each {
             source.aggregation(it)
         }

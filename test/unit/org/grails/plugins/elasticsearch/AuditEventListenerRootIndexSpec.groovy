@@ -90,7 +90,6 @@ class AuditEventListenerRootIndexSpec extends Specification {
         then: "an empty list should be returned because the entity is not the root and its parent is not searchable"
         roots.isEmpty()
     }
-
 }
 
 class IndexRootA {

@@ -15,5 +15,4 @@ class Color {
         root false
         only = ['name']
     }
-
 }

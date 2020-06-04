@@ -3,9 +3,11 @@
 
 Normally this issues happen where different versions of same modules are download from different plugins or dependencies in `build.gradle`
 
-It seems like there are multiple versions of groovy in the classpath. Looks similar to http://stackoverflow.com/questions/31099214/tomcat-conflicting-module-versions-module-groovy-all-is-loaded-in-version-2-3
+It seems like there are multiple versions of groovy in the classpath.
+Looks similar to http://stackoverflow.com/questions/31099214/tomcat-conflicting-module-versions-module-groovy-all-is-loaded-in-version-2-3
 
-#### Exception
+==== Exception
+
 ----
  log4j:ERROR Error initializing log4j: null
  java.lang.ExceptionInInitializerError
@@ -34,7 +36,7 @@ It seems like there are multiple versions of groovy in the classpath. Looks simi
  **Caused by: groovy.lang.GroovyRuntimeException: Conflicting module versions. Module [groovy-all is  loaded in version 2.3.11 and you are trying to load version 2.4.4**
 ----
 
-#### Workaround
+==== Workaround
 
 ----
 grails.project.dependency.resolution = {

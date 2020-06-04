@@ -8,7 +8,7 @@ and the http://www.elasticsearch.org/guide/en/elasticsearch/client/java-api/curr
 
 *Example*
 
-[source, groovy]
+[source,groovy]
 ----
 def result = elasticSearchService.search(searchType:'dfs_query_and_fetch') {
   bool {

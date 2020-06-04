@@ -2,7 +2,8 @@
 
 [NOTE]
 ====
-The versioning model has changed. The version number of the plugin will reflect the one of the underline integrated Elasticsearch.
+The versioning model has changed.
+The version number of the plugin will reflect the one of the underline integrated Elasticsearch.
 If necessary a 4th level point release number will be used for successive changes on the plugin's code with same version of Elasticsearch.
 ====
 
@@ -13,24 +14,24 @@ If necessary a 4th level point release number will be used for successive change
 s| Plugin Version    s| Grails                s| Elasticsearch
 s| 2.8.0             s| 4.0.x                 s| 7.x
 s| 2.7.3             s| 3.3.x                 s| 7.x
- | 2.7.2             s| 3.3.x                 s| 7.x
- | 2.7.0              | 3.3.x                  | 7.x
- | 2.6.0              | 3.3.x                  | 6.x
- | 2.4.0              | 3.3.x                  | 5.x
- | 1.4.1              | 3.1.x                  | 5.x (tested with 5.4.1)
- | 1.2.0              | 3.1.x                  | 2.3.x
- | 1.0.0.2            | 3.0.x                  | 1.x
- | 0.1.0              | 2.4.x                  | 2.1.x
- | 0.0.4.5            | 2.4.x                  | 1.x
- | 0.2.x              | 2.4.x                  | 2.3.x
- | 0.3.x              | 2.4.x                  | (hypothetical) 2.4.x
- | 0.5.x              | 2.4.x                  | (hypothetical) 5.0.x
- | 1.3.x              | 3.1.x                  | (hypothetical) 2.4.x
- | 1.5.x              | 3.1.x                  | (hypothetical) 5.0.x
- | 2.3.x              | (hypothetical) 3.2.x   | (hypothetical) 2.3.x
- | 3.3.x              | (hypothetical) 4.0.x   | (hypothetical) 2.3.x
+| 2.7.2             s| 3.3.x                 s| 7.x
+| 2.7.0              | 3.3.x                  | 7.x
+| 2.6.0              | 3.3.x                  | 6.x
+| 2.4.0              | 3.3.x                  | 5.x
+| 1.4.1              | 3.1.x                  | 5.x (tested with 5.4.1)
+| 1.2.0              | 3.1.x                  | 2.3.x
+| 1.0.0.2            | 3.0.x                  | 1.x
+| 0.1.0              | 2.4.x                  | 2.1.x
+| 0.0.4.5            | 2.4.x                  | 1.x
+| 0.2.x              | 2.4.x                  | 2.3.x
+| 0.3.x              | 2.4.x                  | (hypothetical) 2.4.x
+| 0.5.x              | 2.4.x                  | (hypothetical) 5.0.x
+| 1.3.x              | 3.1.x                  | (hypothetical) 2.4.x
+| 1.5.x              | 3.1.x                  | (hypothetical) 5.0.x
+| 2.3.x              | (hypothetical) 3.2.x   | (hypothetical) 2.3.x
+| 3.3.x              | (hypothetical) 4.0.x   | (hypothetical) 2.3.x
 |===
 
 _Existing versions in_ *bold*
 
-Current version is *{revnumber}* (for Grails 2.x the latest version is *0.1.0*)
+The current version is *{revnumber}* (for Grails 2.x the latest version is *0.1.0*)

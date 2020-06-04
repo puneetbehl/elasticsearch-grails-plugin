@@ -20,7 +20,6 @@ For latest stable version of plugin documentation, https://puneetbehl.github.io/
 Just like any other Grails plugin, through the Grails Plugin center.
 Edit your project's +build.gradle+ file, by adding the plugin's dependency declaration:
 
-
 ----
 dependencies {
     ...
@@ -29,7 +28,6 @@ dependencies {
 
 }
 ----
-
 
 === Versioning
 
@@ -96,10 +94,10 @@ dependencies {
 === Ohs Nos! I'm hitting a +java.lang.Exception: No datastore implementation specified+
 
 This error means that you probably haven't specified your datastore type in your +application.groovy+ or +application.yml+ file.
-This plugin has an auto-index feature which automatically propagates any changes made to searchable Domains into the search index;
-this is done by hooking into GORM's storage events but also requires a reference to the active datastore implementation.
+This plugin has an auto-index feature which automatically propagates any changes made to searchable Domains into the search index; this is done by hooking into GORM's storage events but also requires a reference to the active datastore implementation.
 To fix, edit your project's +application.groovy+ or +application.yml+ file and add:
 application.groovy
+
 ----
 elasticSearch {
     ...
@@ -109,26 +107,26 @@ elasticSearch {
 ----
 
 application.yml
+
 ----
 elasticSearch:
     datastoreImpl: nameOfDatastoreBean
 ----
+
 Where the value should be the name of the datastore bean as it is configured in the Spring context; some possible values:
 
 MongoDB::
-    +mongoDatastore+
++mongoDatastore+
 Hibernate::
-    +hibernateDatastore+
-
++hibernateDatastore+
 
 == Memory analysis done with YourKit
 
-image:https://www.yourkit.com/images/yklogo.png["YourKit", link="https://www.yourkit.com"]
+image:https://www.yourkit.com/images/yklogo.png["YourKit",link="https://www.yourkit.com"]
 
 YourKit supports open source projects with its full-featured Java Profiler.
 YourKit, LLC is the creator of https://www.yourkit.com/java/profiler/[YourKit Java Profiler]
-and https://www.yourkit.com/.net/profiler/[YourKit .NET Profiler],
-innovative and intelligent tools for profiling Java and .NET applications.
+and https://www.yourkit.com/.net/profiler/[YourKit .NET Profiler], innovative and intelligent tools for profiling Java and .NET applications.
 
 == License
 
@@ -148,10 +146,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ----
 
-
-
-
 ==== Here, have a yak:
+
 ----
                             _,,,_
                         .-'`  (  '.

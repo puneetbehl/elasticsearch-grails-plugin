@@ -32,49 +32,48 @@ class AnalyzersIntegrationSpec extends Specification implements ElasticSearchSpe
 
     def 'search by all'() {
         given:
-            refreshIndices()
+        refreshIndices()
 
         expect:
-            search(Post, 'xyz').total.value == 1
+        search(Post, 'xyz').total.value == 1
 
         when:
-            def results = Post.search('xyz')
+        def results = Post.search('xyz')
 
         then:
-            results.total.value == 1
+        results.total.value == 1
     }
 
     def 'search by subject'() {
         given:
-            refreshIndices()
+        refreshIndices()
 
         expect:
-            search(Post, QueryBuilders.matchQuery('subject', 'xyz')).total.value == 0
+        search(Post, QueryBuilders.matchQuery('subject', 'xyz')).total.value == 0
 
         when:
-            def results = Post.search {
-                match(subject: 'xyz')
-            }
+        def results = Post.search {
+            match(subject: 'xyz')
+        }
 
         then:
-            results.total.value == 0
+        results.total.value == 0
     }
 
     def 'search by body'() {
         given:
-            refreshIndices()
+        refreshIndices()
 
         expect:
-            search(Post, QueryBuilders.matchQuery('body', 'xyz')).total.value == 1
+        search(Post, QueryBuilders.matchQuery('body', 'xyz')).total.value == 1
 
         when:
-            def results = Post.search {
-                match(body: 'xyz')
-            }
+        def results = Post.search {
+            match(body: 'xyz')
+        }
 
         then:
-            results.total.value == 1
-            results.searchResults[0].body.startsWith('[xyz] GORM')
+        results.total.value == 1
+        results.searchResults[0].body.startsWith('[xyz] GORM')
     }
-
 }

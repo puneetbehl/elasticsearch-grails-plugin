@@ -32,7 +32,8 @@ class AbstractQueryBuilderParser {
 
         // move to the next START_OBJECT
         if (parser.nextToken() != XContentParser.Token.START_OBJECT) {
-            throw new ParsingException(parser.tokenLocation, "[$queryName] query malformed, no start_object after query name")
+            throw new ParsingException(parser.tokenLocation,
+                    "[$queryName] query malformed, no start_object after query name")
         }
 
         QueryBuilder result
@@ -44,15 +45,16 @@ class AbstractQueryBuilderParser {
 
         //end_object of the specific query (e.g. match, multi_match etc.) element
         if (parser.currentToken() != XContentParser.Token.END_OBJECT) {
-            throw new ParsingException(parser.tokenLocation, "[$queryName] malformed query, expected [END_OBJECT] but found [${parser.currentToken()}]")
+            throw new ParsingException(parser.tokenLocation,
+                    "[$queryName] malformed query, expected [END_OBJECT] but found [${parser.currentToken()}]")
         }
 
         //end_object of the query object
         if (parser.nextToken() != XContentParser.Token.END_OBJECT) {
-            throw new ParsingException(parser.tokenLocation, "[$queryName] malformed query, expected [END_OBJECT] but found [${parser.currentToken()}]")
+            throw new ParsingException(parser.tokenLocation,
+                    "[$queryName] malformed query, expected [END_OBJECT] but found [${parser.currentToken()}]")
         }
 
         result
     }
-
 }

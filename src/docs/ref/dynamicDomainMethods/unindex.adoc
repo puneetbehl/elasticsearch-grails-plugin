@@ -1,7 +1,7 @@
 [[unindex]]
 === unindex
 
-#### Purpose
+==== Purpose
 
 Remove specific domain instances from the ElasticSearch indices.
 
@@ -12,9 +12,9 @@ Internally, the plugin uses the Bulk API of ElasticSearch to perform the delete 
 Only domains that are [root-mapped|guide:classMapping] have this method injected.
 ====
 
-#### Examples
+==== Examples
 
-[source, groovy]
+[source,groovy]
 ----
 // Unindex all instances of the MyDomain domain class
 MyDomain.unindex()
@@ -29,11 +29,11 @@ MyDomain.unindex(ds)
 
 ----
 
-##### Description
+===== Description
 
 `unindex` signatures:
 
-[source, groovy]
+[source,groovy]
 ----
 // Unindex a specific domain instance
 def unindex()
@@ -46,7 +46,7 @@ static unindex(Domain... domain)
 
 ----
 
-##### Parameters
+===== Parameters
 
 * `Collection<Domain>` domains - A `Collection` of domain instances to unindex.
 * `Domain...` domain - Same as `Collection<Domain>`, but with an ellipsis.

@@ -1,7 +1,8 @@
 [[aggregation]]
 === Aggregation
 
-You can use AggregationBuilders while searching. The aggregations framework helps provide aggregated data based on a search query.
+You can use AggregationBuilders while searching.
+The aggregations' framework helps provide aggregated data based on a search query.
 It is based on simple building blocks called aggregations, that can be composed in order to build complex summaries of the data.
 
 You could use preconstructed AggregationBuilders or use the standard DSL based aggregations
@@ -10,7 +11,7 @@ You could use preconstructed AggregationBuilders or use the standard DSL based a
 
 _Use of AggregationBuilders_
 
-[source, groovy]
+[source,groovy]
 ----
 
 // build your aggregation(s)
@@ -37,7 +38,7 @@ elasticSearchService.search(
 
 _Use of DSL_
 
-[source, groovy]
+[source,groovy]
 ----
 
 Photo.search('xyz', null as Closure, {

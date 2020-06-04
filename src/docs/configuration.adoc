@@ -5,9 +5,10 @@ The plugin provide a default configuration, but you may add your own settings in
 
 === Overriding Spring Boot elasticsearch version
 
-Spring Boot 1.3.x supports Elasticsearch 1.5.2 OOTB (https://github.com/spring-projects/spring-boot/blob/master/spring-boot-dependencies/pom.xml#L76) and will install dependencies for this version, if not explicitly overriden. To do so add the following to your `build.gradle`:
+Spring Boot 1.3.x supports Elasticsearch 1.5.2 OOTB (https://github.com/spring-projects/spring-boot/blob/master/spring-boot-dependencies/pom.xml#L76) and will install dependencies for this version, if not explicitly overriden.
+To do so add the following to your `build.gradle`:
 
-[source, groovy]
+[source,groovy]
 ----
 def elasticsearchVersion = '5.4.3'
 ext['elasticsearch.version'] = elasticsearchVersion
@@ -17,7 +18,7 @@ ext['elasticsearch.version'] = elasticsearchVersion
 
 Below is the default configuration loaded by the plugin (any of your settings in the Config.groovy script overwrite those).
 
-[source, groovy]
+[source,groovy]
 .Config.groovy
 ----
 elasticSearch {
@@ -94,7 +95,7 @@ environments {
 
 ==== Grails 3.3.x Sample YAML configuration
 
-[source, yaml]
+[source,yaml]
 .application.yml
 ----
 elasticSearch:
@@ -150,13 +151,13 @@ environments:
 You can set the plugin in 3 different modes, detailed on the http://www.elasticsearch.org/guide/en/elasticsearch/client/java-api/current/[official ElasticSearch doc].
 The mode is defined with the following config key:
 
-[source, groovy]
+[source,groovy]
 .applicaiton.groovy or Config.groovy
 ----
 elasticSearch.client.mode = '<mode>'
 ----
 
-[source, yml]
+[source,yml]
 .application.yml
 ----
 elasticSearch:
@@ -183,8 +184,8 @@ elasticSearch:
 |The plugin create a transport client that will connect to a remote ElasticSearch instance without joining the cluster.
 |===
 
-
-"Transport" mode needs you to provide the host address and port. You can define one or multiple hosts with the following config key:
+"Transport" mode needs you to provide the host address and port.
+You can define one or multiple hosts with the following config key:
 
 [source,groovy]
 .application.groovy or Config.groovy
@@ -195,7 +196,7 @@ elasticSearch.client.hosts = [
 ]
 ----
 
-[source, yaml]
+[source,yaml]
 .application.yml
 ----
 elasticSearch:
@@ -211,25 +212,27 @@ If no host is defined, `localhost:9300` will be used by the transport client.
 
 [[INFO]]
 ====
-The node.client setting has been removed. A node with such a setting set will not start up. Instead, each node role needs to be set separately using the existing node.master, node.data and node.ingest supported static settings.
+The node.client setting has been removed.
+A node with such a setting set will not start up.
+Instead, each node role needs to be set separately using the existing node.master, node.data and node.ingest supported static settings.
 ====
 
 If you configure your dev environment to use `node` or `dataNode` you might see the following exception:
 
-[source, groovy]
+[source,groovy]
 ----
 'elasticSearchClient': FactoryBean threw exception on object creation; nested exception is java.lang.IllegalStateException: path.home is not configured
 ----
 
 In order to make this work you need to define `es.path.home` in VM options.
 
-[source, groovy]
+[source,groovy]
 .Grails 2.x
 ----
 grails run-app -Des.path.home=<PATH_TO_ELASTICSEARCH_HOME_DIR>
 ----
 
-[source, groovy]
+[source,groovy]
 .Grails 3.x (build.gradle)
 ----
 bootRun {
@@ -243,7 +246,7 @@ The Mapper Attachment plugin is Deprecated since version 5.0.0 and will be repla
 
 So, if you are using ES plugin with mode: `local` and do not want to use Mapper Attachment plugin then you can disable the plugin by using following configuration:
 
-[source, yaml]
+[source,yaml]
 .application.yml
 ----
 elasticSearch:
@@ -257,10 +260,10 @@ elasticSearch:
 Please note that by default the plugin is enabled.
 ====
 
-
 === Mapping Migration properties
 
-Define the application's behaviour when a conflict is found while installing Elasticsearch mappings on startup. For a detailed explanation, see <<Mapping Migrations>>.
+Define the application's behaviour when a conflict is found while installing Elasticsearch mappings on startup.
+For a detailed explanation, see <<Mapping Migrations>>.
 
 ==== `elasticSearch.migration.strategy`
 
@@ -289,8 +292,10 @@ The default is `'alias'`.
 
 ==== `elasticSearch.migration.aliasReplacesIndex`
 
-Deals with a special conflict case using the `'alias'` strategy. When the `'alias'` migration strategy is chosen and there's a mapping conflict on an index, defines whether to replace the index with a versioned index (`<indexName>_vX`) and an alias (`<indexName>`). This is required when applying the alias strategy on top of existing indices for the first time as indices cannot be renamed (from `<indexName>` to `<indexName>_vX`) and an alias cannot exist with the same name as an index.
-	
+Deals with a special conflict case using the `'alias'` strategy.
+When the `'alias'` migration strategy is chosen and there's a mapping conflict on an index, defines whether to replace the index with a versioned index (`<indexName>_vX`) and an alias (`<indexName>`).
+This is required when applying the alias strategy on top of existing indices for the first time as indices cannot be renamed (from `<indexName>` to `<indexName>_vX`) and an alias cannot exist with the same name as an index.
+
 .Possible Values for aliasReplacesIndex
 [width="100%",cols="2",options="header"]
 |===
@@ -311,14 +316,16 @@ The default is `true`.
 
 ==== `elasticSearch.migration.disableAliasChange`
 
-In some cases the developer may prefer not to upgrade the alias to the new version of the index until some other tasks are performed. This allows them to disable automatically pointing the alias to a new version of the index when this is created. Aliases can be changed later on manually or programatically using `elasticSearchAdminService`
+In some cases the developer may prefer not to upgrade the alias to the new version of the index until some other tasks are performed.
+This allows them to disable automatically pointing the alias to a new version of the index when this is created.
+Aliases can be changed later on manually or programatically using `elasticSearchAdminService`
 
 .Possible Values for disableAliasChange
 [width="100%",cols="2",options="header"]
 |===
 | Value | Description
 
-| `false` 
+| `false`
 | Standard behaviour
 
 | `true`
@@ -334,11 +341,12 @@ The default is `false`.
 
 ==== `elasticSearch.searchMethodName`
 
-Change the name of search method in domain class. By default it's `search`. 
+Change the name of search method in domain class.
+By default it's `search`.
 
 For example
 
-[source, groovy]
+[source,groovy]
 ----
 MyDomain.search("${params.query}")
 
@@ -349,14 +357,14 @@ MyDomain.search("${params.query}")
 In order to change the method name to `esSearch` just update the `elasticSearch.searchMethodName='esSearch'` in application.groovy
 ====
 
-
 ==== `elasticSearch.countHitsMethodName`
 
-Change the name of countHits method in domain class. By default it's `countHits`. 
+Change the name of countHits method in domain class.
+By default it's `countHits`.
 
 For example
 
-[source, groovy]
+[source,groovy]
 ----
 MyDomain.countHits("${params.query}")
 
@@ -367,12 +375,9 @@ MyDomain.countHits("${params.query}")
 In order to change the method name to `esCountHits` just update the `elasticSearch.countHitsMethodName='esCountHits'` in application.groovy
 ====
 
-
-
 ==== `elasticSearch.disableDynamicMethodsInjection`
 
-To complete disabled injection of dynamic methods set `elasticSearch.disableDynamicMethodsInjection = true` in `applicaiton.groovy` 
-
+To complete disabled injection of dynamic methods set `elasticSearch.disableDynamicMethodsInjection = true` in `applicaiton.groovy`
 
 === Others properties
 
@@ -394,7 +399,6 @@ The value should be the name of the datastore bean as it is configured in the Sp
 | The name of the Hibernate datastore bean.
 
 |===
-
 
 ==== `elasticSearch.bootstrap.config.file`
 
@@ -456,11 +460,16 @@ Default to `true`.
 ====
 
 ==== `elasticSearch.index.name`
-A string indicating which ElasticSearch index should be used.  If not present, will default to the package name of the domain in question.
+
+A string indicating which ElasticSearch index should be used.
+If not present, will default to the package name of the domain in question.
 
 [NOTE]
 ====
-From Elasticsearch 5.0 on only selected settings like for instance index.codec can be set on the node level. All other settings must be set on each individual index. To set default values on every index, index templates should be used instead. So, unset this value if you are using Elasticsearch v5.0 or above.
+From Elasticsearch 5.0 on only selected settings like for instance index.codec can be set on the node level.
+All other settings must be set on each individual index.
+To set default values on every index, index templates should be used instead.
+So, unset this value if you are using Elasticsearch v5.0 or above.
 ====
 
 ==== `elasticSearch.index.compound_format`
@@ -479,7 +488,7 @@ More details on the possible values on the http://www.elasticsearch.org/guide/re
 |===
 | Value | Description
 
-| memory 
+| memory
 | Stores the index in memory. Useful for testing. *Please note* that it's not support in ES 2.0 and later versions.
 
 | mmapfs
@@ -495,7 +504,8 @@ More details on the possible values on the http://www.elasticsearch.org/guide/re
 
 ==== `elasticSearch.index.settings.numberOfReplicas`
 
-Sets the number of replicas created for each shard of the index. If not present, will default to zero.
+Sets the number of replicas created for each shard of the index.
+If not present, will default to zero.
 
 ==== `elasticSearch.gateway.type`
 
@@ -515,15 +525,18 @@ The location of the data files of each index / shard allocated on the node.
 
 ==== `elasticSearch.path.plugins`
 
-The location of plugin files such as native scripts. Each plugin will be contained in a subdirectory.
+The location of plugin files such as native scripts.
+Each plugin will be contained in a subdirectory.
 
 ==== `elasticSearch.searchableProperty.name`
 
-The name of the ElasticSearch mapping configuration property that annotates domain classes. The default is 'searchable'.
+The name of the ElasticSearch mapping configuration property that annotates domain classes.
+The default is 'searchable'.
 
 ==== `elasticSearch.includeTransients`
 
-Whether to index and search all non excluded transient properties. All explicitly included transients in `only` will be indexed regardless.
+Whether to index and search all non excluded transient properties.
+All explicitly included transients in `only` will be indexed regardless.
 
 [NOTE]
 ====

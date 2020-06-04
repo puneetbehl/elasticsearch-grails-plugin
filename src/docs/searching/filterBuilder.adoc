@@ -5,7 +5,7 @@ A `FilterBuilder` filter can be passed as a second argument after the search par
 
 *Example*
 
-[source, groovy]
+[source,groovy]
 ----
 FilterBuilder filter = FilterBuilders.rangeFilter("price").gte(1.99).lte(2.3)
 def result = elasticSearchService.search(

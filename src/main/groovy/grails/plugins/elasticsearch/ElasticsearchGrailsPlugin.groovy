@@ -40,36 +40,37 @@ class ElasticsearchGrailsPlugin extends Plugin {
 
     def pluginExcludes = [
             "grails-app/views/error.gsp",
-                          "**/test/**",
+            "**/test/**",
             "src/docs/**"
     ]
 
     def license = 'APACHE'
 
-    def organization = [name: 'TO THE NEW', url: 'http://www.tothenew.com']
+    def organization = [name: 'cgo IT', url: 'https://cgo-it.de']
 
     def developers = [
             [name: 'Noam Y. Tenne', email: 'noam@10ne.org'],
-			[name: 'Marcos Carceles', email: 'marcos.carceles@gmail.com'],
-			[name: 'Puneet Behl', email: 'puneet.behl007@gmail.com'],
-            [name: 'James Kleeh', email: 'james.kleeh@gmail.com']
+            [name: 'Marcos Carceles', email: 'marcos.carceles@gmail.com'],
+            [name: 'Puneet Behl', email: 'puneet.behl007@gmail.com'],
+            [name: 'James Kleeh', email: 'james.kleeh@gmail.com'],
+            [name: 'Carsten Götzinger', email: 'carsten@cgo-it.de']
     ]
 
-    def issueManagement = [system: 'github', url: 'https://github.com/puneetbehl/elasticsearch-grails-plugin/issues']
+    def issueManagement = [system: 'github', url: 'https://github.com/cgoIT/elasticsearch-grails-plugin/issues']
 
-    def scm = [url: 'https://github.com/puneetbehl/elasticsearch-grails-plugin']
+    def scm = [url: 'https://github.com/cgoIT/elasticsearch-grails-plugin']
 
-    def author = 'Puneet Behl'
-    def authorEmail = 'puneet.behl007@gmail.com'
+    def author = 'Carsten Götzinger'
+    def authorEmail = 'carsten@cgo-it.de'
     def title = 'ElasticSearch Grails Plugin'
-    def description = """The revived Elasticsearch plugin for Grails."""
+    def description = """The revived++ Elasticsearch plugin for Grails."""
     def documentation = 'http://puneetbehl.github.io/elasticsearch-grails-plugin'
 
     def profiles = ['web']
 
     Closure doWithSpring() {
         { ->
-            ConfigObject esConfig = config.elasticSearch
+            ConfigObject esConfig = config.elasticSearch as ConfigObject
 
             domainReflectionService(DomainReflectionService) { bean ->
                 mappingContext = ref('grailsDomainClassMappingContext')
@@ -156,5 +157,4 @@ class ElasticsearchGrailsPlugin extends Plugin {
             DomainDynamicMethodsUtils.injectDynamicMethods(grailsApplication, applicationContext)
         }
     }
-
 }

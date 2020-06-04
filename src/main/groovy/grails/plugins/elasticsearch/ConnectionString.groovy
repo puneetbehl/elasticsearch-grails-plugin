@@ -114,7 +114,8 @@ class ConnectionString {
         List<String> hosts = new ArrayList<String>()
         for (String host : rawHosts) {
             if (host.length() == 0) {
-                throw new IllegalArgumentException(format("The connection string contains an empty host '%s'. ", rawHosts))
+                throw new IllegalArgumentException(
+                        format("The connection string contains an empty host '%s'. ", rawHosts))
             } else if (host.endsWith(".sock")) {
                 throw new IllegalArgumentException(format("The connection string contains an invalid host '%s'. "
                         + "Unix Domain Socket which is not supported by the Java driver", host))
@@ -172,10 +173,12 @@ class ConnectionString {
             return URLDecoder.decode(input, UTF_8)
         } catch (UnsupportedEncodingException e) {
             if (password) {
-                throw new IllegalArgumentException("The connection string contained unsupported characters in the password.")
+                throw new IllegalArgumentException(
+                        "The connection string contained unsupported characters in the password.")
             } else {
-                throw new IllegalArgumentException(format("The connection string contained unsupported characters: '%s'."
-                        + "Decoding produced the following error: %s", input, e.getMessage()))
+                throw new IllegalArgumentException(
+                        format("The connection string contained unsupported characters: '%s'."
+                                + "Decoding produced the following error: %s", input, e.getMessage()))
             }
         }
     }

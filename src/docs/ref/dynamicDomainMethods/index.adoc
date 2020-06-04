@@ -1,7 +1,7 @@
 [[index]]
 === index
 
-#### Purpose
+==== Purpose
 
 Index specific domain instances to ElasticSearch.
 
@@ -12,9 +12,9 @@ Internally, the plugin uses the Bulk API of ElasticSearch to perform the index r
 Only domains that are [root-mapped|guide:classMapping] have this method injected.
 ====
 
-#### Examples
+==== Examples
 
-[source, groovy]
+[source,groovy]
 ----
 // Index all instances of the MyDomain domain class
 MyDomain.index()
@@ -31,11 +31,11 @@ MyDomain.index(ds)
 
 ----
 
-##### Description
+===== Description
 
 `index` signatures:
 
-[source, groovy]
+[source,groovy]
 ----
 // Index a specific domain instance
 def index()
@@ -48,7 +48,7 @@ static index(Domain... domain)
 
 ----
 
-##### Parameters
+===== Parameters
 
 * `Collection<Domain>` domains - A `Collection` of domain instances to index.
 * `Domain...` domain - Same as `Collection<Domain>`, but with an ellipsis.

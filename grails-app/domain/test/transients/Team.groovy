@@ -22,5 +22,4 @@ class Team {
     def getFans() {
         return Fan.findAll()
     }
-
 }

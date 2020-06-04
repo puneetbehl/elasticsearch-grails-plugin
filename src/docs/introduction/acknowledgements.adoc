@@ -2,7 +2,7 @@
 
 Many thanks to all the users who reported issues and sent me pull requests.
 
-#### Authors and Contributors
+==== Authors and Contributors
 
 * https://github.com/noamt[Noam Y. Tenne]
 * https://github.com/stefanrother[Stefan Rother-Stübs (Dating Cafe)]
@@ -12,14 +12,13 @@ Many thanks to all the users who reported issues and sent me pull requests.
 * https://github.com/puneetbehl[Puneet Behl]
 * https://github.com/cgoIT[Carsten Götzinger (cgo IT)]
 
-#### Authors and Contributors of the original plugin
+==== Authors and Contributors of the original plugin
 
 * https://github.com/mstein[Manuarii Stein (doc4web consulting)]
 * https://github.com/smaldini[Stephane Maldini (doc4web consulting)]
 * https://github.com/spn[Serge P. Nekoval]
 
-
-#### Previous work
+==== Previous work
 
 Graeme Rocher started the first draft which this plugin is based on.
 

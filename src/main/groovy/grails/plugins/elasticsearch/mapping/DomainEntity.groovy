@@ -22,7 +22,7 @@ class DomainEntity {
 
     private static final List<String> IGNORED_PROPERTIES = []
 
-    static  {
+    static {
         IGNORED_PROPERTIES.add(GormProperties.DIRTY_PROPERTY_NAMES)
         IGNORED_PROPERTIES.add(GormProperties.ERRORS)
         IGNORED_PROPERTIES.add(GormProperties.DIRTY)
@@ -42,8 +42,8 @@ class DomainEntity {
     }
 
     private DomainEntity(DomainReflectionService reflectionService,
-                         PersistentEntity persistentEntity,
-                         Class<?> entityClass) {
+            PersistentEntity persistentEntity,
+            Class<?> entityClass) {
 
         this.persistentEntity = persistentEntity
         this.reflectionService = reflectionService
@@ -92,7 +92,7 @@ class DomainEntity {
     }
 
     boolean hasProperty(String name) {
-        cpf.metaProperties.find {it.name == name}
+        cpf.metaProperties.find { it.name == name }
     }
 
     boolean hasSearchableProperty(String searchablePropertyName) {
@@ -108,6 +108,8 @@ class DomainEntity {
         if (metaProperty != null) {
             return getPropertyAdapter(metaProperty)
         }
+
+        null
     }
 
     Collection<DomainProperty> getProperties() {
@@ -119,7 +121,9 @@ class DomainEntity {
         final List<PersistentProperty> persistentProperties = persistentEntity.persistentProperties
         persistentProperties
                 .forEach({ PersistentProperty property ->
-                    if (!(property.name in IGNORED_PROPERTIES)) allProps.add(getPropertyAdapter(property))
+                    if (!(property.name in IGNORED_PROPERTIES)) {
+                        allProps.add(getPropertyAdapter(property))
+                    }
                 })
         cpf.getMetaProperties().forEach({ MetaProperty metaProperty ->
             if (!(metaProperty.name in IGNORED_PROPERTIES) &&
@@ -201,7 +205,9 @@ class DomainEntity {
     }
 
     private DomainProperty getPropertyAdapter(PersistentProperty property) {
-        if (!property) return null
+        if (!property) {
+            return null
+        }
 
         propertyCache.computeIfAbsent(property.name) {
             new DomainProperty(reflectionService, this, property)
@@ -209,7 +215,9 @@ class DomainEntity {
     }
 
     private DomainProperty getPropertyAdapter(MetaProperty property) {
-        if (!property) return null
+        if (!property) {
+            return null
+        }
 
         propertyCache.computeIfAbsent(property.name) {
             new DomainProperty(reflectionService, this, null, property)
@@ -217,8 +225,8 @@ class DomainEntity {
     }
 
     @SuppressWarnings("GrMethodMayBeStatic")
-    private boolean notInPersistentProperties(List<PersistentProperty> persistentProperties, MetaProperty metaProperty) {
+    private boolean notInPersistentProperties(List<PersistentProperty> persistentProperties,
+            MetaProperty metaProperty) {
         !persistentProperties.find { (it.name == metaProperty.name) }
     }
-
 }

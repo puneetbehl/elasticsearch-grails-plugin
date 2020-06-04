@@ -29,38 +29,37 @@ class ElasticSearchMappingFactorySpec extends Specification {
         searchableClassMappingConfigurator.configureAndInstallMappings()
     }
 
-
     @Unroll('#clazz / #property is mapped as #expectedType')
     void "calculates the correct ElasticSearch types"() {
         given:
-            SearchableClassMapping scm = elasticSearchContextHolder.getMappingContextByType(clazz)
+        SearchableClassMapping scm = elasticSearchContextHolder.getMappingContextByType(clazz)
 
         when:
-            Map mapping = ElasticSearchMappingFactory.getElasticMapping(scm)
+        Map mapping = ElasticSearchMappingFactory.getElasticMapping(scm)
 
         then:
-            mapping['properties'][property].type == expectedType
+        mapping['properties'][property].type == expectedType
 
         where:
-            clazz    | property          | expectedType
+        clazz    | property          | expectedType
 
-            Building | 'name'            | 'text'
-            Building | 'date'            | 'date'
-            Building | 'localDate'       | 'date'
-            Building | 'location'        | 'geo_point'
+        Building | 'name'            | 'text'
+        Building | 'date'            | 'date'
+        Building | 'localDate'       | 'date'
+        Building | 'location'        | 'geo_point'
 
-            Product  | 'price'           | 'float'
-            Product  | 'json'            | 'object'
+        Product  | 'price'           | 'float'
+        Product  | 'json'            | 'object'
 
-            Catalog  | 'pages'           | 'object'
+        Catalog  | 'pages'           | 'object'
 
-            Person   | 'fullName'        | 'text'
-            Person   | 'nickNames'       | 'text'
+        Person   | 'fullName'        | 'text'
+        Person   | 'nickNames'       | 'text'
 
-            Palette  | 'colors'          | 'text'
-            Palette  | 'complementaries' | 'text'
+        Palette  | 'colors'          | 'text'
+        Palette  | 'complementaries' | 'text'
 
-            Anagram  | 'length'          | 'integer'
-            Anagram  | 'palindrome'      | 'boolean'
+        Anagram  | 'length'          | 'integer'
+        Anagram  | 'palindrome'      | 'boolean'
     }
 }

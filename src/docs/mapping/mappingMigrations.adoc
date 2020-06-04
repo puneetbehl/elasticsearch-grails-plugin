@@ -1,13 +1,17 @@
 [[mappingMigrations]]
 === Mapping Migrations
 
-During the application startup the application will attempt to create the needed indices on Elasticsearch and create the type mappings defined by the user. If these indices and mappings already existed on the Elasticsearch cluster (ie. an older version of the application was running against it) and the new mapping definitions differ with the existing ones there's the potential for a Mapping conflict. This section describes how to configure the application to deal with this scenario.
+During the application startup the application will attempt to create the needed indices on Elasticsearch and create the type mappings defined by the user.
+If these indices and mappings already existed on the Elasticsearch cluster (ie. an older version of the application was running against it) and the new mapping definitions differ with the existing ones there's the potential for a Mapping conflict.
+This section describes how to configure the application to deal with this scenario.
 
-It is important to highlight that not all type mapping changes will result on a conflict. Ie. adding a new field to a mapping does not result in a conflict whilst changing a property from component:'inner' to nested or vice-versa, will. These strategies will only be needed and applied when a *conflicting* mapping is found.
+It is important to highlight that not all type mapping changes will result on a conflict.
+Ie. adding a new field to a mapping does not result in a conflict whilst changing a property from component:'inner' to nested or vice-versa, will.
+These strategies will only be needed and applied when a *conflicting* mapping is being found.
 
 ==== Migration Strategies
 
-The migration strategy is defined by the `elasticSearch.migration.strategy` configuration property and it accepts three values:
+The migration strategy is being defined by the `elasticSearch.migration.strategy` configuration property, and it accepts three values:
 
 - `'none'`
 - `'deleteIndex'`
@@ -20,14 +24,16 @@ These values are described on more detail further ahead
 
 ==== Migration Strategy 'none'
 
-This option keeps the original behaviour the plugin used before the Migration Strategies were implemented. When a Mapping Merge conflict id identified the event will be logged and an Exception will be logged.
+This option keeps the original behaviour the plugin used before the Migration Strategies were implemented.
+When a Mapping Merge conflict id identified the event will be logged and an Exception will be logged.
 It will be responsibility for the application administrator to manually fix the problem.
 
 This configuration was left as a backwards compatibility and it will prevent the application from booting successfully, therefore we *discourage teams from using this option*.
 
 ==== Migration Strategy 'deleteIndex'
 
-When choosing this option, when a conflict occurs installing  mapping, the application will delete the existing index for the type, *alongside with all content indexed on that index (including content from other mappings)* and it will recreate the index and all its mappings. There are a couple of important details on this information:
+When choosing this option, when a conflict occurs installing mapping, the application will delete the existing index for the type, *alongside with all content indexed on that index (including content from other mappings)* and it will recreate the index and all its mappings.
+There are a couple of important details on this information:
 
 - Deleted documents can be automatically reindexed on startup by using the `elasticSearch.bulkIndexOnStartup` configuration property (See below)
 - New indices will be created with a version number and the right aliases, to make them compatible with potential future 'alias' migrations (without requiring additional index deletions)
@@ -41,7 +47,7 @@ This is the migration strategy http://www.elasticsearch.org/blog/changing-mappin
 
 To better understand this strategy we will describe a typical `'alias'` migration.
 
-[source, groovy]
+[source,groovy]
 ----
 Elasticsearch contains
   index 'myapplication.store_v27' with types 'car' and 'motorbike'
@@ -86,7 +92,7 @@ There are three potential scenarios when using the `'alias'` strategy:
 |===
 | Scenario | Behaviour
 
-| The index (ie. 'myapplication.store') does not exist 
+| The index (ie. 'myapplication.store') does not exist
 | On this case there is not possibility of conflicts, as no previous mapping exist. However the application will behave slightly different than on the other to scenarios. Instead of creating the index (ie. 'myapplication.store'), it will create version 0 of it (ie. 'myapplication.store_v0') and an alias pointing to it. This is to facilitate the creation of future versions in case of conflict.
 
 | Alias exists pointing to a version (ie. 'myapplication.store' -> 'myapplication.store_v27')
@@ -97,18 +103,22 @@ There are three potential scenarios when using the `'alias'` strategy:
 
 |===
 
-
 In the case you wanted to create a new version of an index, but not change where the alias points to (ie. for testing or if you wanted to perform extra tasks on the index before updating the alias), the `elasticSearch.migration.disableAliasChange` configuration property can be used
 
 [NOTE]
 ====
-Aliases will only point to the new version of the index once all content is reindexed (if chosen to). Meanwhile, all index requests, either by `elasticSearchService` or using dynamic finders will go to the new version of the index, whilst queries will go to the old version of the index.
+Aliases will only point to the new version of the index once all content is reindexed (if chosen to).
+Meanwhile, all index requests, either by `elasticSearchService` or using dynamic finders will go to the new version of the index, whilst queries will go to the old version of the index.
 ====
 
 See <<Dealing with deleted content>> below for more details on automatic indexing.
 
 ==== Dealing with deleted content
 
-Using the `'delete'` or `'alias'` strategy may lead to deleting content stored on Elasticsearch. This content can be automatically reindexed using the `elasticSearch.bulkIndexOnStartup`. The duration of this process will depend on the amount of content to index.
+Using the `'delete'` or `'alias'` strategy may lead to deleting content stored on Elasticsearch.
+This content can be automatically reindexed using the `elasticSearch.bulkIndexOnStartup`.
+The duration of this process will depend on the amount of content to index.
 
-When this property is set to `true` all content will be deleted. When set to `'deleted'` only the domain classes which documents where deleted will be indexed. In either case, when using the `'alias'` strategy, once all content is indexed all aliases will point to the latest version of the index.
+When this property is set to `true` all content will be deleted.
+When set to `'deleted'` only the domain classes which documents where deleted will be indexed.
+In either case, when using the `'alias'` strategy, once all content is indexed all aliases will point to the latest version of the index.

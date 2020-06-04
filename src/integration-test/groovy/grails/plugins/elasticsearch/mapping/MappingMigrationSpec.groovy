@@ -99,27 +99,27 @@ class MappingMigrationSpec extends Specification {
     // https://www.elastic.co/guide/en/elasticsearch/reference/6.5/mapping.html#_updating_existing_field_mappings
     void 'when there\'s a conflict and no strategy is selected an exception is thrown'() {
         given: 'A Conflicting Catalog mapping (with nested as opposed to inner pages)'
-            setupMappings()
-            //Delete existing Mapping
-            es.deleteIndex catalogMapping.indexName
-            //Create conflicting Mapping
-            catalogPagesMapping.addAttributes([component: true])
-            searchableClassMappingConfigurator.installMappings([catalogMapping])
-            //Restore initial state for next use
-            catalogPagesMapping.addAttributes([component: 'inner'])
+        setupMappings()
+        //Delete existing Mapping
+        es.deleteIndex catalogMapping.indexName
+        //Create conflicting Mapping
+        catalogPagesMapping.addAttributes([component: true])
+        searchableClassMappingConfigurator.installMappings([catalogMapping])
+        //Restore initial state for next use
+        catalogPagesMapping.addAttributes([component: 'inner'])
 
         expect:
-            es.indexExists(catalogMapping.indexName)
-            !es.aliasExists(catalogMapping.indexName)
+        es.indexExists(catalogMapping.indexName)
+        !es.aliasExists(catalogMapping.indexName)
 
         when: 'No Migration Configuration'
-            grailsApplication.config.elasticSearch.migration = [strategy: 'none']
+        grailsApplication.config.elasticSearch.migration = [strategy: 'none']
 
         and:
-            searchableClassMappingConfigurator.installMappings([catalogMapping])
+        searchableClassMappingConfigurator.installMappings([catalogMapping])
 
         then:
-            thrown MappingException
+        thrown MappingException
     }
 
 //    /*

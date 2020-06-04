@@ -1,8 +1,11 @@
 === Class Mapping
 
 ==== root
-Determine if the domain class will have its own index or not. Take a boolean as parameter, and is set to `true` by default.
-[source, groovy]
+
+Determine if the domain class will have its own index or not.
+Take a boolean as parameter, and is set to `true` by default.
+
+[source,groovy]
 ----
 class Preference {
     static searchable = {
@@ -24,14 +27,15 @@ class Tweet {
 }
 ----
 
-In this code, the classes `Tweet` and `Tag` are going to have their own index. The class `Preference` will not.
-It also mean that any search request will never return a Preference-type hit. The dynamic method `search` will not be
-injected in the `Preference` domain class.
+In this code, the classes `Tweet` and `Tag` are going to have their own index.
+The class `Preference` will not.
+It also means that any search request will never return a Preference-type hit.
+The dynamic method `search` will not be injected in the `Preference` domain class.
 
 The domains not root-mapped can still be considered searchable, as they can be components of another domain which is root-mapped.
 For example, considered the following domain:
 
-[source, groovy]
+[source,groovy]
 ----
 class User {
     static searchable = {
@@ -45,16 +49,17 @@ class User {
 When searching, any matches in the `userPreferences` property will be considered as a `User` match.
 
 ==== all
+
 Set default analyzer for all domain class fields.
 
-[source, groovy]
+[source,groovy]
 ----
 static searchable = {
   all = [analyzer: 'russian_morphology']
 }
 ----
 
-[source, groovy]
+[source,groovy]
 ----
 static searchable = {
   all = false

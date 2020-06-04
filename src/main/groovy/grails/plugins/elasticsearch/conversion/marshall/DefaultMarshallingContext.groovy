@@ -18,7 +18,6 @@ package grails.plugins.elasticsearch.conversion.marshall
 import grails.plugins.elasticsearch.conversion.JSONDomainFactory
 import grails.plugins.elasticsearch.mapping.SearchableClassMapping
 
-
 class DefaultMarshallingContext {
     JSONDomainFactory parentFactory
     def maxDepth = 5

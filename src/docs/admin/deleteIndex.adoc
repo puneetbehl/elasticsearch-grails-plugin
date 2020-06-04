@@ -1,16 +1,17 @@
 [[deleteIndex]]
 === Delete Index
 
-Delete an index, all its mapping and its content from the ElasticSearch instance. Be careful when using this command because it cannot be undone.
+Delete an index, all its mapping and its content from the ElasticSearch instance.
+Be careful when using this command because it cannot be undone.
 
 [NOTE]
 ====
 The generated mapping from the grails plugin is also deleted.
 ====
-	
+
 The method can be limited to one or more specific indices or applied to all indices at once (called with no parameter).
 
-[source, groovy]
+[source,groovy]
 ----
 elasticSearchAdminService.deleteIndex()
 

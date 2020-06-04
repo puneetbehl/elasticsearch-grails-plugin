@@ -1,11 +1,12 @@
 [[geoPoint]]
 === Geo Point
 
-A geographic location can be mapped to a geo_point. The field for the longitude has to be named `lon` and the field for the latitude has to be named `lat`
+A geographic location can be mapped to a geo_point.
+The field for the longitude has to be named `lon` and the field for the latitude has to be named `lat`
 
 *Example*
 
-[source, groovy]
+[source,groovy]
 ----
 class GeoPoint {
 

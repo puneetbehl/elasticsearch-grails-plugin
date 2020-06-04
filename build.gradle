@@ -13,7 +13,7 @@ buildscript {
         classpath "org.grails:grails-gradle-plugin:$grailsVersion"
         classpath 'org.asciidoctor:asciidoctor-gradle-plugin:1.5.3'
         classpath 'org.ajoberstar:gradle-git:1.4.2'
-        classpath "org.grails.plugins:hibernate5:${gormVersion-".RELEASE"}"
+        classpath "org.grails.plugins:hibernate5:${gormVersion - ".RELEASE"}"
     }
 }
 
@@ -97,7 +97,6 @@ dependencies {
     compile group: 'org.elasticsearch.client', name: 'elasticsearch-rest-high-level-client', version: esVersion
     compile group: 'org.locationtech.spatial4j', name: 'spatial4j', version: '0.6'
     //compile group: 'org.codehaus.gpars', name: 'gpars', version: '1.2.1'
-
 
     console "org.grails:grails-console"
 

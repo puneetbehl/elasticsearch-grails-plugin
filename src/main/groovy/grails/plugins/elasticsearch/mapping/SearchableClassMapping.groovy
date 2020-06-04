@@ -40,8 +40,8 @@ class SearchableClassMapping implements ElasticSearchConfigAware {
     String indexName
 
     SearchableClassMapping(GrailsApplication grailsApplication,
-                           DomainEntity domainClass,
-                           Collection<SearchableClassPropertyMapping> propertiesMapping) {
+            DomainEntity domainClass,
+            Collection<SearchableClassPropertyMapping> propertiesMapping) {
         this.grailsApplication = grailsApplication
         this.domainClass = domainClass
         this.propertiesMapping = propertiesMapping
@@ -119,7 +119,7 @@ class SearchableClassMapping implements ElasticSearchConfigAware {
         domainClass.propertyNameRepresentation
     }
 
-    boolean isAll() {
+    static boolean isAll() {
         false
         /*if (all instanceof Boolean) {
             return all
@@ -138,5 +138,4 @@ class SearchableClassMapping implements ElasticSearchConfigAware {
     GrailsApplication getGrailsApplication() {
         grailsApplication
     }
-
 }

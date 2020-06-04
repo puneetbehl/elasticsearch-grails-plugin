@@ -1,7 +1,7 @@
 [[countHits]]
 === countHits
 
-#### Purpose
+==== Purpose
 
 Returns the number of hits for a specified search query.
 
@@ -10,9 +10,9 @@ Returns the number of hits for a specified search query.
 Only domains that are [root-mapped|guide:classMapping] have this method injected.
 ====
 
-#### Examples
+==== Examples
 
-[source, groovy]
+[source,groovy]
 ----
 def res = MyDomain.countHits("${params.query}")
 def res = MyDomain.countHits {
@@ -21,11 +21,11 @@ def res = MyDomain.countHits {
 
 ----
 
-##### Description
+===== Description
 
 `search` signature:
 
-[source, groovy]
+[source,groovy]
 ----
 def countHits(Closure query, Map params)
 def countHits(Closure query)
@@ -35,11 +35,11 @@ def countHits(String query)
 
 ----
 
-##### Parameters
+===== Parameters
 
-* `query` - The search query. You may use one or more terms to look for, or use the Lucene syntax for advanced searching.
+* `query` - The search query.
+You may use one or more terms to look for, or use the Lucene syntax for advanced searching.
 * `params` - A list of additional parameters to customize the searching process
-
 
 ##### Returned value
 

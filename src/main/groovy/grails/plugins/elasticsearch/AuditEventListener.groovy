@@ -84,7 +84,6 @@ class AuditEventListener extends AbstractPersistenceEventListener {
             }
             objs[key] = entity
             registerMySynchronization()
-
         } else {
             indexRequestQueue.addIndexRequest(entity)
             indexRequestQueue.executeRequests()
@@ -108,7 +107,6 @@ class AuditEventListener extends AbstractPersistenceEventListener {
             }
             objs[key] = entity
             registerMySynchronization()
-
         } else {
             indexRequestQueue.addDeleteRequest(entity)
             indexRequestQueue.executeRequests()
@@ -169,19 +167,19 @@ class AuditEventListener extends AbstractPersistenceEventListener {
         }
     }
 
-    Map getPendingObjects() {
+    static Map getPendingObjects() {
         pendingObjects.get()
     }
 
-    Map getDeletedObjects() {
+    static Map getDeletedObjects() {
         deletedObjects.get()
     }
 
-    void clearPendingObjects() {
+    static void clearPendingObjects() {
         pendingObjects.remove()
     }
 
-    void clearDeletedObjects() {
+    static void clearDeletedObjects() {
         deletedObjects.remove()
     }
 
@@ -226,7 +224,7 @@ class AuditEventListener extends AbstractPersistenceEventListener {
         roots
     }
 
-    private def getEventEntity(AbstractPersistenceEvent event) {
+    private static def getEventEntity(AbstractPersistenceEvent event) {
         if (event.entityAccess) {
             return event.entityAccess.entity
         }

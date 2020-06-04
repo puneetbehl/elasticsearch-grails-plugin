@@ -63,12 +63,15 @@ class ClientNodeFactoryBean implements FactoryBean {
             CredentialsProvider credentialsProvider = null
             if (elasticSearchContextHolder.config.client.username) {
                 credentialsProvider = new BasicCredentialsProvider()
-                credentialsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(elasticSearchContextHolder.config.client.username, elasticSearchContextHolder.config.client.password))
+                credentialsProvider.setCredentials(AuthScope.ANY,
+                        new UsernamePasswordCredentials(elasticSearchContextHolder.config.client.username,
+                                elasticSearchContextHolder.config.client.password))
             }
 
             HttpHost proxyHost = null
             if (elasticSearchContextHolder.config.client.proxy.host) {
-                proxyHost = new HttpHost(elasticSearchContextHolder.config.client.proxy.host, elasticSearchContextHolder.config.client.proxy.port as int, "http")
+                proxyHost = new HttpHost(elasticSearchContextHolder.config.client.proxy.host,
+                        elasticSearchContextHolder.config.client.proxy.port as int, "http")
             }
             builder.setHttpClientConfigCallback(new RestClientBuilder.HttpClientConfigCallback() {
                 @Override
@@ -97,7 +100,8 @@ class ClientNodeFactoryBean implements FactoryBean {
                     socketTimeout = elasticSearchContextHolder.config.client.socketTimeout as int
                     LOG.debug "Set REST client socket timeout to ${socketTimeout} seconds"
                 }
-                return requestConfigBuilder.setConnectTimeout(connectTimeout * 1000).setSocketTimeout(socketTimeout * 1000)
+                return requestConfigBuilder.setConnectTimeout(connectTimeout * 1000).setSocketTimeout(
+                        socketTimeout * 1000)
                         .setConnectionRequestTimeout(0);
             }
         })

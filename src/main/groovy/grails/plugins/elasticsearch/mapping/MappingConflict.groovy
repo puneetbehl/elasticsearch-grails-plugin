@@ -14,5 +14,4 @@ class MappingConflict {
     String toString() {
         "Conflict on ${scm.indexName}, due to '${exception.message}'"
     }
-
 }

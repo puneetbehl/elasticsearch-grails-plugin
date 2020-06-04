@@ -54,7 +54,8 @@ class ElasticSearchMappingFactory {
 
         SearchableClassPropertyMapping parentProperty = scm.propertiesMapping.find { it.parent }
         if (parentProperty) {
-            mappingFields.put('_parent', [type: GrailsNameUtils.getPropertyName(parentProperty.grailsProperty.type)] as Map)
+            mappingFields.
+                    put('_parent', [type: GrailsNameUtils.getPropertyName(parentProperty.grailsProperty.type)] as Map)
         }
 
         mappingFields
@@ -81,7 +82,7 @@ class ElasticSearchMappingFactory {
                     def elasticMapping = getElasticMapping(scpm.getComponentPropertyMapping())
                     def typeName = GrailsNameUtils.getPropertyName(scpm.getGrailsProperty().getReferencedPropertyType())
                     def componentMapping = elasticMapping[typeName] as Map<String, ?>
-                    if(componentMapping?.containsKey('_all')){
+                    if (componentMapping?.containsKey('_all')) {
                         log.warn("Ignoring _all from component ${scpm.propertyName} in ${scm.indexName}")
                         componentMapping.remove('_all')
                     }
@@ -102,17 +103,24 @@ class ElasticSearchMappingFactory {
                         props = [:]
                         propOptions.properties = props
                     }
-                    DomainEntity referencedDomainClass = scpm.grailsProperty.getReferencedDomainEntity() ?: scpm.getComponentPropertyMapping().domainClass
+                    DomainEntity referencedDomainClass = scpm.grailsProperty.getReferencedDomainEntity() ?:
+                                                         scpm.getComponentPropertyMapping().domainClass
                     DomainProperty idProperty = referencedDomainClass.getPropertyByName('id')
                     String idType = idProperty.getTypePropertyName()
 
-                    if (idTypeIsMongoObjectId(idType)) {
-                        idType = treatValueAsAString(idType)
-                    } else if (idTypeIsUUID(idType)) {
-                        idType = 'text'
+                    if (idType) {
+                        if (idTypeIsMongoObjectId(idType)) {
+                            idType = treatValueAsAString(idType)
+                        } else if (idTypeIsUUID(idType)) {
+                            idType = 'text'
+                        }
+                    } else {
+                        idType = 'long'
                     }
 
-                    if(idType == 'text') idType = 'keyword'
+                    if (idType == 'text') {
+                        idType = 'keyword'
+                    }
 
                     props.put('id', defaultDescriptor(idType, 'true'))
                     props.put('class', defaultDescriptor('keyword', 'false'))
@@ -152,7 +160,7 @@ class ElasticSearchMappingFactory {
             if (propType == 'object' && scpm.component && !scpm.innerComponent) {
                 propOptions.type = 'nested'
             }
-            if (propType == 'text' && scpm.fieldDataEnabled){
+            if (propType == 'text' && scpm.fieldDataEnabled) {
                 propOptions.fielddata = true
             }
             if (propType == 'date') {
@@ -201,7 +209,8 @@ class ElasticSearchMappingFactory {
                 if (SUPPORTED_FORMAT.contains(basicType)) {
                     propType = basicType
                 }
-            } else if (!SUPPORTED_FORMAT.contains(propType) && SUPPORTED_FORMAT.contains(getTypeSimpleName(referencedPropertyType, scpm))) {
+            } else if (!SUPPORTED_FORMAT.contains(propType) &&
+                    SUPPORTED_FORMAT.contains(getTypeSimpleName(referencedPropertyType, scpm))) {
                 propType = getTypeSimpleName(referencedPropertyType, scpm)
             }
 
@@ -244,14 +253,14 @@ class ElasticSearchMappingFactory {
 
     private static String getTypeSimpleName(Class type, SearchableClassPropertyMapping scpm) {
         String name = ClassUtils.getShortName(type).toLowerCase(Locale.ENGLISH)
-        if (name == 'string'){
+        if (name == 'string') {
             name = scpm.analyzed ? 'text' : 'keyword'
         }
         return name
     }
 
     private static boolean idTypeIsMongoObjectId(String idType) {
-        idType.equals('objectId')
+        idType == 'objectId'
     }
 
     private static boolean idTypeIsUUID(String idType) {

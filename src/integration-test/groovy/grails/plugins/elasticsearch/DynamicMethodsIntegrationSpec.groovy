@@ -28,19 +28,19 @@ class DynamicMethodsIntegrationSpec extends Specification implements ElasticSear
 
     void 'can search using Dynamic Methods'() {
         given:
-            refreshIndices()
+        refreshIndices()
 
         expect:
-            search(Photo, 'Captain').total.value == 5
+        search(Photo, 'Captain').total.value == 5
 
         when:
-            def results = Photo.search {
-                match(name: 'Captain')
-            }
+        def results = Photo.search {
+            match(name: 'Captain')
+        }
 
         then:
-            results.total.value == 5
-            results.searchResults.every { it.name =~ /Captain/ }
+        results.total.value == 5
+        results.searchResults.every { it.name =~ /Captain/ }
     }
 
     void 'can search and filter using Dynamic Methods'() {
@@ -89,7 +89,7 @@ class DynamicMethodsIntegrationSpec extends Specification implements ElasticSear
             }
 
             "names" {
-                  terms(field: 'name')
+                terms(field: 'name')
             }
 
             "avg_size" {
@@ -398,5 +398,4 @@ class DynamicMethodsIntegrationSpec extends Specification implements ElasticSear
 
         results.aggregations['avg_size'].value == 300
     }
-
 }

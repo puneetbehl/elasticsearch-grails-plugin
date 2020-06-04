@@ -14,5 +14,4 @@ class File {
         contentType nullable: true
         attachment nullable: true // file can be empty?
     }
-
 }

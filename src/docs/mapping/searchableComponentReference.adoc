@@ -1,8 +1,7 @@
 [[searchableComponentReference]]
 === Searchable Component Reference
 
-The plugin support a similar searchable-component & searchable-reference behaviour from Compass
-when you are dealing with domain association.
+The plugin support a similar searchable-component & searchable-reference behaviour from Compass when you are dealing with domain association.
 See below to find out about the difference between both mapping modes.
 
 include::searchableComponentReference/searchableReference.adoc[]

@@ -1,14 +1,13 @@
 [[searchableComponent]]
 ==== Searchable Component
 
-The searchable-component mapping mode must be explicitly set, and does not require the
-searchable class of the association to be root-mapped.
+The searchable-component mapping mode must be explicitly set, and does not require the searchable class of the association to be root-mapped.
 
 With this mode, the associated domains are nested in the parent document.
 
 *Example*
 
-[source, groovy]
+[source,groovy]
 ----
 class MyDomain {
     // odom is an association with the OtherDomain class, set as a reference
@@ -31,10 +30,9 @@ class OtherDomain {
 
 ----
 
-
 When indexing an instance of MyDomain, the resulting JSON document will be sent to ElasticSearch:
 
-[source, json]
+[source,json]
 ----
 {
     "mydomain": {
@@ -52,7 +50,7 @@ When indexing an instance of MyDomain, the resulting JSON document will be sent 
 
 If you'd rather that the reference object be mapped with type 'inner' rather than the default 'nested', set the 'component' key with a value of 'inner' rather than 'true':
 
-[source, groovy]
+[source,groovy]
 ----
 class MyDomain {
     // odom is an association with the OtherDomain class, set as a reference

@@ -5,7 +5,7 @@ If you need to use the Elastic Search client directly, you can use the `elasticS
 
 Simply encapsulate your code within a `withElasticSearch` bloc, and you will get a `org.elasticsearch.client.Client` implementation to play with.
 
-[source, groovy]
+[source,groovy]
 ----
 class MySearchService {
     static transactional = true
@@ -27,4 +27,4 @@ class MySearchService {
 
 ----
 
-Please refers to the http://www.elasticsearch.org/guide/reference/java-api/[Elastic Search API] for more information on the methods and properties available on the client.
+Please refer to the http://www.elasticsearch.org/guide/reference/java-api/[Elastic Search API] for more information on the methods and properties available on the client.

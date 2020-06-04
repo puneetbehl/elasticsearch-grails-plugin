@@ -52,7 +52,7 @@ class JSONDomainFactory {
      * The default marshallers, not defined by user
      */
     static Map<Class<?>, Class<? extends DefaultMarshaller>> DEFAULT_MARSHALLERS = [
-            (Map)       : MapMarshaller,
+            (Map): MapMarshaller,
             (Collection): CollectionMarshaller
     ]
 
@@ -86,7 +86,8 @@ class JSONDomainFactory {
             Object parentObject = marshallingContext.peekDomainObject()
             if (parentObject && marshallingContext.lastParentPropertyName && isDomainClass(parentObject.class)) {
                 DomainEntity domainClass = getUnwrappedInstanceDomainClass(parentObject)
-                def propertyMapping = elasticSearchContextHolder.getMappingContext(domainClass)?.getPropertyMapping(marshallingContext.lastParentPropertyName)
+                def propertyMapping = elasticSearchContextHolder.getMappingContext(domainClass)?.
+                        getPropertyMapping(marshallingContext.lastParentPropertyName)
                 def converter = propertyMapping?.converter
                 // Property has converter information. Lets see how we can apply it.
                 if (converter) {
@@ -115,7 +116,9 @@ class JSONDomainFactory {
             // TODO : support user custom marshaller/converter (& marshaller registration)
             // Check for domain classes
             if (isDomainClass(objectClass)) {
-                def propertyMapping = elasticSearchContextHolder.getMappingContext(getUnwrappedInstanceDomainClass(marshallingContext.peekDomainObject()))?.getPropertyMapping(marshallingContext.lastParentPropertyName)
+                def propertyMapping = elasticSearchContextHolder.
+                        getMappingContext(getUnwrappedInstanceDomainClass(marshallingContext.peekDomainObject()))?.
+                        getPropertyMapping(marshallingContext.lastParentPropertyName)
 
                 if (propertyMapping?.isGeoPoint()) {
                     marshaller = new GeoPointMarshaller()
@@ -196,5 +199,4 @@ class JSONDomainFactory {
     DomainEntity getUnwrappedInstanceDomainClass(Object instance) {
         getInstanceDomainClass(domainClassUnWrapperChain.unwrap(instance))
     }
-
 }

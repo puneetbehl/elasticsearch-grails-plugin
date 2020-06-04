@@ -115,7 +115,8 @@ class SearchableClassMappingConfigurator implements ElasticSearchConfigAware {
         indices.each { String indexName ->
 
             indexName = es.versionIndex(indexName)
-            List<SearchableClassMapping> indexMappings = mappings.findAll { it.indexName == indexName && it.isRoot() } as List<SearchableClassMapping>
+            List<SearchableClassMapping> indexMappings =
+                    mappings.findAll { it.indexName == indexName && it.isRoot() } as List<SearchableClassMapping>
             Map<String, Map> esMappings = indexMappings.collectEntries { [(it.elasticTypeName): elasticMappings[it]] }
 
             //If the index does not exist we attempt to create all the mappings at once with it
@@ -141,16 +142,20 @@ class SearchableClassMappingConfigurator implements ElasticSearchConfigAware {
                     try {
                         es.createMapping scm.indexName, scm.elasticTypeName, elasticMapping
                     } catch (IllegalArgumentException e) {
-                        LOG.warn("Could not install mapping ${scm.indexName}/${scm.elasticTypeName} due to ${e.message}, migrations needed")
+                        LOG.warn(
+                                "Could not install mapping ${scm.indexName}/${scm.elasticTypeName} due to ${e.message}, migrations needed")
                         mappingConflicts << new MappingConflict(scm: scm, exception: e)
                     } catch (InvalidIndexTemplateException e) {
-                        LOG.warn("Could not install mapping ${scm.indexName}/${scm.elasticTypeName} due to ${e.message}, migrations needed")
+                        LOG.warn(
+                                "Could not install mapping ${scm.indexName}/${scm.elasticTypeName} due to ${e.message}, migrations needed")
                         mappingConflicts << new MappingConflict(scm: scm, exception: e)
                     } catch (ElasticsearchStatusException e) {
-                        LOG.warn("Could not install mapping ${scm.indexName}/${scm.elasticTypeName} due to ${e.message}, migrations needed")
+                        LOG.warn(
+                                "Could not install mapping ${scm.indexName}/${scm.elasticTypeName} due to ${e.message}, migrations needed")
                         mappingConflicts << new MappingConflict(scm: scm, exception: e)
                     } catch (IOException e) {
-                        LOG.warn("Could not install mapping ${scm.indexName}/${scm.elasticTypeName} due to ${e.message}, migrations needed")
+                        LOG.warn(
+                                "Could not install mapping ${scm.indexName}/${scm.elasticTypeName} due to ${e.message}, migrations needed")
                         mappingConflicts << new MappingConflict(scm: scm, exception: e)
                     }
                 }
@@ -184,7 +189,8 @@ class SearchableClassMappingConfigurator implements ElasticSearchConfigAware {
      * @param indexName
      * @throws RemoteTransportException if some other error occurred
      */
-    private void createIndexWithMappings(String indexName, MappingMigrationStrategy strategy, Map<String, Map> esMappings, Map indexSettings) throws RemoteTransportException {
+    private void createIndexWithMappings(String indexName, MappingMigrationStrategy strategy,
+            Map<String, Map> esMappings, Map indexSettings) throws RemoteTransportException {
         // Could be blocked on cluster level, thus wait.
         es.waitForClusterStatus(ClusterHealthStatus.YELLOW)
         if (!es.indexExists(indexName)) {
@@ -223,7 +229,8 @@ class SearchableClassMappingConfigurator implements ElasticSearchConfigAware {
         settings
     }
 
-    private static Map<SearchableClassMapping, Map<String, ?>> buildElasticMappings(Collection<SearchableClassMapping> mappings) {
+    private static Map<SearchableClassMapping, Map<String, ?>> buildElasticMappings(
+            Collection<SearchableClassMapping> mappings) {
         Map<SearchableClassMapping, Map<String, ?>> elasticMappings = [:]
         for (SearchableClassMapping scm : mappings) {
             if (scm.isRoot()) {

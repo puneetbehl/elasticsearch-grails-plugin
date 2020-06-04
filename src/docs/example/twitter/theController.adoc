@@ -5,7 +5,7 @@
 
 `ElasticSearchController` (`testCaseService` is just dealing with GORM instructions):
 
-[source, groovy]
+[source,groovy]
 ----
 class ElasticSearchController {
   def elasticSearchService
@@ -33,12 +33,11 @@ class ElasticSearchController {
 
 ----
 
-With this code (considering that there are already `User` in the database), new Tweets will be indexed automatically,
-and corresponding `User` indexed documents will be updated since we have set the `tweets` association as component.
+With this code (considering that there are already `User` in the database), new Tweets will be indexed automatically, and corresponding `User` indexed documents will be updated since we have set the `tweets` association as component.
 
 * *Searching for Tweets*
 
-[source, groovy]
+[source,groovy]
 ----
 def searchForUserTweets = {
     def tweets = Tweet.search("${params.message.search}").searchResults
@@ -55,7 +54,7 @@ def searchForUserTweets = {
 
 * *Searching for anything*
 
-[source, groovy]
+[source,groovy]
 ----
 def searchAll = {
     def res = elasticSearchService.search("${params.query}").searchResults

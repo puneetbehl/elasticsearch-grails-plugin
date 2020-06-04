@@ -1,7 +1,7 @@
 [[geoDistanceDomains]]
 ==== Domains
 
-[source, groovy]
+[source,groovy]
 ----
 class GeoPoint {
 
@@ -15,9 +15,10 @@ class GeoPoint {
 
 ----
 
-GeoPoint represents the geo coordinates for a building. The field names `lat` and `lon` are mandatory.
+GeoPoint represents the geo coordinates for a building.
+The field names `lat` and `lon` are mandatory.
 
-[source, groovy]
+[source,groovy]
 ----
 class Building {
 
