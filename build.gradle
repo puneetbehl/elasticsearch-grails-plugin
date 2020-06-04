@@ -177,12 +177,14 @@ apply from: "gradle/documentation.gradle"
 apply from: "gradle/publish.gradle"
 
 grailsPublish {
+    user = System.getenv("BINTRAY_USER") ?: project.bintrayUser
+    key = System.getenv("BINTRAY_KEY") ?: project.bintrayKey
     githubSlug = 'cgoIT/elasticsearch-grails-plugin'
     license {
         name = 'Apache-2.0'
     }
     title = "Elasticsearch Grails Plugin"
-    //rep = "grails-plugins"
+    repo = "maven"
     desc = "An Elasticsearch plugin for Grails"
     developers = [
             noam: 'Noam Y. Tenne',
@@ -191,11 +193,11 @@ grailsPublish {
             james: 'James Kleeh',
             cgoit: 'Carsten Götzinger'
     ]
-    portalUser = System.getenv("GRAILS_PORTAL_USER") ?: project.grailsPortalUser
-    portalPassword = System.getenv("GRAILS_PORTAL_PASSWORD") ?: project.grailsPortalPassword
+    //portalUser = System.getenv("GRAILS_PORTAL_USER") ?: project.grailsPortalUser
+    //portalPassword = System.getenv("GRAILS_PORTAL_PASSWORD") ?: project.grailsPortalPassword
 }
 
-bintray {
+/*bintray {
     user = System.getenv("BINTRAY_USER")
     key = System.getenv("BINTRAY_KEY")
 
@@ -213,9 +215,10 @@ bintray {
         labels = ['grails', 'plugin', 'elastic', 'ElasticSearch', repoName]
         version {
             name = project.version
+            attributes = ['grails-plugin': "$project.group:$project.name"]
         }
     }
-}
+}*/
 
 bintrayUpload.dependsOn = [sourcesJar]
 publish.dependsOn = [bintrayUpload]
