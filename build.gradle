@@ -185,7 +185,10 @@ grailsPublish {
     }
     title = "Elasticsearch Grails Plugin"
     repo = "maven"
-    desc = "An Elasticsearch plugin for Grails"
+    desc = """Elasticsearch is a search server based on Lucene. It provides a distributed, multitenant-capable 
+full-text search engine with an HTTP web interface and schema-free JSON documents. Elasticsearch is developed in 
+Java and is released as open source under the terms of the Apache License. 
+This is the Grails 3 plugin to support Elasticsearch up to Version 7.7.1."""
     developers = [
             noam: 'Noam Y. Tenne',
             macrcos: 'Marcos Carceles',
@@ -193,8 +196,6 @@ grailsPublish {
             james: 'James Kleeh',
             cgoit: 'Carsten Götzinger'
     ]
-    //portalUser = System.getenv("GRAILS_PORTAL_USER") ?: project.grailsPortalUser
-    //portalPassword = System.getenv("GRAILS_PORTAL_PASSWORD") ?: project.grailsPortalPassword
 }
 
 /*bintray {
@@ -220,6 +221,6 @@ grailsPublish {
     }
 }*/
 
-bintrayUpload.dependsOn = [sourcesJar]
+bintrayUpload.dependsOn = [sourcesJar, docs]
 publish.dependsOn = [bintrayUpload]
 
