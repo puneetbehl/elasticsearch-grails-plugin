@@ -25,11 +25,6 @@ import grails.plugins.elasticsearch.mapping.DomainProperty
 import grails.plugins.elasticsearch.mapping.SearchableClassMapping
 import grails.plugins.elasticsearch.mapping.SearchableClassPropertyMapping
 import grails.web.databinding.DataBinder
-
-import java.time.OffsetDateTime
-import java.time.OffsetTime
-import java.time.temporal.Temporal
-import java.time.format.DateTimeFormatter as JDateTimeFormatter
 import org.codehaus.groovy.runtime.DefaultGroovyMethods
 import org.elasticsearch.action.get.GetRequest
 import org.elasticsearch.action.get.GetResponse
@@ -50,7 +45,11 @@ import org.springframework.util.Assert
 import java.beans.PropertyEditor
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.OffsetDateTime
+import java.time.OffsetTime
 import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter as JDateTimeFormatter
+import java.time.temporal.Temporal
 
 /**
  * Domain class unmarshaller.

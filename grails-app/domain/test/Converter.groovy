@@ -1,13 +1,5 @@
 package test
 
-import java.beans.PropertyEditor
-import java.beans.PropertyEditorSupport
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.OffsetDateTime
-import java.time.OffsetTime
-import java.time.ZonedDateTime
-
 class Converter {
 
     enum Status {

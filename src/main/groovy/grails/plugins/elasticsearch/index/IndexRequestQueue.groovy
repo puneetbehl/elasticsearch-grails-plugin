@@ -22,7 +22,11 @@ import grails.plugins.elasticsearch.mapping.SearchableClassMapping
 import grails.plugins.elasticsearch.unwrap.DomainClassUnWrapperChain
 import org.codehaus.groovy.runtime.InvokerHelper
 import org.elasticsearch.action.ActionListener
-import org.elasticsearch.action.bulk.*
+import org.elasticsearch.action.bulk.BackoffPolicy
+import org.elasticsearch.action.bulk.BulkItemResponse
+import org.elasticsearch.action.bulk.BulkProcessor
+import org.elasticsearch.action.bulk.BulkRequest
+import org.elasticsearch.action.bulk.BulkResponse
 import org.elasticsearch.action.delete.DeleteRequest
 import org.elasticsearch.action.index.IndexRequest
 import org.elasticsearch.client.RequestOptions
@@ -36,10 +40,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.util.Assert
 
 import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.ConcurrentLinkedDeque
-import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicInteger
 import java.util.function.BiConsumer
 
 /**

@@ -19,7 +19,11 @@ import grails.plugins.elasticsearch.index.IndexRequestQueue
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import org.grails.datastore.mapping.core.Datastore
-import org.grails.datastore.mapping.engine.event.*
+import org.grails.datastore.mapping.engine.event.AbstractPersistenceEvent
+import org.grails.datastore.mapping.engine.event.AbstractPersistenceEventListener
+import org.grails.datastore.mapping.engine.event.PostDeleteEvent
+import org.grails.datastore.mapping.engine.event.PostInsertEvent
+import org.grails.datastore.mapping.engine.event.PostUpdateEvent
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEvent

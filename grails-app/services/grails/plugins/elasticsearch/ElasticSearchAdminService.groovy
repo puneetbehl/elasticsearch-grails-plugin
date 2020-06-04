@@ -9,7 +9,11 @@ import org.elasticsearch.action.admin.indices.alias.get.GetAliasesRequest
 import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest
 import org.elasticsearch.action.admin.indices.refresh.RefreshRequest
 import org.elasticsearch.action.support.broadcast.BroadcastResponse
-import org.elasticsearch.client.*
+import org.elasticsearch.client.GetAliasesResponse
+import org.elasticsearch.client.Request
+import org.elasticsearch.client.RequestOptions
+import org.elasticsearch.client.Response
+import org.elasticsearch.client.RestHighLevelClient
 import org.elasticsearch.client.indices.CreateIndexRequest
 import org.elasticsearch.client.indices.GetIndexRequest
 import org.elasticsearch.client.indices.PutMappingRequest

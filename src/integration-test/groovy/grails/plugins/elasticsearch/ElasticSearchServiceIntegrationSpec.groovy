@@ -2,19 +2,15 @@ package grails.plugins.elasticsearch
 
 import grails.converters.JSON
 import grails.gorm.transactions.Rollback
-import grails.gorm.transactions.Transactional
 import grails.testing.mixin.integration.Integration
 import org.elasticsearch.action.get.GetRequest
 import org.elasticsearch.action.get.GetResponse
-import org.elasticsearch.action.search.SearchRequest
-import org.elasticsearch.action.search.SearchType
 import org.elasticsearch.client.RequestOptions
 import org.elasticsearch.common.unit.DistanceUnit
 import org.elasticsearch.index.query.QueryBuilder
 import org.elasticsearch.index.query.QueryBuilders
 import org.elasticsearch.join.query.JoinQueryBuilders
 import org.elasticsearch.search.aggregations.AggregationBuilders
-import org.elasticsearch.search.builder.SearchSourceBuilder
 import org.elasticsearch.search.sort.FieldSortBuilder
 import org.elasticsearch.search.sort.SortBuilders
 import org.elasticsearch.search.sort.SortOrder
@@ -22,7 +18,14 @@ import org.grails.web.json.JSONObject
 import spock.lang.Ignore
 import spock.lang.Specification
 import spock.lang.Unroll
-import test.*
+import test.Building
+import test.Dates
+import test.Department
+import test.GeoPoint
+import test.Person
+import test.Product
+import test.Spaceship
+import test.Store
 import test.custom.id.Toy
 
 import java.math.RoundingMode

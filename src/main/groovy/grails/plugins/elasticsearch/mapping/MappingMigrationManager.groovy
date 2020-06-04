@@ -9,7 +9,10 @@ import groovy.transform.CompileStatic
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
-import static grails.plugins.elasticsearch.mapping.MappingMigrationStrategy.*
+import static grails.plugins.elasticsearch.mapping.MappingMigrationStrategy.alias
+import static grails.plugins.elasticsearch.mapping.MappingMigrationStrategy.delete
+import static grails.plugins.elasticsearch.mapping.MappingMigrationStrategy.deleteIndex
+import static grails.plugins.elasticsearch.mapping.MappingMigrationStrategy.none
 import static grails.plugins.elasticsearch.util.IndexNamingUtils.indexingIndexFor
 import static grails.plugins.elasticsearch.util.IndexNamingUtils.queryingIndexFor
 

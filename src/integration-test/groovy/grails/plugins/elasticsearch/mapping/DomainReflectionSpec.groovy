@@ -8,7 +8,11 @@ import spock.lang.Unroll
 import test.Person
 import test.Photo
 import test.Spaceship
-import test.transients.*
+import test.transients.Color
+import test.transients.Fan
+import test.transients.Palette
+import test.transients.Player
+import test.transients.Team
 
 @Integration
 class DomainReflectionSpec extends Specification implements ElasticSearchSpec {

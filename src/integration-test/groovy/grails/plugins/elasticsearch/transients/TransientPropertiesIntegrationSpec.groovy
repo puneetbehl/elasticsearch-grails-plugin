@@ -14,10 +14,10 @@ import spock.lang.Specification
 import test.transients.Anagram
 import test.transients.Calculation
 import test.transients.Color
+import test.transients.Fan
 import test.transients.Palette
 import test.transients.Player
 import test.transients.Team
-import test.transients.Fan
 
 @Integration
 @Rollback

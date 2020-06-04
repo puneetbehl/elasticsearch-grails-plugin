@@ -18,7 +18,15 @@ package grails.plugins.elasticsearch.conversion
 
 import grails.core.GrailsApplication
 import grails.plugins.elasticsearch.ElasticSearchContextHolder
-import grails.plugins.elasticsearch.conversion.marshall.*
+import grails.plugins.elasticsearch.conversion.marshall.CollectionMarshaller
+import grails.plugins.elasticsearch.conversion.marshall.DeepDomainClassMarshaller
+import grails.plugins.elasticsearch.conversion.marshall.DefaultMarshaller
+import grails.plugins.elasticsearch.conversion.marshall.DefaultMarshallingContext
+import grails.plugins.elasticsearch.conversion.marshall.DynamicValueMarshaller
+import grails.plugins.elasticsearch.conversion.marshall.GeoPointMarshaller
+import grails.plugins.elasticsearch.conversion.marshall.MapMarshaller
+import grails.plugins.elasticsearch.conversion.marshall.PropertyEditorMarshaller
+import grails.plugins.elasticsearch.conversion.marshall.SearchableReferenceMarshaller
 import grails.plugins.elasticsearch.mapping.DomainEntity
 import grails.plugins.elasticsearch.mapping.DomainReflectionService
 import grails.plugins.elasticsearch.mapping.SearchableClassMapping
