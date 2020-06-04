@@ -67,7 +67,7 @@ class ElasticsearchGrailsPlugin extends Plugin {
 full-text search engine with an HTTP web interface and schema-free JSON documents. Elasticsearch is developed in 
 Java and is released as open source under the terms of the Apache License. 
 This is the Grails 3 plugin to support Elasticsearch up to Version 7.7.1."""
-    def documentation = 'http://cgoit.github.io/elasticsearch-grails-plugin'
+    def documentation = 'http://elasticsearch-grails-plugin.cgo-it.de'
 
     def profiles = ['web']
 

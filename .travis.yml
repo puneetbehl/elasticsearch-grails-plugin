@@ -9,7 +9,7 @@ before_install:
 - cat /etc/hosts
 before_script:
 - rm -rf target
-script: travis_wait 60 ./travis-build.sh
+script: travis_wait 600 ./travis-build.sh
 env:
   global:
   - GIT_NAME="Carsten Götzinger"

@@ -1,9 +1,10 @@
-== Elasticsearch Grails plugin image:https://travis-ci.org/cgoIT/elasticsearch-grails-plugin.svg?branch=master["Build Status", link="https://travis-ci.org/cgoIT/elasticsearch-grails-plugin"]
+== Elasticsearch Grails plugin image:https://travis-ci.org/cgoIT/elasticsearch-grails-plugin.svg?branch=master["Build Status", link="https://travis-ci.org/cgoIT/elasticsearch-grails-plugin"] image:https://api.bintray.com/packages/cgoit/maven/elasticsearch-grails-plugin/images/download.svg?version=2.7.4[link="https://bintray.com/cgoit/maven/elasticsearch-grails-plugin/2.7.4/link"]
 
 An Elasticsearch plugin for Grails; This project is a fork based on the great work done by the guys at:
 
 * https://github.com/mstein/elasticsearch-grails-plugin
 * https://github.com/noamt/elasticsearch-grails-plugin
+* https://github.com/puneetbehl/elasticsearch-grails-plugin
 
 === Why would you want to fork the original Elasticsearch plugin?
 
@@ -11,9 +12,9 @@ The original Elasticsearch plugin relies on *Hibernate-specific* GORM components
 
 === Documentation
 
-The plugin documentation can be found at https://cgoit.github.io/elasticsearch-grails-plugin/index.html
+The plugin documentation can be found at https://elasticsearch-grails-plugin.cgo-it.de/index.html
 
-For latest stable version of plugin documentation, https://cgoit.github.io/elasticsearch-grails-plugin/latest/index.html[Click Here]
+For latest stable version of plugin documentation, https://elasticsearch-grails-plugin.cgo-it.de/latest/index.html[click here]
 
 === How can I obtain the plugin?
 
@@ -23,7 +24,7 @@ Edit your project's +build.gradle+ file, by adding the plugin's dependency decla
 ----
 dependencies {
     ...
-    compile "org.grails.plugins:elasticsearch:2.7.4"
+    compile "de.cgoit.grails.plugins:elasticsearch:2.7.4"
     ...
 
 }

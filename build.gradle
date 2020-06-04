@@ -19,13 +19,14 @@ buildscript {
 
 plugins {
     id "com.jfrog.bintray" version "1.8.5"
-    id 'com.jfrog.artifactory' version '4.9.8'
+    id "com.jfrog.artifactory" version "4.9.8"
     id "de.undercouch.download" version "4.0.0"
     id "cgoit.gradle.elasticsearch" version "0.2.1"
+    id "com.dorongold.task-tree" version "1.5"
 }
 
 version '2.7.4'
-group "org.grails.plugins"
+group "de.cgoit.grails.plugins"
 
 String repoName = 'elasticsearch-grails-plugin'
 
