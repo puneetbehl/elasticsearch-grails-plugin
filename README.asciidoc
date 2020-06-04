@@ -23,7 +23,7 @@ Edit your project's +build.gradle+ file, by adding the plugin's dependency decla
 ----
 dependencies {
     ...
-    compile "org.grails.plugins:elasticsearch:2.7.3"
+    compile "org.grails.plugins:elasticsearch:2.7.4-SNAPSHOT"
     ...
 
 }

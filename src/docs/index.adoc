@@ -1,7 +1,7 @@
 = Elasticsearch Plugin - Reference Documentation
-Puneet Behl
+Carsten Götzinger
 
-:elasticsearch: http://www.elasticsearch.org
+:elasticsearch: https://www.elastic.co/elasticsearch/
 
 include::introduction.adoc[]
 

@@ -2,11 +2,11 @@
 apply plugin: "org.ajoberstar.github-pages"
 
 ext {
-    githubApiKey = System.getProperty('githubApiKey')
+    githubApiKey = System.getenv("GH_TOKEN")
 }
 
 githubPages {
-    repoUri = 'https://github.com/puneetbehl/elasticsearch-grails-plugin.git'
+    repoUri = 'https://github.com/cgoIT/elasticsearch-grails-plugin.git'
 
     credentials {
         username = project.hasProperty('githubApiKey') ? project.githubApiKey : ''
