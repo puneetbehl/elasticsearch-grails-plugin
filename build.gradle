@@ -24,7 +24,7 @@ plugins {
     id "cgoit.gradle.elasticsearch" version "0.2.1"
 }
 
-version '2.7.4-SNAPSHOT'
+version '2.7.4'
 group "org.grails.plugins"
 
 String repoName = 'elasticsearch-grails-plugin'
@@ -191,6 +191,8 @@ grailsPublish {
             james: 'James Kleeh',
             cgoit: 'Carsten Götzinger'
     ]
+    portalUser = System.getenv("GRAILS_PORTAL_USER") ?: project.grailsPortalUser
+    portalPassword = System.getenv("GRAILS_PORTAL_PASSWORD") ?: project.grailsPortalPassword
 }
 
 bintray {
