@@ -30,6 +30,7 @@ import org.elasticsearch.common.settings.Settings
 import org.elasticsearch.common.xcontent.DeprecationHandler
 import org.elasticsearch.common.xcontent.NamedXContentRegistry
 import org.elasticsearch.common.xcontent.XContent
+import org.elasticsearch.common.xcontent.XContentLocation
 import org.elasticsearch.common.xcontent.XContentParser
 import org.elasticsearch.common.xcontent.json.JsonXContent
 import org.elasticsearch.index.query.Operator
@@ -46,6 +47,8 @@ import org.elasticsearch.search.builder.SearchSourceBuilder
 import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder
 import org.elasticsearch.search.sort.SortBuilder
 import org.elasticsearch.search.sort.SortOrder
+
+import java.util.function.Supplier
 
 import static grails.plugins.elasticsearch.util.AbstractQueryBuilderParser.parseInnerQueryBuilder
 import static org.elasticsearch.index.query.QueryBuilders.queryStringQuery
@@ -595,13 +598,20 @@ class ElasticSearchService implements GrailsApplicationAware {
 
     private static final DeprecationHandler DEPRECATION_HANDLER = new DeprecationHandler() {
         @Override
-        void usedDeprecatedName(String usedName, String modernName) {
-            log.warn("[${usedName}] is deprecated. Use [${modernName}] instead.")
+        void usedDeprecatedName(String parserName, Supplier<XContentLocation> location, String usedName,
+                String modernName) {
+            log.warn("[${parserName}] used [${usedName}] which is deprecated at [${location.get().lineNumber}:${location.get().columnNumber}]. Use [${modernName}] instead!")
         }
 
         @Override
-        void usedDeprecatedField(String usedName, String replacedWith) {
-            log.warn("[${usedName}] is deprecated. Use [${replacedWith}] instead.")
+        void usedDeprecatedField(String parserName, Supplier<XContentLocation> location, String usedName,
+                String replacedWith) {
+            log.warn("[${parserName}] used [${usedName}] which is deprecated at [${location.get().lineNumber}:${location.get().columnNumber}]. Use [${replacedWith}] instead!")
+        }
+
+        @Override
+        void usedDeprecatedField(String parserName, Supplier<XContentLocation> location, String usedName) {
+            log.warn("[${parserName}] used [${usedName}] which is deprecated at [${location.get().lineNumber}:${location.get().columnNumber}].")
         }
     }
 
