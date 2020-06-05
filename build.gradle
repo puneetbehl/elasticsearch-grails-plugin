@@ -28,7 +28,7 @@ plugins {
     id "com.dorongold.task-tree" version "1.5"
 }
 
-version '2.7.4'
+version projectVersion
 group "de.cgoit.grails.plugins"
 
 apply plugin: 'eclipse'

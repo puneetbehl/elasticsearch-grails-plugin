@@ -1,4 +1,4 @@
-== Elasticsearch Grails plugin image:https://travis-ci.org/cgoIT/elasticsearch-grails-plugin.svg?branch=master["Build Status", link="https://travis-ci.org/cgoIT/elasticsearch-grails-plugin"] image:https://api.bintray.com/packages/cgoit/maven/elasticsearch-grails-plugin/images/download.svg?version=2.7.4[link="https://bintray.com/cgoit/maven/elasticsearch-grails-plugin/2.7.4/link"]
+== Elasticsearch Grails plugin image:https://travis-ci.org/cgoIT/elasticsearch-grails-plugin.svg?branch=master["Build Status", link="https://travis-ci.org/cgoIT/elasticsearch-grails-plugin"] image:https://api.bintray.com/packages/cgoit/maven/elasticsearch-grails-plugin/images/download.svg?version=latest[link="https://bintray.com/cgoit/maven/elasticsearch-grails-plugin/_latestVersion"]
 
 An Elasticsearch plugin for Grails; This project is a fork based on the great work done by the guys at:
 
@@ -38,6 +38,10 @@ dependencies {
 |2.8.0 (wip)
 |4.0.y
 |7.6.0
+
+|2.7.5-SNAPSHOT
+|3.3.y
+|7.7.0
 
 |2.7.4
 |3.3.y

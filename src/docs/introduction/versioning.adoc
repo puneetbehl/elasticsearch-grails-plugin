@@ -13,6 +13,7 @@ If necessary a 4th level point release number will be used for successive change
 |===
 s| Plugin Version   s| Grails                s| Elasticsearch
 | 2.8.0 (wip)        | 4.0.x                  | 7.7.x
+| 2.7.5-SNAPSHOT     | 3.3.x                  | 7.7.x
 s| 2.7.4            s| 3.3.x                 s| 7.7.x
 | 2.7.3              | 3.3.x                  | 7.6.x
 | 2.7.2              | 3.3.x                  | 7.x
