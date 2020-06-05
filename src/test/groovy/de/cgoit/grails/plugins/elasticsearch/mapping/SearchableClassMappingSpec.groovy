@@ -1,5 +1,6 @@
 package de.cgoit.grails.plugins.elasticsearch.mapping
 
+import de.cgoit.grails.plugins.elasticsearch.util.IndexNamingUtils
 import grails.testing.gorm.DataTest
 import grails.testing.spring.AutowiredTest
 import org.grails.datastore.mapping.model.PersistentEntity
@@ -33,8 +34,8 @@ class SearchableClassMappingSpec extends Specification implements DataTest, Auto
 
         then:
         scm.indexName == packageName
-        scm.queryingIndex == de.cgoit.grails.plugins.elasticsearch.util.IndexNamingUtils.queryingIndexFor(packageName)
-        scm.indexingIndex == de.cgoit.grails.plugins.elasticsearch.util.IndexNamingUtils.indexingIndexFor(packageName)
+        scm.queryingIndex == IndexNamingUtils.queryingIndexFor(packageName)
+        scm.indexingIndex == IndexNamingUtils.indexingIndexFor(packageName)
         scm.queryingIndex != scm.indexingIndex
         scm.indexName != scm.queryingIndex
         scm.indexName != scm.indexingIndex

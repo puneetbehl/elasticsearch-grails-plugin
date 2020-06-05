@@ -1,5 +1,6 @@
 package de.cgoit.grails.plugins.elasticsearch.mapping
 
+import de.cgoit.grails.plugins.elasticsearch.ElasticSearchSpec
 import grails.testing.mixin.integration.Integration
 import org.grails.datastore.mapping.model.MappingContext
 import spock.lang.Specification
@@ -14,7 +15,7 @@ import test.transients.Player
 import test.transients.Team
 
 @Integration
-class DomainReflectionSpec extends Specification implements de.cgoit.grails.plugins.elasticsearch.ElasticSearchSpec {
+class DomainReflectionSpec extends Specification implements ElasticSearchSpec {
 
     DomainReflectionService domainReflectionService
     MappingContext mappingContext

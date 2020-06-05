@@ -15,11 +15,13 @@
  */
 package de.cgoit.grails.plugins.elasticsearch.util
 
-import grails.core.GrailsApplication
 import de.cgoit.grails.plugins.elasticsearch.ElasticSearchContextHolder
 import de.cgoit.grails.plugins.elasticsearch.ElasticSearchService
+import de.cgoit.grails.plugins.elasticsearch.exception.IndexException
 import de.cgoit.grails.plugins.elasticsearch.mapping.DomainEntity
+import de.cgoit.grails.plugins.elasticsearch.mapping.DomainReflectionService
 import de.cgoit.grails.plugins.elasticsearch.mapping.SearchableClassMapping
+import grails.core.GrailsApplication
 import org.elasticsearch.index.query.QueryBuilder
 import org.elasticsearch.search.aggregations.BaseAggregationBuilder
 import org.springframework.context.ApplicationContext
@@ -38,8 +40,7 @@ class DomainDynamicMethodsUtils {
         ElasticSearchService elasticSearchService = applicationContext.getBean(ElasticSearchService)
         ElasticSearchContextHolder elasticSearchContextHolder = applicationContext.getBean(ElasticSearchContextHolder)
 
-        de.cgoit.grails.plugins.elasticsearch.mapping.DomainReflectionService domainEntityService = applicationContext.getBean(de.
-                cgoit.grails.plugins.elasticsearch.mapping.DomainReflectionService)
+        DomainReflectionService domainEntityService = applicationContext.getBean(DomainReflectionService)
 
         for (DomainEntity domain in domainEntityService.domainEntities) {
             String searchablePropertyName = getSearchablePropertyName(grailsApplication)
@@ -172,7 +173,7 @@ class DomainDynamicMethodsUtils {
                 if (!invalidTypes) {
                     elasticSearchService.index(instances)
                 } else {
-                    throw new de.cgoit.grails.plugins.elasticsearch.exception.IndexException(
+                    throw new IndexException(
                             "[${domainCopy.defaultPropertyName}] index() method can only be applied its own type. Please use the elasticSearchService if you want to index mixed values.")
                 }
             }
@@ -198,7 +199,7 @@ class DomainDynamicMethodsUtils {
                 if (!invalidTypes) {
                     elasticSearchService.unindex(instances)
                 } else {
-                    throw new de.cgoit.grails.plugins.elasticsearch.exception.IndexException(
+                    throw new IndexException(
                             "[${domainCopy.defaultPropertyName}] unindex() method can only be applied on its own type. Please use the elasticSearchService if you want to unindex mixed values.")
                 }
             }

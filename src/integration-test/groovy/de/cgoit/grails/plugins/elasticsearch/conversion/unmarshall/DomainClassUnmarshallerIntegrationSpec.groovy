@@ -1,8 +1,10 @@
 package de.cgoit.grails.plugins.elasticsearch.conversion.unmarshall
 
+import de.cgoit.grails.plugins.elasticsearch.ElasticSearchContextHolder
+import de.cgoit.grails.plugins.elasticsearch.ElasticSearchSpec
+import de.cgoit.grails.plugins.elasticsearch.exception.MappingException
 import grails.core.GrailsApplication
 import grails.gorm.transactions.Rollback
-import de.cgoit.grails.plugins.elasticsearch.ElasticSearchContextHolder
 import grails.testing.mixin.integration.Integration
 import org.apache.lucene.search.TotalHits
 import org.elasticsearch.common.bytes.BytesArray
@@ -24,7 +26,7 @@ import java.time.ZonedDateTime
 
 @Integration
 @Rollback
-class DomainClassUnmarshallerIntegrationSpec extends Specification implements de.cgoit.grails.plugins.elasticsearch.ElasticSearchSpec {
+class DomainClassUnmarshallerIntegrationSpec extends Specification implements ElasticSearchSpec {
 
     ElasticSearchContextHolder elasticSearchContextHolder
     GrailsApplication grailsApplication
@@ -129,7 +131,7 @@ class DomainClassUnmarshallerIntegrationSpec extends Specification implements de
         def maxScore = 0.1534264087677002f
         def totalHits = 1
         def searchHits = new SearchHits(hits, new TotalHits(totalHits, TotalHits.Relation.EQUAL_TO), maxScore)
-        GroovySpy(de.cgoit.grails.plugins.elasticsearch.exception.MappingException, global: true)
+        GroovySpy(MappingException, global: true)
 
         when: 'the color is unmarshalled'
         def results
@@ -139,10 +141,10 @@ class DomainClassUnmarshallerIntegrationSpec extends Specification implements de
         results.size() == 1
 
         then: 'this results in a color domain object'
-        1 * new de.cgoit.grails.plugins.elasticsearch.exception.MappingException('Property Color.red found in index, but is not defined as searchable.')
-        1 * new de.cgoit.grails.plugins.elasticsearch.exception.MappingException('Property Color.green found in index, but is not defined as searchable.')
-        1 * new de.cgoit.grails.plugins.elasticsearch.exception.MappingException('Property Color.blue found in index, but is not defined as searchable.')
-        0 * new de.cgoit.grails.plugins.elasticsearch.exception.MappingException(_)
+        1 * new MappingException('Property Color.red found in index, but is not defined as searchable.')
+        1 * new MappingException('Property Color.green found in index, but is not defined as searchable.')
+        1 * new MappingException('Property Color.blue found in index, but is not defined as searchable.')
+        0 * new MappingException(_)
         results[0].name == 'Orange'
         results[0].red == null
         results[0].green == null
@@ -162,7 +164,7 @@ class DomainClassUnmarshallerIntegrationSpec extends Specification implements de
         def maxScore = 0.1534264087677002f
         def totalHits = 1
         def searchHits = new SearchHits(hits, new TotalHits(totalHits, TotalHits.Relation.EQUAL_TO), maxScore)
-        GroovySpy(de.cgoit.grails.plugins.elasticsearch.exception.MappingException, global: true)
+        GroovySpy(MappingException, global: true)
 
         when: 'the circle is unmarshalled'
         def results
@@ -172,8 +174,8 @@ class DomainClassUnmarshallerIntegrationSpec extends Specification implements de
         results.size() == 1
 
         then: 'this results in a circle domain object with color'
-        1 * new de.cgoit.grails.plugins.elasticsearch.exception.MappingException('Property Color.red found in index, but is not defined as searchable.')
-        0 * new de.cgoit.grails.plugins.elasticsearch.exception.MappingException(_)
+        1 * new MappingException('Property Color.red found in index, but is not defined as searchable.')
+        0 * new MappingException(_)
         results[0].radius == 7
         def color = results[0].color
         color.name == 'Orange'

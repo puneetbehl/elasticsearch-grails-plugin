@@ -1,8 +1,8 @@
 package de.cgoit.grails.plugins.elasticsearch.conversion
 
-import grails.core.GrailsApplication
 import de.cgoit.grails.plugins.elasticsearch.ElasticSearchContextHolder
 import de.cgoit.grails.plugins.elasticsearch.conversion.binders.JSONDateBinder
+import grails.core.GrailsApplication
 import org.springframework.beans.PropertyEditorRegistrar
 import org.springframework.beans.PropertyEditorRegistry
 

@@ -16,6 +16,7 @@
 
 package de.cgoit.grails.plugins.elasticsearch.conversion.marshall
 
+import de.cgoit.grails.plugins.elasticsearch.mapping.SearchableClassMapping
 import org.codehaus.groovy.runtime.InvokerHelper
 
 /**
@@ -36,7 +37,7 @@ class SearchableReferenceMarshaller extends DefaultMarshaller {
         assert refClass.isAssignableFrom(object.getClass()): "Marshalled object ${object} is not [${refClass}]."
 
         // TODO: encapsulate me
-        de.cgoit.grails.plugins.elasticsearch.mapping.SearchableClassMapping scm = marshallingContext.findMappingContext(refClass)
+        SearchableClassMapping scm = marshallingContext.findMappingContext(refClass)
         assert scm
 
         def referenceMap = [id: InvokerHelper.invokeMethod(object, 'ident', null)]

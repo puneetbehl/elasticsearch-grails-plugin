@@ -1,8 +1,8 @@
 package de.cgoit.grails.plugins.elasticsearch
 
-import grails.core.GrailsApplication
 import de.cgoit.grails.plugins.elasticsearch.mapping.DomainEntity
 import de.cgoit.grails.plugins.elasticsearch.mapping.SearchableClassMappingConfigurator
+import grails.core.GrailsApplication
 import grails.util.GrailsNameUtils
 import org.elasticsearch.action.admin.indices.get.GetIndexRequest
 import org.elasticsearch.action.admin.indices.get.GetIndexResponse

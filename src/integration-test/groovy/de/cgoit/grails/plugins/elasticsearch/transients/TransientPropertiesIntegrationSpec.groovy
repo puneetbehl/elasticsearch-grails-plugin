@@ -1,8 +1,10 @@
 package de.cgoit.grails.plugins.elasticsearch.transients
 
+import de.cgoit.grails.plugins.elasticsearch.ElasticSearchAdminService
+import de.cgoit.grails.plugins.elasticsearch.ElasticSearchService
+import de.cgoit.grails.plugins.elasticsearch.mapping.SearchableClassMappingConfigurator
 import grails.core.GrailsApplication
 import grails.gorm.transactions.Rollback
-import de.cgoit.grails.plugins.elasticsearch.mapping.SearchableClassMappingConfigurator
 import grails.testing.mixin.integration.Integration
 import org.apache.lucene.search.join.ScoreMode
 import org.elasticsearch.index.query.NestedQueryBuilder
@@ -21,8 +23,8 @@ import test.transients.Team
 class TransientPropertiesIntegrationSpec extends Specification {
 
     GrailsApplication grailsApplication
-    de.cgoit.grails.plugins.elasticsearch.ElasticSearchService elasticSearchService
-    de.cgoit.grails.plugins.elasticsearch.ElasticSearchAdminService elasticSearchAdminService
+    ElasticSearchService elasticSearchService
+    ElasticSearchAdminService elasticSearchAdminService
     SearchableClassMappingConfigurator searchableClassMappingConfigurator
 
     void 'when includeTransients config is false only properties explicitly included in only are indexed and searchable'() {

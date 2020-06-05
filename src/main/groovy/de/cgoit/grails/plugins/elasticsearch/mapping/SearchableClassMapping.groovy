@@ -16,9 +16,10 @@
 
 package de.cgoit.grails.plugins.elasticsearch.mapping
 
-import grails.core.GrailsApplication
 import de.cgoit.grails.plugins.elasticsearch.ElasticSearchContextHolder
 import de.cgoit.grails.plugins.elasticsearch.util.ElasticSearchConfigAware
+import de.cgoit.grails.plugins.elasticsearch.util.IndexNamingUtils
+import grails.core.GrailsApplication
 import groovy.transform.CompileStatic
 
 @CompileStatic
@@ -104,11 +105,11 @@ class SearchableClassMapping implements ElasticSearchConfigAware {
     }
 
     String getIndexingIndex() {
-        return de.cgoit.grails.plugins.elasticsearch.util.IndexNamingUtils.indexingIndexFor(indexName)
+        return IndexNamingUtils.indexingIndexFor(indexName)
     }
 
     String getQueryingIndex() {
-        return de.cgoit.grails.plugins.elasticsearch.util.IndexNamingUtils.queryingIndexFor(indexName)
+        return IndexNamingUtils.queryingIndexFor(indexName)
     }
 
     /**

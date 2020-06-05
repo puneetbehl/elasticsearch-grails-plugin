@@ -15,6 +15,11 @@
  */
 package de.cgoit.grails.plugins.elasticsearch.index
 
+import de.cgoit.grails.plugins.elasticsearch.ElasticSearchContextHolder
+import de.cgoit.grails.plugins.elasticsearch.conversion.JSONDomainFactory
+import de.cgoit.grails.plugins.elasticsearch.exception.IndexException
+import de.cgoit.grails.plugins.elasticsearch.mapping.SearchableClassMapping
+import de.cgoit.grails.plugins.elasticsearch.unwrap.DomainClassUnWrapperChain
 import org.codehaus.groovy.runtime.InvokerHelper
 import org.elasticsearch.action.ActionListener
 import org.elasticsearch.action.bulk.BackoffPolicy
@@ -50,10 +55,10 @@ class IndexRequestQueue {
 
     private static final Logger LOG = LoggerFactory.getLogger(this)
 
-    de.cgoit.grails.plugins.elasticsearch.conversion.JSONDomainFactory jsonDomainFactory
-    de.cgoit.grails.plugins.elasticsearch.ElasticSearchContextHolder elasticSearchContextHolder
+    JSONDomainFactory jsonDomainFactory
+    ElasticSearchContextHolder elasticSearchContextHolder
     RestHighLevelClient elasticSearchClient
-    de.cgoit.grails.plugins.elasticsearch.unwrap.DomainClassUnWrapperChain domainClassUnWrapperChain
+    DomainClassUnWrapperChain domainClassUnWrapperChain
 
     /**
      * A map containing the pending index requests.
@@ -67,11 +72,11 @@ class IndexRequestQueue {
 
     //private ConcurrentLinkedDeque<OperationBatch> operationBatch = new ConcurrentLinkedDeque<OperationBatch>()
 
-    void setJsonDomainFactory(de.cgoit.grails.plugins.elasticsearch.conversion.JSONDomainFactory jsonDomainFactory) {
+    void setJsonDomainFactory(JSONDomainFactory jsonDomainFactory) {
         this.jsonDomainFactory = jsonDomainFactory
     }
 
-    void setElasticSearchContextHolder(de.cgoit.grails.plugins.elasticsearch.ElasticSearchContextHolder elasticSearchContextHolder) {
+    void setElasticSearchContextHolder(ElasticSearchContextHolder elasticSearchContextHolder) {
         this.elasticSearchContextHolder = elasticSearchContextHolder
     }
 
@@ -106,7 +111,7 @@ class IndexRequestQueue {
 
     IndexEntityKey indexEntityKeyFromInstance(instance) {
         def clazz = instance.getClass()
-        de.cgoit.grails.plugins.elasticsearch.mapping.SearchableClassMapping scm = elasticSearchContextHolder.getMappingContextByType(clazz)
+        SearchableClassMapping scm = elasticSearchContextHolder.getMappingContextByType(clazz)
         Assert.notNull(scm, "Class $clazz is not a searchable domain class.")
         def id = (InvokerHelper.invokeMethod(instance, 'getId', null)).toString()
         new IndexEntityKey(id, clazz)
@@ -116,7 +121,7 @@ class IndexRequestQueue {
         try {
             return jsonDomainFactory.buildJSON(instance)
         } catch (Throwable t) {
-            throw new de.cgoit.grails.plugins.elasticsearch.exception.IndexException("Failed to marshall domain instance [$instance]", t)
+            throw new IndexException("Failed to marshall domain instance [$instance]", t)
         }
     }
 
@@ -152,7 +157,7 @@ class IndexRequestQueue {
 
             // add index requests
             toIndex.each { key, value ->
-                de.cgoit.grails.plugins.elasticsearch.mapping.SearchableClassMapping scm = elasticSearchContextHolder.getMappingContextByType(key.clazz)
+                SearchableClassMapping scm = elasticSearchContextHolder.getMappingContextByType(key.clazz)
 
                 try {
                     XContentBuilder json = toJSON(value)
@@ -173,7 +178,7 @@ class IndexRequestQueue {
 
             // add delete requests
             toDelete.each {
-                de.cgoit.grails.plugins.elasticsearch.mapping.SearchableClassMapping scm = elasticSearchContextHolder.getMappingContextByType(it.clazz)
+                SearchableClassMapping scm = elasticSearchContextHolder.getMappingContextByType(it.clazz)
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("Deleting object from index $scm.indexingIndex and ID $it.id")
                 }
@@ -182,7 +187,7 @@ class IndexRequestQueue {
 
             bulkProcessor.awaitClose(30L, TimeUnit.SECONDS)
         } catch (Exception e) {
-            throw new de.cgoit.grails.plugins.elasticsearch.exception.IndexException("Failed to index/delete ${bulkProcessor.numberOfActions()}", e)
+            throw new IndexException("Failed to index/delete ${bulkProcessor.numberOfActions()}", e)
         }
     }
 

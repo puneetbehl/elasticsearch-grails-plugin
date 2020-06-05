@@ -15,8 +15,10 @@
  */
 package de.cgoit.grails.plugins.elasticsearch.mapping
 
-import grails.core.GrailsApplication
+import de.cgoit.grails.plugins.elasticsearch.ElasticSearchAdminService
+import de.cgoit.grails.plugins.elasticsearch.ElasticSearchContextHolder
 import de.cgoit.grails.plugins.elasticsearch.util.ElasticSearchConfigAware
+import grails.core.GrailsApplication
 import groovy.transform.CompileStatic
 import org.elasticsearch.ElasticsearchStatusException
 import org.elasticsearch.cluster.health.ClusterHealthStatus
@@ -37,9 +39,9 @@ class SearchableClassMappingConfigurator implements ElasticSearchConfigAware {
 
     private static final Logger LOG = LoggerFactory.getLogger(this)
 
-    de.cgoit.grails.plugins.elasticsearch.ElasticSearchContextHolder elasticSearchContext
+    ElasticSearchContextHolder elasticSearchContext
     GrailsApplication grailsApplication
-    de.cgoit.grails.plugins.elasticsearch.ElasticSearchAdminService es
+    ElasticSearchAdminService es
     MappingMigrationManager mmm
 
     DomainReflectionService domainReflectionService
@@ -232,7 +234,8 @@ class SearchableClassMappingConfigurator implements ElasticSearchConfigAware {
         Map<SearchableClassMapping, Map<String, ?>> elasticMappings = [:]
         for (SearchableClassMapping scm : mappings) {
             if (scm.isRoot()) {
-                elasticMappings << [(scm): ElasticSearchMappingFactory.getElasticMapping(scm)]
+                elasticMappings << ([(scm): ElasticSearchMappingFactory.
+                        getElasticMapping(scm)] as Map<SearchableClassMapping, Map<String, ?>>)
             }
         }
         elasticMappings

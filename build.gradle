@@ -6,14 +6,17 @@ buildscript {
     }
     repositories {
         mavenLocal()
-        maven { url "https://repo.grails.org/grails/core" }
+        maven { url 'https://repo.grails.org/grails/core' }
         maven { url 'https://artifacts.elastic.co/maven' }
+        jcenter()
+//        mavenCentral()
     }
     dependencies {
         classpath "org.grails:grails-gradle-plugin:$grailsVersion"
         classpath 'org.asciidoctor:asciidoctor-gradle-plugin:1.5.3'
-        classpath 'org.ajoberstar:gradle-git:1.4.2'
+        classpath 'org.ajoberstar:gradle-git:1.7.2'
         classpath "org.grails.plugins:hibernate5:${gormVersion - ".RELEASE"}"
+        classpath 'com.github.ben-manes:gradle-versions-plugin:0.25.0'
     }
 }
 
@@ -28,14 +31,13 @@ plugins {
 version '2.7.4'
 group "de.cgoit.grails.plugins"
 
-String repoName = 'elasticsearch-grails-plugin'
-
 apply plugin: 'eclipse'
 apply plugin: 'idea'
 apply plugin: "org.grails.grails-plugin"
 apply plugin: "org.grails.grails-plugin-publish"
 apply plugin: "org.grails.grails-gsp"
 apply plugin: 'maven-publish'
+apply plugin: 'com.github.ben-manes.versions'
 
 ext {
     gradleWrapperVersion = project.gradleWrapperVersion
@@ -47,8 +49,10 @@ targetCompatibility = 1.8
 
 repositories {
     mavenLocal()
-    mavenCentral()
-    maven { url "https://repo.grails.org/grails/core" }
+    maven { url 'https://repo.grails.org/grails/core' }
+    maven { url 'https://artifacts.elastic.co/maven' }
+    jcenter()
+//    mavenCentral()
 }
 
 dependencyManagement {
@@ -91,8 +95,8 @@ dependencies {
     compile "org.grails.plugins:cache"
     compile "org.hibernate:hibernate-ehcache"
 
-    compile "org.apache.logging.log4j:log4j-api:2.7"
-    compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.7'
+    compile "org.apache.logging.log4j:log4j-api:2.13.3"
+    compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.13.3'
 
     compile "org.elasticsearch:elasticsearch:${esVersion}"
     compile group: 'org.elasticsearch.client', name: 'elasticsearch-rest-high-level-client', version: esVersion
@@ -112,8 +116,6 @@ dependencies {
 
     testCompile 'com.vividsolutions:jts:1.13'
     testCompile 'com.googlecode.json-simple:json-simple:1.1.1'
-
-    compile fileTree(dir: "libs/elasticsearch", include: '*.jar')
 }
 
 task cleanLibsDir(type: Delete) {
@@ -177,51 +179,20 @@ apply from: "gradle/documentation.gradle"
 
 apply from: "gradle/publish.gradle"
 
-grailsPublish {
-    user = System.getenv("BINTRAY_USER") ?: project.bintrayUser
-    key = System.getenv("BINTRAY_KEY") ?: project.bintrayKey
-    githubSlug = 'cgoIT/elasticsearch-grails-plugin'
-    license {
-        name = 'Apache-2.0'
-    }
-    title = "Elasticsearch Grails Plugin"
-    repo = "maven"
-    desc = """Elasticsearch is a search server based on Lucene. It provides a distributed, multitenant-capable 
-full-text search engine with an HTTP web interface and schema-free JSON documents. Elasticsearch is developed in 
-Java and is released as open source under the terms of the Apache License. 
-This is the Grails 3 plugin to support Elasticsearch up to Version 7.7.1."""
-    developers = [
-            noam: 'Noam Y. Tenne',
-            macrcos: 'Marcos Carceles',
-            puneet: 'Puneet Behl',
-            james: 'James Kleeh',
-            cgoit: 'Carsten Götzinger'
-    ]
-}
+// dependency update plugin
+dependencyUpdates {
+    checkForGradleUpdate = false
 
-bintray {
-    user = System.getenv("BINTRAY_USER") ?: project.bintrayUser
-    key = System.getenv("BINTRAY_KEY") ?: project.bintrayKey
-
-    publications = ['maven']
-
-    publish = true
-
-    pkg {
-        repo = 'maven'
-        name = project.name
-        websiteUrl = "https://github.com/cgoIT/$repoName"
-        issueTrackerUrl = "https://github.com/cgoIT/$repoName/issues"
-        vcsUrl = "https://github.com/cgoIT/${repoName}.git"
-        licenses = ['Apache-2.0']
-        labels = ['grails', 'plugin', 'grails-plugin', 'elastic', 'ElasticSearch', repoName]
-        version {
-            name = project.version
-            attributes = ['grails-plugin': "$project.group:$project.name"]
+    resolutionStrategy {
+        componentSelection { rules ->
+            rules.all { ComponentSelection selection ->
+                boolean rejected = ['alpha', 'beta', 'rc', 'cr', 'm', 'preview', 'b', 'ea'].any { qualifier ->
+                    selection.candidate.version ==~ /(?i).*[.-]$qualifier[.\d-+]*/
+                }
+                if (rejected) {
+                    selection.reject('Release candidate')
+                }
+            }
         }
     }
 }
-
-bintrayUpload.dependsOn = [sourcesJar, docs]
-publish.dependsOn = [bintrayUpload]
-

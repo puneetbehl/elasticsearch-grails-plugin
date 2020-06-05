@@ -16,13 +16,14 @@
 
 package de.cgoit.grails.plugins.elasticsearch.conversion.unmarshall
 
-import grails.converters.JSON
-import grails.core.GrailsApplication
 import de.cgoit.grails.plugins.elasticsearch.ElasticSearchContextHolder
+import de.cgoit.grails.plugins.elasticsearch.exception.MappingException
 import de.cgoit.grails.plugins.elasticsearch.mapping.DomainEntity
 import de.cgoit.grails.plugins.elasticsearch.mapping.DomainProperty
 import de.cgoit.grails.plugins.elasticsearch.mapping.SearchableClassMapping
 import de.cgoit.grails.plugins.elasticsearch.mapping.SearchableClassPropertyMapping
+import grails.converters.JSON
+import grails.core.GrailsApplication
 import grails.web.databinding.DataBinder
 import org.codehaus.groovy.runtime.DefaultGroovyMethods
 import org.codehaus.groovy.runtime.StringGroovyMethods
@@ -104,7 +105,7 @@ class DomainClassUnmarshaller implements DataBinder {
                             unmarshallProperty(scm.domainClass, key, entry.value, unmarshallingContext)
                     rebuiltProperties[key] = unmarshalledProperty
                     populateCyclicReference(instance, rebuiltProperties, unmarshallingContext)
-                } catch (de.cgoit.grails.plugins.elasticsearch.exception.MappingException e) {
+                } catch (MappingException e) {
                     LOG.debug("Error unmarshalling property '$key' of Class ${scm.domainClass.type.name} with id $id",
                             e)
                 } catch (Throwable t) {
@@ -198,7 +199,7 @@ class DomainClassUnmarshaller implements DataBinder {
                 elasticSearchContextHolder.getMappingContext(domainClass).getPropertyMapping(propertyName)
         Object parseResult
         if (scpm == null) {
-            throw new de.cgoit.grails.plugins.elasticsearch.exception.MappingException(
+            throw new MappingException(
                     "Property ${domainClass.type.simpleName}.${propertyName} found in index, but is not defined as searchable.")
         }
 
@@ -346,7 +347,7 @@ class DomainClassUnmarshaller implements DataBinder {
                     bindData(instance, Collections.singletonMap(entry.key, propertyValue))
 //                    TODO: Remove comment
 //                    new DatabindingApi().setProperties(instance, Collections.singletonMap(entry.key, propertyValue))
-                } catch (de.cgoit.grails.plugins.elasticsearch.exception.MappingException e) {
+                } catch (MappingException e) {
                     LOG.debug("Error unmarshalling property '${entry.key}', value= ${entry.value}", e)
                 } finally {
                     unmarshallingContext.unmarshallingStack.pop()

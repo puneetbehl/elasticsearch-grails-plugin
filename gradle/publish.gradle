@@ -3,7 +3,56 @@ apply plugin: "org.ajoberstar.github-pages"
 
 ext {
     githubApiKey = System.getenv("GH_TOKEN")
+    repoName = rootProject.name
 }
+
+grailsPublish {
+    user = System.getenv("BINTRAY_USER") ?: project.bintrayUser
+    key = System.getenv("BINTRAY_KEY") ?: project.bintrayKey
+    githubSlug = 'cgoIT/elasticsearch-grails-plugin'
+    license {
+        name = 'Apache-2.0'
+    }
+    title = "Elasticsearch Grails Plugin"
+    repo = "maven"
+    desc = """Elasticsearch is a search server based on Lucene. It provides a distributed, multitenant-capable 
+full-text search engine with an HTTP web interface and schema-free JSON documents. Elasticsearch is developed in 
+Java and is released as open source under the terms of the Apache License. 
+This is the Grails 3 plugin to support Elasticsearch up to Version 7.7.1."""
+    developers = [
+            noam: 'Noam Y. Tenne',
+            macrcos: 'Marcos Carceles',
+            puneet: 'Puneet Behl',
+            james: 'James Kleeh',
+            cgoit: 'Carsten Götzinger'
+    ]
+}
+
+bintray {
+    user = System.getenv("BINTRAY_USER") ?: project.bintrayUser
+    key = System.getenv("BINTRAY_KEY") ?: project.bintrayKey
+
+    publications = ['maven']
+
+    publish = true
+
+    pkg {
+        repo = 'maven'
+        name = project.name
+        websiteUrl = "https://github.com/cgoIT/$repoName"
+        issueTrackerUrl = "https://github.com/cgoIT/$repoName/issues"
+        vcsUrl = "https://github.com/cgoIT/${repoName}.git"
+        licenses = ['Apache-2.0']
+        labels = ['grails', 'plugin', 'grails-plugin', 'elastic', 'ElasticSearch', repoName]
+        version {
+            name = project.version
+            attributes = ['grails-plugin': "$project.group:$project.name"]
+        }
+    }
+}
+
+bintrayUpload.dependsOn = [sourcesJar, docs]
+publish.dependsOn = [bintrayUpload]
 
 githubPages {
     repoUri = 'https://github.com/cgoIT/elasticsearch-grails-plugin.git'

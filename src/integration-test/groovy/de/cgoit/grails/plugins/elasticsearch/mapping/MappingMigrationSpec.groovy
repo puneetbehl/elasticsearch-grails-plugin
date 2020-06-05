@@ -1,5 +1,10 @@
 package de.cgoit.grails.plugins.elasticsearch.mapping
 
+import de.cgoit.grails.plugins.elasticsearch.ElasticSearchAdminService
+import de.cgoit.grails.plugins.elasticsearch.ElasticSearchBootStrapHelper
+import de.cgoit.grails.plugins.elasticsearch.ElasticSearchContextHolder
+import de.cgoit.grails.plugins.elasticsearch.ElasticSearchService
+import de.cgoit.grails.plugins.elasticsearch.exception.MappingException
 import grails.core.GrailsApplication
 import grails.gorm.transactions.Rollback
 import grails.testing.mixin.integration.Integration
@@ -13,12 +18,12 @@ class MappingMigrationSpec extends Specification {
 
     GrailsApplication grailsApplication
     SearchableClassMappingConfigurator searchableClassMappingConfigurator
-    de.cgoit.grails.plugins.elasticsearch.ElasticSearchContextHolder elasticSearchContextHolder
-    de.cgoit.grails.plugins.elasticsearch.ElasticSearchService elasticSearchService
-    de.cgoit.grails.plugins.elasticsearch.ElasticSearchAdminService elasticSearchAdminService
-    de.cgoit.grails.plugins.elasticsearch.ElasticSearchBootStrapHelper elasticSearchBootStrapHelper
+    ElasticSearchContextHolder elasticSearchContextHolder
+    ElasticSearchService elasticSearchService
+    ElasticSearchAdminService elasticSearchAdminService
+    ElasticSearchBootStrapHelper elasticSearchBootStrapHelper
 
-    de.cgoit.grails.plugins.elasticsearch.ElasticSearchAdminService getEs() {
+    ElasticSearchAdminService getEs() {
         elasticSearchAdminService
     }
 
@@ -114,7 +119,7 @@ class MappingMigrationSpec extends Specification {
         searchableClassMappingConfigurator.installMappings([catalogMapping])
 
         then:
-        thrown de.cgoit.grails.plugins.elasticsearch.exception.MappingException
+        thrown MappingException
     }
 
 //    /*

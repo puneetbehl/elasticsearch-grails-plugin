@@ -1,7 +1,8 @@
 package de.cgoit.grails.plugins.elasticsearch
 
-import grails.core.support.proxy.EntityProxyHandler
 import de.cgoit.grails.plugins.elasticsearch.mapping.DomainEntity
+import de.cgoit.grails.plugins.elasticsearch.mapping.SearchableClassMapping
+import grails.core.support.proxy.EntityProxyHandler
 import groovy.transform.CompileStatic
 import org.grails.datastore.mapping.proxy.EntityProxy
 
@@ -18,7 +19,7 @@ class ElasticSearchContextHolder {
     /**
      * A map containing the mapping to ElasticSearch
      */
-    Map<String, de.cgoit.grails.plugins.elasticsearch.mapping.SearchableClassMapping> mapping = [:]
+    Map<String, SearchableClassMapping> mapping = [:]
 
     /**
      * A Set containing all the indices that were regenerated during migration
@@ -30,7 +31,7 @@ class ElasticSearchContextHolder {
      *
      * @param scm The SearchableClassMapping instance to add
      */
-    void addMappingContext(de.cgoit.grails.plugins.elasticsearch.mapping.SearchableClassMapping scm) {
+    void addMappingContext(SearchableClassMapping scm) {
         mapping[scm.indexName] = scm
     }
 
@@ -39,7 +40,7 @@ class ElasticSearchContextHolder {
      * @param type
      * @return
      */
-    de.cgoit.grails.plugins.elasticsearch.mapping.SearchableClassMapping getMappingContext(String type) {
+    SearchableClassMapping getMappingContext(String type) {
         mapping[type.toLowerCase()]
     }
 
@@ -48,7 +49,7 @@ class ElasticSearchContextHolder {
      * @param domainClass
      * @return
      */
-    de.cgoit.grails.plugins.elasticsearch.mapping.SearchableClassMapping getMappingContext(DomainEntity domainClass) {
+    SearchableClassMapping getMappingContext(DomainEntity domainClass) {
         getMappingContextByType(domainClass.type)
     }
 
@@ -58,14 +59,14 @@ class ElasticSearchContextHolder {
      * @param clazz
      * @return
      */
-    de.cgoit.grails.plugins.elasticsearch.mapping.SearchableClassMapping getMappingContextByType(Class clazz) {
+    SearchableClassMapping getMappingContextByType(Class clazz) {
         if (clazz in EntityProxy) {
             clazz = clazz.superclass
         }
         mapping.values().find { scm -> scm.domainClass.type == clazz }
     }
 
-    de.cgoit.grails.plugins.elasticsearch.mapping.SearchableClassMapping getMappingContextByObject(o) {
+    SearchableClassMapping getMappingContextByObject(o) {
         Class clazz = o.class
         if (proxyHandler.isProxy(o)) {
             clazz = o.class.superclass
@@ -103,7 +104,7 @@ class ElasticSearchContextHolder {
      * @return A Class instance or NULL if the class was not found
      */
     List<Class> findMappedClassesOnIndices(Set<String> indices) {
-        mapping.values().findAll { de.cgoit.grails.plugins.elasticsearch.mapping.SearchableClassMapping scm ->
+        mapping.values().findAll { SearchableClassMapping scm ->
             scm.indexName in indices
         }*.domainClass*.type as List<Class>
     }
@@ -113,7 +114,7 @@ class ElasticSearchContextHolder {
      * @param indexName
      * @return
      */
-    de.cgoit.grails.plugins.elasticsearch.mapping.SearchableClassMapping findMappingContextByIndexName(String indexName) {
+    SearchableClassMapping findMappingContextByIndexName(String indexName) {
         mapping.values().find { scm -> scm.indexName.toLowerCase() == indexName?.split('_')[0]?.toLowerCase() }
     }
 

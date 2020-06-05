@@ -1,14 +1,16 @@
 package de.cgoit.grails.plugins.elasticsearch.conversion.marshall
 
+import de.cgoit.grails.plugins.elasticsearch.ElasticSearchContextHolder
+import de.cgoit.grails.plugins.elasticsearch.unwrap.DomainClassUnWrapperChain
 import grails.core.GrailsApplication
 
 class DefaultMarshaller implements Marshaller {
 
     DefaultMarshallingContext marshallingContext
-    de.cgoit.grails.plugins.elasticsearch.ElasticSearchContextHolder elasticSearchContextHolder
+    ElasticSearchContextHolder elasticSearchContextHolder
     def maxDepth
     GrailsApplication grailsApplication
-    de.cgoit.grails.plugins.elasticsearch.unwrap.DomainClassUnWrapperChain domainClassUnWrapperChain
+    DomainClassUnWrapperChain domainClassUnWrapperChain
 
     /**
      * Marshall the object considering the marshallingContext maxDepth.

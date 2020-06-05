@@ -15,10 +15,12 @@
  */
 package de.cgoit.grails.plugins.elasticsearch
 
+import de.cgoit.grails.plugins.elasticsearch.index.IndexRequestQueue
+import de.cgoit.grails.plugins.elasticsearch.mapping.SearchableClassMapping
+import de.cgoit.grails.plugins.elasticsearch.util.GXContentBuilder
 import grails.core.GrailsApplication
 import grails.core.support.GrailsApplicationAware
 import grails.persistence.support.PersistenceContextInterceptor
-import de.cgoit.grails.plugins.elasticsearch.util.GXContentBuilder
 import groovy.util.logging.Slf4j
 import org.elasticsearch.action.search.SearchRequest
 import org.elasticsearch.action.search.SearchResponse
@@ -61,7 +63,7 @@ class ElasticSearchService implements GrailsApplicationAware {
     ElasticSearchHelper elasticSearchHelper
     def domainInstancesRebuilder
     ElasticSearchContextHolder elasticSearchContextHolder
-    de.cgoit.grails.plugins.elasticsearch.index.IndexRequestQueue indexRequestQueue
+    IndexRequestQueue indexRequestQueue
     PersistenceContextInterceptor persistenceInterceptor
 
     static transactional = false
@@ -278,7 +280,7 @@ class ElasticSearchService implements GrailsApplicationAware {
      */
     private doBulkRequest(Map options, int operationType) {
         def clazz = options.class
-        List<de.cgoit.grails.plugins.elasticsearch.mapping.SearchableClassMapping> mappings = []
+        List<SearchableClassMapping> mappings = []
         if (clazz) {
             if (clazz instanceof Collection) {
                 clazz.each { c ->
@@ -713,11 +715,11 @@ class ElasticSearchService implements GrailsApplicationAware {
                 indices = [params.indices.toLowerCase()]
             } else if (params.indices instanceof Class) {
                 // Resolved with the class type
-                de.cgoit.grails.plugins.elasticsearch.mapping.SearchableClassMapping scm = elasticSearchContextHolder.getMappingContextByType(params.indices)
+                SearchableClassMapping scm = elasticSearchContextHolder.getMappingContextByType(params.indices)
                 indices = [scm.queryingIndex]
             } else if (params.indices instanceof Collection<Class>) {
                 indices = params.indices.collect { c ->
-                    de.cgoit.grails.plugins.elasticsearch.mapping.SearchableClassMapping scm = elasticSearchContextHolder.getMappingContextByType(c)
+                    SearchableClassMapping scm = elasticSearchContextHolder.getMappingContextByType(c)
                     scm.queryingIndex
                 }
             }

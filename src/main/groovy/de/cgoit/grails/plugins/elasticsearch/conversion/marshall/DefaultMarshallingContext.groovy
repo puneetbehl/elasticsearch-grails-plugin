@@ -15,8 +15,11 @@
  */
 package de.cgoit.grails.plugins.elasticsearch.conversion.marshall
 
+import de.cgoit.grails.plugins.elasticsearch.conversion.JSONDomainFactory
+import de.cgoit.grails.plugins.elasticsearch.mapping.SearchableClassMapping
+
 class DefaultMarshallingContext {
-    de.cgoit.grails.plugins.elasticsearch.conversion.JSONDomainFactory parentFactory
+    JSONDomainFactory parentFactory
     def maxDepth = 5
     Stack<MarshalledObject> marshallStack = new Stack<MarshalledObject>()
     def marshalled = [:]
@@ -38,7 +41,7 @@ class DefaultMarshallingContext {
         return true
     }
 
-    de.cgoit.grails.plugins.elasticsearch.mapping.SearchableClassMapping findMappingContext(Class<?> clazz) {
+    SearchableClassMapping findMappingContext(Class<?> clazz) {
         parentFactory.elasticSearchContextHolder.getMappingContextByType(clazz)
     }
 

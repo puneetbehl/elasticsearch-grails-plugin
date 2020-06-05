@@ -1,9 +1,10 @@
 package de.cgoit.grails.plugins.elasticsearch.mapping
 
-import grails.core.GrailsApplication
 import de.cgoit.grails.plugins.elasticsearch.ElasticSearchAdminService
 import de.cgoit.grails.plugins.elasticsearch.ElasticSearchContextHolder
+import de.cgoit.grails.plugins.elasticsearch.exception.MappingException
 import de.cgoit.grails.plugins.elasticsearch.util.ElasticSearchConfigAware
+import grails.core.GrailsApplication
 import groovy.transform.CompileStatic
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -31,7 +32,7 @@ class MappingMigrationManager implements ElasticSearchConfigAware {
                 LOG.
                         error("Delete a Mapping is no longer supported since Elasticsearch 2.0 (see https://www.elastic.co/guide/en/elasticsearch/reference/2.0/indices-delete-mapping.html)." +
                                 " To prevent data loss, this strategy has been replaced by 'deleteIndex'")
-                throw new de.cgoit.grails.plugins.elasticsearch.exception.MappingException()
+                throw new MappingException()
             case deleteIndex:
                 elasticSearchContextHolder.indexesRebuiltOnMigration =
                         applyDeleteIndexStrategy(elasticMappings, mappingConflicts, indexSettings)
@@ -42,7 +43,7 @@ class MappingMigrationManager implements ElasticSearchConfigAware {
                 break
             case none:
                 LOG.error("Could not install mappings : ${mappingConflicts}. No migration strategy selected.")
-                throw new de.cgoit.grails.plugins.elasticsearch.exception.MappingException()
+                throw new MappingException()
         }
     }
 
@@ -79,7 +80,7 @@ class MappingMigrationManager implements ElasticSearchConfigAware {
                         migrationConfig?.disableAliasChange)
                 rebuildIndexWithMappings(indexName, nextVersion, indexSettings, elasticMappings, buildQueryingAlias)
             } else {
-                throw new de.cgoit.grails.plugins.elasticsearch.exception.MappingException(
+                throw new MappingException(
                         "Could not create alias ${indexName} to solve error installing mappings, index with the same name already exists.")
             }
         }

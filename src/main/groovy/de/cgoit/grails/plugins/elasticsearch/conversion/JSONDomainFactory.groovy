@@ -16,13 +16,21 @@
 
 package de.cgoit.grails.plugins.elasticsearch.conversion
 
-import grails.core.GrailsApplication
+import de.cgoit.grails.plugins.elasticsearch.ElasticSearchContextHolder
 import de.cgoit.grails.plugins.elasticsearch.conversion.marshall.CollectionMarshaller
+import de.cgoit.grails.plugins.elasticsearch.conversion.marshall.DeepDomainClassMarshaller
 import de.cgoit.grails.plugins.elasticsearch.conversion.marshall.DefaultMarshaller
 import de.cgoit.grails.plugins.elasticsearch.conversion.marshall.DefaultMarshallingContext
+import de.cgoit.grails.plugins.elasticsearch.conversion.marshall.DynamicValueMarshaller
 import de.cgoit.grails.plugins.elasticsearch.conversion.marshall.GeoPointMarshaller
+import de.cgoit.grails.plugins.elasticsearch.conversion.marshall.MapMarshaller
+import de.cgoit.grails.plugins.elasticsearch.conversion.marshall.PropertyEditorMarshaller
 import de.cgoit.grails.plugins.elasticsearch.conversion.marshall.SearchableReferenceMarshaller
 import de.cgoit.grails.plugins.elasticsearch.mapping.DomainEntity
+import de.cgoit.grails.plugins.elasticsearch.mapping.DomainReflectionService
+import de.cgoit.grails.plugins.elasticsearch.mapping.SearchableClassMapping
+import de.cgoit.grails.plugins.elasticsearch.unwrap.DomainClassUnWrapperChain
+import grails.core.GrailsApplication
 import org.elasticsearch.common.xcontent.XContentBuilder
 
 import java.beans.PropertyEditor
@@ -35,16 +43,16 @@ import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder
  */
 class JSONDomainFactory {
 
-    de.cgoit.grails.plugins.elasticsearch.ElasticSearchContextHolder elasticSearchContextHolder
+    ElasticSearchContextHolder elasticSearchContextHolder
     GrailsApplication grailsApplication
-    de.cgoit.grails.plugins.elasticsearch.unwrap.DomainClassUnWrapperChain domainClassUnWrapperChain
-    de.cgoit.grails.plugins.elasticsearch.mapping.DomainReflectionService domainReflectionService
+    DomainClassUnWrapperChain domainClassUnWrapperChain
+    DomainReflectionService domainReflectionService
 
     /**
      * The default marshallers, not defined by user
      */
     static Map<Class<?>, Class<? extends DefaultMarshaller>> DEFAULT_MARSHALLERS = [
-            (Map): de.cgoit.grails.plugins.elasticsearch.conversion.marshall.MapMarshaller,
+            (Map): MapMarshaller,
             (Collection): CollectionMarshaller
     ]
 
@@ -86,11 +94,11 @@ class JSONDomainFactory {
                     // Property editor?
                     if (converter instanceof Class) {
                         if (PropertyEditor.isAssignableFrom(converter)) {
-                            marshaller = new de.cgoit.grails.plugins.elasticsearch.conversion.marshall.PropertyEditorMarshaller(propertyEditorClass: converter)
+                            marshaller = new PropertyEditorMarshaller(propertyEditorClass: converter)
                         }
                     }
                 } else if (propertyMapping?.isDynamic()) {
-                    marshaller = new de.cgoit.grails.plugins.elasticsearch.conversion.marshall.DynamicValueMarshaller()
+                    marshaller = new DynamicValueMarshaller()
                 } else if (propertyMapping?.reference) {
                     def refClass = propertyMapping.getBestGuessReferenceType()
                     marshaller = new SearchableReferenceMarshaller(refClass: refClass)
@@ -98,7 +106,7 @@ class JSONDomainFactory {
                     if (propertyMapping?.isGeoPoint()) {
                         marshaller = new GeoPointMarshaller()
                     } else {
-                        marshaller = new de.cgoit.grails.plugins.elasticsearch.conversion.marshall.DeepDomainClassMarshaller()
+                        marshaller = new DeepDomainClassMarshaller()
                     }
                 }
             }
@@ -115,7 +123,7 @@ class JSONDomainFactory {
                 if (propertyMapping?.isGeoPoint()) {
                     marshaller = new GeoPointMarshaller()
                 } else {
-                    marshaller = new de.cgoit.grails.plugins.elasticsearch.conversion.marshall.DeepDomainClassMarshaller()
+                    marshaller = new DeepDomainClassMarshaller()
                 }
             } else {
                 // Check for inherited marshaller matching
@@ -147,7 +155,7 @@ class JSONDomainFactory {
         DomainEntity domainClass = getInstanceDomainClass(instance)
         XContentBuilder json = jsonBuilder().startObject()
         // TODO : add maxDepth in custom mapping (only for "searchable components")
-        de.cgoit.grails.plugins.elasticsearch.mapping.SearchableClassMapping scm = elasticSearchContextHolder.getMappingContext(domainClass)
+        SearchableClassMapping scm = elasticSearchContextHolder.getMappingContext(domainClass)
 
         DefaultMarshallingContext marshallingContext = new DefaultMarshallingContext(maxDepth: 5, parentFactory: this)
         marshallingContext.push(instance)

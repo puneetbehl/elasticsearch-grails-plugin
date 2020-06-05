@@ -16,14 +16,19 @@
 
 package de.cgoit.grails.plugins.elasticsearch
 
-import grails.plugins.Plugin
+import de.cgoit.grails.plugins.elasticsearch.conversion.CustomEditorRegistrar
+import de.cgoit.grails.plugins.elasticsearch.conversion.JSONDomainFactory
+import de.cgoit.grails.plugins.elasticsearch.conversion.unmarshall.DomainClassUnmarshaller
+import de.cgoit.grails.plugins.elasticsearch.index.IndexRequestQueue
+import de.cgoit.grails.plugins.elasticsearch.mapping.DomainReflectionService
+import de.cgoit.grails.plugins.elasticsearch.mapping.MappingMigrationManager
 import de.cgoit.grails.plugins.elasticsearch.mapping.SearchableClassMappingConfigurator
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import de.cgoit.grails.plugins.elasticsearch.unwrap.DomainClassUnWrapperChain
+import de.cgoit.grails.plugins.elasticsearch.unwrap.HibernateProxyUnWrapper
+import de.cgoit.grails.plugins.elasticsearch.util.DomainDynamicMethodsUtils
+import grails.plugins.Plugin
 
 class ElasticsearchGrailsPlugin extends Plugin {
-
-    private static final Logger LOG = LoggerFactory.getLogger(this)
 
     def grailsVersion = '3.3.1 > *'
 
@@ -58,7 +63,7 @@ class ElasticsearchGrailsPlugin extends Plugin {
 full-text search engine with an HTTP web interface and schema-free JSON documents. Elasticsearch is developed in 
 Java and is released as open source under the terms of the Apache License. 
 This is the Grails 3 plugin to support Elasticsearch up to Version 7.7.1."""
-    def documentation = 'http://elasticsearch-grails-plugin.cgo-it.de'
+    def documentation = 'https://elasticsearch-grails-plugin.cgo-it.de'
 
     def profiles = ['web']
 
@@ -66,7 +71,7 @@ This is the Grails 3 plugin to support Elasticsearch up to Version 7.7.1."""
         { ->
             ConfigObject esConfig = config.elasticSearch as ConfigObject
 
-            domainReflectionService(de.cgoit.grails.plugins.elasticsearch.mapping.DomainReflectionService) { bean ->
+            domainReflectionService(DomainReflectionService) { bean ->
                 mappingContext = ref('grailsDomainClassMappingContext')
 
                 grailsApplication = grailsApplication
@@ -83,13 +88,13 @@ This is the Grails 3 plugin to support Elasticsearch up to Version 7.7.1."""
                 elasticSearchContextHolder = ref('elasticSearchContextHolder')
                 bean.destroyMethod = 'shutdown'
             }
-            indexRequestQueue(de.cgoit.grails.plugins.elasticsearch.index.IndexRequestQueue) {
+            indexRequestQueue(IndexRequestQueue) {
                 elasticSearchContextHolder = ref('elasticSearchContextHolder')
                 elasticSearchClient = ref('elasticSearchClient')
                 jsonDomainFactory = ref('jsonDomainFactory')
                 domainClassUnWrapperChain = ref('domainClassUnWrapperChain')
             }
-            mappingMigrationManager(de.cgoit.grails.plugins.elasticsearch.mapping.MappingMigrationManager) {
+            mappingMigrationManager(MappingMigrationManager) {
                 elasticSearchContextHolder = ref('elasticSearchContextHolder')
                 grailsApplication = grailsApplication
                 es = ref('elasticSearchAdminService')
@@ -101,22 +106,22 @@ This is the Grails 3 plugin to support Elasticsearch up to Version 7.7.1."""
                 mmm = ref('mappingMigrationManager')
                 domainReflectionService = ref('domainReflectionService')
             }
-            domainInstancesRebuilder(de.cgoit.grails.plugins.elasticsearch.conversion.unmarshall.DomainClassUnmarshaller) {
+            domainInstancesRebuilder(DomainClassUnmarshaller) {
                 elasticSearchContextHolder = ref('elasticSearchContextHolder')
                 elasticSearchClient = ref('elasticSearchClient')
                 grailsApplication = grailsApplication
             }
-            customEditorRegistrar(de.cgoit.grails.plugins.elasticsearch.conversion.CustomEditorRegistrar) {
+            customEditorRegistrar(CustomEditorRegistrar) {
                 grailsApplication = grailsApplication
             }
 
             if (manager?.hasGrailsPlugin('hibernate') || manager?.hasGrailsPlugin('hibernate4')) {
-                hibernateProxyUnWrapper(de.cgoit.grails.plugins.elasticsearch.unwrap.HibernateProxyUnWrapper)
+                hibernateProxyUnWrapper(HibernateProxyUnWrapper)
             }
 
-            domainClassUnWrapperChain(de.cgoit.grails.plugins.elasticsearch.unwrap.DomainClassUnWrapperChain)
+            domainClassUnWrapperChain(DomainClassUnWrapperChain)
 
-            jsonDomainFactory(de.cgoit.grails.plugins.elasticsearch.conversion.JSONDomainFactory) {
+            jsonDomainFactory(JSONDomainFactory) {
                 elasticSearchContextHolder = ref('elasticSearchContextHolder')
                 grailsApplication = grailsApplication
                 domainClassUnWrapperChain = ref('domainClassUnWrapperChain')
@@ -148,7 +153,7 @@ This is the Grails 3 plugin to support Elasticsearch up to Version 7.7.1."""
         configurator.configureAndInstallMappings()
 
         if (!grailsApplication.config.getProperty("elasticSearch.disableDynamicMethodsInjection", Boolean, false)) {
-            de.cgoit.grails.plugins.elasticsearch.util.DomainDynamicMethodsUtils.injectDynamicMethods(grailsApplication, applicationContext)
+            DomainDynamicMethodsUtils.injectDynamicMethods(grailsApplication, applicationContext)
         }
     }
 }

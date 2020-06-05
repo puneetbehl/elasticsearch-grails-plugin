@@ -1,7 +1,9 @@
 package de.cgoit.grails.plugins.elasticsearch
 
-import grails.core.GrailsApplication
+import de.cgoit.grails.plugins.elasticsearch.mapping.MappingMigrationStrategy
 import de.cgoit.grails.plugins.elasticsearch.util.ElasticSearchConfigAware
+import de.cgoit.grails.plugins.elasticsearch.util.IndexNamingUtils
+import grails.core.GrailsApplication
 import groovy.transform.CompileStatic
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -30,18 +32,18 @@ class ElasticSearchBootStrapHelper implements ElasticSearchConfigAware {
             elasticSearchService.index(Collections.emptyMap()) // empty map is needed for static compiling
         }
         //Update index aliases where needed
-        de.cgoit.grails.plugins.elasticsearch.mapping.MappingMigrationStrategy migrationStrategy =
-                migrationConfig?.strategy ? de.cgoit.grails.plugins.elasticsearch.mapping.MappingMigrationStrategy.valueOf(migrationConfig?.strategy as String) :
-                de.cgoit.grails.plugins.elasticsearch.mapping.MappingMigrationStrategy.none
-        if (migrationStrategy == de.cgoit.grails.plugins.elasticsearch.mapping.MappingMigrationStrategy.alias) {
+        MappingMigrationStrategy migrationStrategy =
+                migrationConfig?.strategy ? MappingMigrationStrategy.valueOf(migrationConfig?.strategy as String) :
+                MappingMigrationStrategy.none
+        if (migrationStrategy == MappingMigrationStrategy.alias) {
             elasticSearchContextHolder.indexesRebuiltOnMigration.each { idxName ->
                 String indexName = idxName as String
                 int latestVersion = elasticSearchAdminService.getLatestVersion(indexName)
                 if (!migrationConfig?.disableAliasChange) {
-                    elasticSearchAdminService.pointAliasTo de.cgoit.grails.plugins.elasticsearch.util.IndexNamingUtils.queryingIndexFor(indexName), indexName,
+                    elasticSearchAdminService.pointAliasTo IndexNamingUtils.queryingIndexFor(indexName), indexName,
                             latestVersion
                 }
-                elasticSearchAdminService.pointAliasTo de.cgoit.grails.plugins.elasticsearch.util.IndexNamingUtils.indexingIndexFor(indexName), indexName,
+                elasticSearchAdminService.pointAliasTo IndexNamingUtils.indexingIndexFor(indexName), indexName,
                         latestVersion
             }
         }

@@ -1,5 +1,7 @@
 package de.cgoit.grails.plugins.elasticsearch.mapping
 
+import de.cgoit.grails.plugins.elasticsearch.ElasticSearchContextHolder
+import de.cgoit.grails.plugins.elasticsearch.ElasticSearchSpec
 import grails.testing.mixin.integration.Integration
 import spock.lang.Specification
 import test.Building
@@ -7,10 +9,10 @@ import test.Person
 import test.Product
 
 @Integration
-class SearchableDomainClassMapperIntegrationSpec extends Specification implements de.cgoit.grails.plugins.elasticsearch.ElasticSearchSpec {
+class SearchableDomainClassMapperIntegrationSpec extends Specification implements ElasticSearchSpec {
 
     DomainReflectionService domainReflectionService
-    de.cgoit.grails.plugins.elasticsearch.ElasticSearchContextHolder elasticSearchContextHolder
+    ElasticSearchContextHolder elasticSearchContextHolder
 
     void setup() {
         resetElasticsearch()

@@ -1,5 +1,6 @@
 package de.cgoit.grails.plugins.elasticsearch.mapping
 
+import de.cgoit.grails.plugins.elasticsearch.ElasticSearchContextHolder
 import grails.core.GrailsApplication
 import grails.testing.mixin.integration.Integration
 import spock.lang.Specification
@@ -16,7 +17,7 @@ class ElasticSearchMappingFactorySpec extends Specification {
 
     GrailsApplication grailsApplication
     SearchableClassMappingConfigurator searchableClassMappingConfigurator
-    de.cgoit.grails.plugins.elasticsearch.ElasticSearchContextHolder elasticSearchContextHolder
+    ElasticSearchContextHolder elasticSearchContextHolder
 
     void setup() {
         grailsApplication.config.elasticSearch.includeTransients = true
