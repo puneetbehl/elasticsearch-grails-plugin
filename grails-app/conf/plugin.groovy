@@ -2,15 +2,13 @@ elasticSearch {
     /**
      * Date formats used by the unmarshaller of the JSON responses
      */
-    date.formats = ["yyyy-MM-dd'T'HH:mm:ss.S'Z'"]
+    date.formats = ["yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"]
 
     /**
      * Hosts for remote ElasticSearch instances.
-     * Will only be used with the "transport" client mode.
-     * If the client mode is set to "transport" and no hosts are defined, ["localhost", 9300] will be used by default.
      */
     client.hosts = [
-            [host: 'localhost', port: 9300]
+            [host: 'localhost', port: 9200]
     ]
 
     /**
@@ -89,8 +87,6 @@ elasticSearch {
      * countHits method name in domain class, defaults to search
      */
     countHitsMethodName = "countHits"
-
-    plugin.mapperAttachment.enabled = true
 }
 
 environments {

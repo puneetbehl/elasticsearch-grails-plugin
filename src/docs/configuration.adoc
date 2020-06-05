@@ -29,8 +29,6 @@ elasticSearch {
 
   /**
    * Hosts for remote ElasticSearch instances.
-   * Will only be used with the "transport" client mode.
-   * If the client mode is set to "transport" and no hosts are defined, ["localhost", 9300] will be used by default.
    */
   client.hosts = [
           [host:'localhost', port:9300]
@@ -84,11 +82,8 @@ environments {
   test {
       elasticSearch {
           client.mode = 'local'
-          index.store.type = 'memory' // store local node in memory and not on disk
+          index.store.type = 'fs'
       }
-  }
-  production {
-    elasticSearch.client.mode = 'transport'
   }
 }
 ----
@@ -99,166 +94,82 @@ environments {
 .application.yml
 ----
 elasticSearch:
-    date:
-        formats: ["yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"]
-    client.hosts:
-        - {host: localhost, port: 9300}
-    defaultExcludedProperties: ['password']
-    disableAutoIndex: false
-    index:
-        compound_format: true
-    unmarshallComponents: true
-    searchableProperty:
-        name: searchable
-    includeTransients: false
+  date:
+    formats: ["yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"]
+  client:
+    connectTimeout: 2
+    socketTimeout: 30
+    mode: local
+    hosts:
+      - {host: localhost, port: 9200}
+    transport.sniff: false
+    username: zzb-elasticsearch
+    password: /+mh&K@2sF('X7J_
+  datastoreImpl: hibernateDatastore
+  defaultExcludedProperties: ['password']
+  disableAutoIndex: false
+  index:
+    compound_format: true
+    store.type: fs
+    settings:
+      analysis:
+        filter:
+          replace_synonyms:
+            type: synonym
+            synonyms: ['abc => xyz']
+        analyzer:
+          test_analyzer:
+            tokenizer: standard
+            filter: ['lowercase']
+          repl_analyzer:
+            tokenizer: standard
+            filter: ['lowercase', 'replace_synonyms']
+  snapshots:
+    repository:
+      name: ss_repo
+      config:
+        type: fs
+        settings:
+          ## see https://www.elastic.co/guide/en/elasticsearch/reference/current/snapshots-register-repository.html for all params
+          location: snapshots
+          compress: false
+          chunk_size: 20MB
+    policies:
+      - id: nightly-snapshots
+        config:
+          schedule: "0 30 1 * * ?"
+          name: "<nightly-snap-{now/d}>"
+          repository: "ss_repo"
+          config:
+            indices: ["*"]
+            retention:
+              expire_after: "30d"
+              min_count: 5
+              max_count: 50
+      - id: hourly-snapshots
+        config:
+          schedule: "0 0 */1 * * ?"
+          name: "<hourly-snap-{now/d}>"
+          repository: "ss_repo"
+          config:
+            indices: ["*"]
+            retention:
+              expire_after: "1d"
+              min_count: 5
+              max_count: 24
+
+  unmarshallComponents: true
+  searchableProperty:
+    name: searchable
+  includeTransients: false
+  includeDomainTypeName: true
+
 environments:
-    development:
-        elasticSearch:
-            client:
-                mode: local
-                transport.sniff: true
-            bulkIndexOnStartup: true
-    test:
-        elasticSearch:
-            client:
-                mode: local
-                transport.sniff: true
-            datastoreImpl: hibernateDatastore
-            index:
-                store.type: memory
-                settings:
-                    analysis:
-                        filter:
-                            replace_synonyms:
-                                type: synonym
-                                synonyms: ['abc => xyz']
-                        analyzer:
-                            test_analyzer:
-                                tokenizer: standard
-                                filter: ['lowercase']
-                            repl_analyzer:
-                                tokenizer: standard
-                                filter: ['lowercase', 'replace_synonyms']
-
-    production:
-        elasticSearch:
-            client:
-                mode: transport
+  production:
+    elasticSearch:
+      client:
+        mode: node
 ----
-
-=== Client mode
-
-You can set the plugin in 3 different modes, detailed on the http://www.elasticsearch.org/guide/en/elasticsearch/client/java-api/current/[official ElasticSearch doc].
-The mode is defined with the following config key:
-
-[source,groovy]
-.applicaiton.groovy or Config.groovy
-----
-elasticSearch.client.mode = '<mode>'
-----
-
-[source,yml]
-.application.yml
-----
-elasticSearch:
-	client:
-		mode: <mode>
-----
-
-.Possible values for client node
-[width="100%",cols="2",options="header"]
-|===
-|Value |Description
-
-|node (Removed in version 2.4.1 of the plugin)
-|The plugin create its own node and join the ElasticSearch cluster as a client node (`node.client = true`). This setting requires that you have an ElasticSearch instance running and available on your network (use the discovery feature)
-
-|dataNode
-|The plugin create its own node and join the ElasticSearch cluster as a node that can hold data. This setting requires that you have an ElasticSearch instance running and available on your network (use the discovery feature)
-
-
-|local
-|The plugin create its own local (to the JVM) node. Does not require any running ElasticSearch instance. Useful for development or testing.
-
-|transport
-|The plugin create a transport client that will connect to a remote ElasticSearch instance without joining the cluster.
-|===
-
-"Transport" mode needs you to provide the host address and port.
-You can define one or multiple hosts with the following config key:
-
-[source,groovy]
-.application.groovy or Config.groovy
-----
-elasticSearch.client.hosts = [
-       [host:'192.168.0.3', port:9300],
-       [host:'228.168.0.4', port:9300]
-]
-----
-
-[source,yaml]
-.application.yml
-----
-elasticSearch:
-	client:
-		hosts:
-    	- {host: 192.168.0.3, port: 9300}
-		- {host: 228.168.0.4, port: 9300}
-----
-
-If no host is defined, `localhost:9300` will be used by the transport client.
-
-==== Using node or dataNode during development
-
-[[INFO]]
-====
-The node.client setting has been removed.
-A node with such a setting set will not start up.
-Instead, each node role needs to be set separately using the existing node.master, node.data and node.ingest supported static settings.
-====
-
-If you configure your dev environment to use `node` or `dataNode` you might see the following exception:
-
-[source,groovy]
-----
-'elasticSearchClient': FactoryBean threw exception on object creation; nested exception is java.lang.IllegalStateException: path.home is not configured
-----
-
-In order to make this work you need to define `es.path.home` in VM options.
-
-[source,groovy]
-.Grails 2.x
-----
-grails run-app -Des.path.home=<PATH_TO_ELASTICSEARCH_HOME_DIR>
-----
-
-[source,groovy]
-.Grails 3.x (build.gradle)
-----
-bootRun {
-    jvmArgs = ['-Des.path.home=<PATH_TO_ELASTICSEARCH_HOME_DIR>']
-}
-----
-
-==== Disable Mapper Attachment plugin
-
-The Mapper Attachment plugin is Deprecated since version 5.0.0 and will be replaced by https://www.elastic.co/guide/en/elasticsearch/plugins/5.0/ingest-attachment.html[ingest-attachment] plugin.
-
-So, if you are using ES plugin with mode: `local` and do not want to use Mapper Attachment plugin then you can disable the plugin by using following configuration:
-
-[source,yaml]
-.application.yml
-----
-elasticSearch:
-    plugin:
-        mapperAttachment:
-            enabled: false
-----
-
-[NOTE]
-====
-Please note that by default the plugin is enabled.
-====
 
 === Mapping Migration properties
 
@@ -488,17 +399,20 @@ More details on the possible values on the http://www.elasticsearch.org/guide/re
 |===
 | Value | Description
 
-| memory
-| Stores the index in memory. Useful for testing. *Please note* that it's not support in ES 2.0 and later versions.
-
-| mmapfs
-| Stores the shard index on the file system (maps to Lucene MMapDirectory) using mmap.
-
-| niofs
-| Stores the shard index on the file system (maps to Lucene NIOFSDirectory) and allows for multiple threads to read from the same file concurrently.
+| fs
+| Default file system implementation. This will pick the best implementation depending on the operating environment, which is currently hybridfs on all supported systems but is subject to change.
 
 | simplefs
-| Stores using a plain forward implementation of file system storage (maps to Lucene SimpleFsDirectory) using random access file.
+| The Simple FS type is a straightforward implementation of file system storage (maps to Lucene SimpleFsDirectory) using a random access file. This implementation has poor concurrent performance (multiple threads will bottleneck) and disables some optimizations for heap memory usage.
+
+| niofs
+| The NIO FS type stores the shard index on the file system (maps to Lucene NIOFSDirectory) using NIO. It allows multiple threads to read from the same file concurrently. It is not recommended on Windows because of a bug in the SUN Java implementation and disables some optimizations for heap memory usage.
+
+| mmapfs
+| The MMap FS type stores the shard index on the file system (maps to Lucene MMapDirectory) by mapping a file into memory (mmap). Memory mapping uses up a portion of the virtual memory address space in your process equal to the size of the file being mapped. Before using this class, be sure you have allowed plenty of virtual address space.
+
+| hybridfs
+| The hybridfs type is a hybrid of niofs and mmapfs, which chooses the best file system type for each type of file based on the read access pattern. Currently only the Lucene term dictionary, norms and doc values files are memory mapped. All other files are opened using Lucene NIOFSDirectory. Similarly to mmapfs be sure you have allowed plenty of virtual address space.
 
 |===
 

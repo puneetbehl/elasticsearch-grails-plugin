@@ -3,7 +3,12 @@ package de.cgoit.grails.plugins.elasticsearch
 import de.cgoit.grails.plugins.elasticsearch.index.IndexRequestQueue
 import de.cgoit.grails.plugins.elasticsearch.mapping.SearchableClassMapping
 import groovy.json.JsonSlurper
+import groovy.util.logging.Slf4j
 import org.apache.http.util.EntityUtils
+import org.elasticsearch.ElasticsearchStatusException
+import org.elasticsearch.action.admin.cluster.repositories.get.GetRepositoriesRequest
+import org.elasticsearch.action.admin.cluster.repositories.get.GetRepositoriesResponse
+import org.elasticsearch.action.admin.cluster.repositories.put.PutRepositoryRequest
 import org.elasticsearch.action.admin.indices.alias.IndicesAliasesRequest
 import org.elasticsearch.action.admin.indices.alias.get.GetAliasesRequest
 import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest
@@ -14,11 +19,18 @@ import org.elasticsearch.client.Request
 import org.elasticsearch.client.RequestOptions
 import org.elasticsearch.client.Response
 import org.elasticsearch.client.RestHighLevelClient
+import org.elasticsearch.client.core.AcknowledgedResponse
+import org.elasticsearch.client.indexlifecycle.StartILMRequest
 import org.elasticsearch.client.indices.CreateIndexRequest
 import org.elasticsearch.client.indices.GetIndexRequest
 import org.elasticsearch.client.indices.PutMappingRequest
+import org.elasticsearch.client.slm.PutSnapshotLifecyclePolicyRequest
+import org.elasticsearch.client.slm.SnapshotLifecyclePolicy
+import org.elasticsearch.client.slm.SnapshotRetentionConfiguration
 import org.elasticsearch.cluster.health.ClusterHealthStatus
+import org.elasticsearch.cluster.metadata.RepositoryMetaData
 import org.elasticsearch.common.settings.Settings
+import org.elasticsearch.common.unit.TimeValue
 import org.elasticsearch.common.xcontent.XContentHelper
 import org.elasticsearch.common.xcontent.XContentType
 import org.elasticsearch.index.query.MatchAllQueryBuilder
@@ -29,11 +41,10 @@ import org.slf4j.LoggerFactory
 
 import java.util.regex.Matcher
 
+@Slf4j
 class ElasticSearchAdminService {
 
     static transactional = false
-
-    static final Logger LOG = LoggerFactory.getLogger(this)
 
     ElasticSearchHelper elasticSearchHelper
     ElasticSearchContextHolder elasticSearchContextHolder
@@ -58,9 +69,9 @@ class ElasticSearchAdminService {
             BroadcastResponse response = client.indices().refresh(request, RequestOptions.DEFAULT)
 
             if (response.getFailedShards() > 0) {
-                LOG.info 'Refresh failure'
+                log.info 'Refresh failure'
             } else {
-                LOG.info "Refreshed ${indices ?: 'all'} indices"
+                log.info "Refreshed ${indices ?: 'all'} indices"
             }
         }
     }
@@ -102,12 +113,12 @@ class ElasticSearchAdminService {
         elasticSearchHelper.withElasticSearch { RestHighLevelClient client ->
             if (!indices) {
                 client.indices().delete(new DeleteIndexRequest('_all'), RequestOptions.DEFAULT)
-                LOG.info "Deleted all indices"
+                log.info "Deleted all indices"
             } else {
                 indices.each {
                     client.indices().delete(new DeleteIndexRequest(it), RequestOptions.DEFAULT)
                 }
-                LOG.info "Deleted indices $indices"
+                log.info "Deleted indices $indices"
             }
         }
     }
@@ -122,7 +133,7 @@ class ElasticSearchAdminService {
             DeleteByQueryRequest request = new DeleteByQueryRequest(indexName)
             request.setQuery(new MatchAllQueryBuilder())
             client.deleteByQuery(request, RequestOptions.DEFAULT)
-            LOG.info "Deleted all documents from $aliasIndexName"
+            log.info "Deleted all documents from $aliasIndexName"
         }
     }
 
@@ -162,7 +173,7 @@ class ElasticSearchAdminService {
      * @param elasticMapping The mapping definition
      */
     void createMapping(String index, String type, Map elasticMapping) {
-        LOG.info("Creating Elasticsearch mapping for ${index} and type ${type} ...")
+        log.info("Creating Elasticsearch mapping for ${index} and type ${type} ...")
         elasticSearchHelper.withElasticSearch { RestHighLevelClient client ->
             client.indices().putMapping(
                     new PutMappingRequest(index)
@@ -179,7 +190,7 @@ class ElasticSearchAdminService {
      */
     void deleteIndex(String index, Integer version = null) {
         index = versionIndex index, version
-        LOG.info("Deleting  Elasticsearch index ${index} ...")
+        log.info("Deleting  Elasticsearch index ${index} ...")
         elasticSearchHelper.withElasticSearch { RestHighLevelClient client ->
             client.indices().delete(new DeleteIndexRequest(index), RequestOptions.DEFAULT)
         }
@@ -191,25 +202,11 @@ class ElasticSearchAdminService {
      * @param settings The index settings (ie. number of shards)
      */
     void createIndex(String index, Map settings = null, Map<String, Map> esMappings = [:]) {
-        LOG.debug "Creating index ${index} ..."
+        log.debug "Creating index ${index} ..."
 
         elasticSearchHelper.withElasticSearch { RestHighLevelClient client ->
             CreateIndexRequest request = new CreateIndexRequest(index)
-            if (settings) {
-                Map flattenedMap = flattenMap(settings)
-
-                Settings.Builder settingsBuilder = Settings.builder()
-                flattenedMap.each {
-                    if (it.value instanceof List) {
-                        it.value.eachWithIndex { entry, int i ->
-                            settingsBuilder.put("${it.key.toString()}.${i}", entry.toString())
-                        }
-                    } else {
-                        settingsBuilder.put(it.key.toString(), it.value.toString())
-                    }
-                }
-                request.settings(settingsBuilder)
-            }
+            addSettings(request, settings)
             esMappings.each { String type, Map elasticMapping ->
                 request.mapping(elasticMapping)
             }
@@ -252,7 +249,7 @@ class ElasticSearchAdminService {
     void waitForIndex(String index, int version) {
         int retries = WAIT_FOR_INDEX_MAX_RETRIES
         while (getLatestVersion(index) < version && retries--) {
-            LOG.
+            log.
                     debug("Index ${versionIndex(index, version)} not found, sleeping for ${WAIT_FOR_INDEX_SLEEP_INTERVAL}...")
             Thread.sleep(WAIT_FOR_INDEX_SLEEP_INTERVAL)
         }
@@ -268,7 +265,7 @@ class ElasticSearchAdminService {
             GetAliasesResponse aliasesResponse = client.indices().getAlias(new GetAliasesRequest(alias),
                     RequestOptions.DEFAULT)
             if (aliasesResponse.error) {
-                LOG.debug(aliasesResponse.error)
+                log.debug(aliasesResponse.error)
             }
             aliasesResponse.aliases?.find {
                 alias in it.value*.alias()
@@ -300,11 +297,11 @@ class ElasticSearchAdminService {
      */
     void pointAliasTo(String alias, String index, Integer version = null) {
         index = versionIndex(index, version)
-        LOG.debug "Creating alias ${alias}, pointing to index ${index} ..."
+        log.debug "Creating alias ${alias}, pointing to index ${index} ..."
         String oldIndex = indexPointedBy(alias)
         elasticSearchHelper.withElasticSearch { RestHighLevelClient client ->
             if (oldIndex && oldIndex != index) {
-                LOG.debug "Index used to point to ${oldIndex}, removing ..."
+                log.debug "Index used to point to ${oldIndex}, removing ..."
                 new IndicesAliasesRequest.AliasActions(IndicesAliasesRequest.AliasActions.Type.REMOVE)
                         .index(oldIndex)
                         .alias(alias)
@@ -315,7 +312,7 @@ class ElasticSearchAdminService {
                             .index(index)
                             .alias(alias)
             request.addAliasAction(aliasAction)
-            LOG.debug "Create alias -> index: ${index}; alias: ${alias}"
+            log.debug "Create alias -> index: ${index}; alias: ${alias}"
             client.indices().updateAliases(request, RequestOptions.DEFAULT)
         }
     }
@@ -388,6 +385,100 @@ class ElasticSearchAdminService {
     }
 
     /**
+     * Creates a new snapshot repository
+     * @param name The name of the snapshot repository
+     * @return repository metadata if repository exists, otherwise null
+     */
+    RepositoryMetaData getSnapshotRepository(String name) {
+        log.debug "Get snapshot repository ${name} ..."
+
+        GetRepositoriesResponse response
+        try {
+            elasticSearchHelper.withElasticSearch { RestHighLevelClient client ->
+                GetRepositoriesRequest request = new GetRepositoriesRequest([name] as String[])
+                response = client.snapshot().getRepository(request, RequestOptions.DEFAULT)
+            }
+        } catch (ElasticsearchStatusException ex) {
+            if (ex.status() != RestStatus.NOT_FOUND) {
+                log.error('Unknown error on getSnapshotRepository', ex)
+            }
+        }
+
+        response?.repositories() ? response?.repositories()[0] : null
+    }
+
+    /**
+     * Gets a snapshot repository
+     * @param name The name of the snapshot repository
+     */
+    void createSnapshotRepository(String name, String type, Map<String, Object> settings = null) {
+        log.debug "Creating snapshot repository ${name} ..."
+
+        elasticSearchHelper.withElasticSearch { RestHighLevelClient client ->
+            PutRepositoryRequest request = new PutRepositoryRequest(name)
+            request.type(type)
+            addSettings(request, settings)
+
+            client.snapshot().createRepository(request, RequestOptions.DEFAULT)
+        }
+    }
+
+    boolean createSnapshotPolicy(Map policySettings) {
+        String id = policySettings.id
+        log.debug "Creating snapshot policy ${id} ..."
+
+        Map<String, Object> config = new HashMap<>()
+
+        // Which indices should be includes in snapshot
+        config.put("indices", policySettings.config.config.indices)
+
+        // retention configuration
+        SnapshotRetentionConfiguration retention = new SnapshotRetentionConfiguration(
+                TimeValue.parseTimeValue(policySettings.config.config.retention.expire_after as String, 'expire_after'),
+                policySettings.config.config.retention.min_count as Integer,
+                policySettings.config.config.retention.max_count as Integer)
+
+        // policy configuration
+        SnapshotLifecyclePolicy policy = new SnapshotLifecyclePolicy(id, policySettings.config.name as String, policySettings.config.schedule as String,
+                policySettings.config.repository as String, config, retention);
+
+        AcknowledgedResponse response
+        elasticSearchHelper.withElasticSearch { RestHighLevelClient client ->
+            PutSnapshotLifecyclePolicyRequest request = new PutSnapshotLifecyclePolicyRequest(policy)
+            response = client.indexLifecycle().putSnapshotLifecyclePolicy(request, RequestOptions.DEFAULT)
+        }
+
+        response ? response.isAcknowledged() : false
+    }
+
+    boolean startSnapshotLifecycleManagement() {
+        AcknowledgedResponse response
+        elasticSearchHelper.withElasticSearch { RestHighLevelClient client ->
+            response = client.indexLifecycle().startILM(new StartILMRequest(), RequestOptions.DEFAULT)
+        }
+
+        response ? response.isAcknowledged() : false
+    }
+
+    private void addSettings(request, Map settings) {
+        if (settings) {
+            Map flattenedMap = flattenMap(settings)
+
+            Settings.Builder settingsBuilder = Settings.builder()
+            flattenedMap.each {
+                if (it.value instanceof List) {
+                    it.value.eachWithIndex { entry, int i ->
+                        settingsBuilder.put("${it.key.toString()}.${i}", entry.toString())
+                    }
+                } else {
+                    settingsBuilder.put(it.key.toString(), it.value.toString())
+                }
+            }
+            request.settings(settingsBuilder)
+        }
+    }
+
+    /**
      * The current version of the index
      * @param index
      * @return the current version if any exists, -1 otherwise
@@ -436,7 +527,7 @@ class ElasticSearchAdminService {
                 Map<String, Object> map = XContentHelper.convertToMap(XContentType.JSON.xContent(), is, true)
                 healthStatus = ClusterHealthStatus.fromString((String) map.get("status"))
             }
-            LOG.debug("Cluster status: ${healthStatus}")
+            log.debug("Cluster status: ${healthStatus}")
         }
     }
 

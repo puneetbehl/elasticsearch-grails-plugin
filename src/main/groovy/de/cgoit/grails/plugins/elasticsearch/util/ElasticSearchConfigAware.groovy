@@ -8,15 +8,19 @@ trait ElasticSearchConfigAware {
 
     abstract GrailsApplication getGrailsApplication()
 
-    ConfigObject getIndexSettings() {
-        (esConfig?.index as ConfigObject)?.settings as ConfigObject
-    }
-
     ConfigObject getEsConfig() {
         grailsApplication?.config?.elasticSearch as ConfigObject
     }
 
+    ConfigObject getIndexSettings() {
+        (esConfig?.index as ConfigObject)?.settings as ConfigObject
+    }
+
     ConfigObject getMigrationConfig() {
-        (grailsApplication?.config?.elasticSearch as ConfigObject)?.migration as ConfigObject
+        esConfig?.migration as ConfigObject
+    }
+
+    ConfigObject getSnapshotConfig() {
+        esConfig?.snapshots as ConfigObject
     }
 }

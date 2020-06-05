@@ -3,11 +3,18 @@
 ==== Grails 4.x version
 
 * December 24, 2019
-** 2.8.0
+** 2.8.0 (still wip)
 *** Upgraded to Grails 4.0.1
 *** Upgraded to Elasticsearch 7.5.1
 
 ==== Grails 3.x version
+
+* June 05, 2020
+** 2.7.4
+*** Upgrade to Elasticsearch version 7.7.x
+*** Allow usage of SnapshotsLifecycleManagement-API
+*** Change plugin group id to de.cgoit.grails.plugins
+
 
 * February 12, 2020
 ** 2.7.3

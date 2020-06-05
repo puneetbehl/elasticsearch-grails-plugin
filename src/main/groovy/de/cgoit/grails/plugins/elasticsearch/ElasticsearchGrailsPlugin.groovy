@@ -23,6 +23,7 @@ import de.cgoit.grails.plugins.elasticsearch.index.IndexRequestQueue
 import de.cgoit.grails.plugins.elasticsearch.mapping.DomainReflectionService
 import de.cgoit.grails.plugins.elasticsearch.mapping.MappingMigrationManager
 import de.cgoit.grails.plugins.elasticsearch.mapping.SearchableClassMappingConfigurator
+import de.cgoit.grails.plugins.elasticsearch.snapshot.SnapshotConfigurator
 import de.cgoit.grails.plugins.elasticsearch.unwrap.DomainClassUnWrapperChain
 import de.cgoit.grails.plugins.elasticsearch.unwrap.HibernateProxyUnWrapper
 import de.cgoit.grails.plugins.elasticsearch.util.DomainDynamicMethodsUtils
@@ -99,12 +100,17 @@ This is the Grails 3 plugin to support Elasticsearch up to Version 7.7.1."""
                 grailsApplication = grailsApplication
                 es = ref('elasticSearchAdminService')
             }
-            searchableClassMappingConfigurator(SearchableClassMappingConfigurator) { bean ->
+            searchableClassMappingConfigurator(SearchableClassMappingConfigurator) {
                 elasticSearchContext = ref('elasticSearchContextHolder')
                 grailsApplication = grailsApplication
                 es = ref('elasticSearchAdminService')
                 mmm = ref('mappingMigrationManager')
                 domainReflectionService = ref('domainReflectionService')
+            }
+            snapshotConfigurator(SnapshotConfigurator) {
+                elasticSearchContext = ref('elasticSearchContextHolder')
+                grailsApplication = grailsApplication
+                es = ref('elasticSearchAdminService')
             }
             domainInstancesRebuilder(DomainClassUnmarshaller) {
                 elasticSearchContextHolder = ref('elasticSearchContextHolder')
@@ -149,8 +155,11 @@ This is the Grails 3 plugin to support Elasticsearch up to Version 7.7.1."""
 
     @Override
     void doWithApplicationContext() {
-        def configurator = applicationContext.getBean(SearchableClassMappingConfigurator)
-        configurator.configureAndInstallMappings()
+        def ssConfigurator = applicationContext.getBean(SnapshotConfigurator)
+        ssConfigurator.configureAndInstallSnapshotSettings()
+
+        def scmConfigurator = applicationContext.getBean(SearchableClassMappingConfigurator)
+        scmConfigurator.configureAndInstallMappings()
 
         if (!grailsApplication.config.getProperty("elasticSearch.disableDynamicMethodsInjection", Boolean, false)) {
             DomainDynamicMethodsUtils.injectDynamicMethods(grailsApplication, applicationContext)
