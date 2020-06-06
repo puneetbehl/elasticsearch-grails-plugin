@@ -17,13 +17,15 @@ echo "travis tag: $TRAVIS_TAG"
 echo "version: $VERSION"
 
 EXIT_STATUS=0
-if [[ -n $TRAVIS_TAG ]] || [[ $TRAVIS_BRANCH == 'master' && $TRAVIS_PULL_REQUEST == 'false' ]] && [[ ! -z $(echo $VERSION | grep "SNAPSHOT") ]]; then
+if [[ -n $TRAVIS_TAG ]] || [[ $TRAVIS_BRANCH == 'master' && $TRAVIS_PULL_REQUEST == 'false' ]]; then
 
-  echo "Publishing archives for branch $TRAVIS_BRANCH"
-  if [[ -n $TRAVIS_TAG ]]; then
+  if [[ -z $(echo $VERSION | grep "SNAPSHOT") ]]; then
+    echo "Publishing archives for branch $TRAVIS_BRANCH"
+    if [[ -n $TRAVIS_TAG ]]; then
       ./gradlew bintrayUpload || EXIT_STATUS=$?
-  else
+    else
       ./gradlew publish || EXIT_STATUS=$?
+    fi
   fi
 
   ./publish-docs.sh
