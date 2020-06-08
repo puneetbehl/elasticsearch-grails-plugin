@@ -24,6 +24,8 @@ import org.elasticsearch.client.indexlifecycle.StartILMRequest
 import org.elasticsearch.client.indices.CreateIndexRequest
 import org.elasticsearch.client.indices.GetIndexRequest
 import org.elasticsearch.client.indices.PutMappingRequest
+import org.elasticsearch.client.slm.ExecuteSnapshotLifecyclePolicyRequest
+import org.elasticsearch.client.slm.ExecuteSnapshotLifecyclePolicyResponse
 import org.elasticsearch.client.slm.PutSnapshotLifecyclePolicyRequest
 import org.elasticsearch.client.slm.SnapshotLifecyclePolicy
 import org.elasticsearch.client.slm.SnapshotRetentionConfiguration
@@ -458,6 +460,18 @@ class ElasticSearchAdminService {
         }
 
         response ? response.isAcknowledged() : false
+    }
+
+    String executeSnapshotLifecycleManagementPolicy(String policyId) {
+        log.debug "Execute snapshot policy ${policyId} ..."
+
+        ExecuteSnapshotLifecyclePolicyResponse response
+        elasticSearchHelper.withElasticSearch { RestHighLevelClient client ->
+            ExecuteSnapshotLifecyclePolicyRequest request = new ExecuteSnapshotLifecyclePolicyRequest(policyId)
+            response = client.indexLifecycle().executeSnapshotLifecyclePolicy(request, RequestOptions.DEFAULT)
+        }
+
+        response?.getSnapshotName()
     }
 
     private void addSettings(request, Map settings) {

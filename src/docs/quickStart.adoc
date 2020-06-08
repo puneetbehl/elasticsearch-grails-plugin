@@ -8,7 +8,7 @@
 ----
 dependencies {
     ...
-    compile "de.cgoit.grails.plugins:elasticsearch:2.7.4"
+    compile "de.cgoit.grails.plugins:elasticsearch:2.7.5"
     ...
 }
 ----

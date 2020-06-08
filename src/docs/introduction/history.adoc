@@ -9,6 +9,11 @@
 
 ==== Grails 3.x version
 
+* June 08, 2020
+** 2.7.5
+*** ElasticSearchAdminService has the ability to execute a snapshot policy on demand
+
+
 * June 05, 2020
 ** 2.7.4
 *** Upgrade to Elasticsearch version 7.7.x
