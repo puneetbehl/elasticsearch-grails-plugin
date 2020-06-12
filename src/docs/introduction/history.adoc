@@ -9,6 +9,11 @@
 
 ==== Grails 3.x version
 
+* June 12, 2020
+** 2.7.6
+*** REVERT: Change plugin group id to de.cgoit.grails.plugins
+
+
 * June 08, 2020
 ** 2.7.5
 *** ElasticSearchAdminService has the ability to execute a snapshot policy on demand

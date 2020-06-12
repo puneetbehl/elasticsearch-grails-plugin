@@ -8,7 +8,7 @@
 ----
 dependencies {
     ...
-    compile "de.cgoit.grails.plugins:elasticsearch:2.7.5"
+    compile "grails.plugins:elasticsearch:2.7.6"
     ...
 }
 ----
@@ -24,7 +24,7 @@ elasticSearch:
     cluster.name: <ENTER CLUSTER NAME HERE>
 ----
 
-In order debug Elasticsearch plugin, add `logger("de.cgoit.grails.plugins.elasticsearch", DEBUG, ['STDOUT'], false)` in `logback.groovy` file as following:
+In order debug Elasticsearch plugin, add `logger("grails.plugins.elasticsearch", DEBUG, ['STDOUT'], false)` in `logback.groovy` file as following:
 
 [source,groovy]
 ----
@@ -62,7 +62,7 @@ if (Environment.isDevelopmentMode() && targetDir != null) {
         }
     }
     logger("StackTrace", ERROR, ['FULL_STACKTRACE'], false)
-    logger("de.cgoit.grails.plugins.elasticsearch", DEBUG, ['STDOUT'], false)
+    logger("grails.plugins.elasticsearch", DEBUG, ['STDOUT'], false)
     root(ERROR, ['STDOUT', 'FULL_STACKTRACE'])
 }
 else {

@@ -1,6 +1,5 @@
 package grails.plugins.elasticsearch.mapping
 
-import de.cgoit.grails.plugins.elasticsearch.ElasticSearchContextHolder
 import grails.core.GrailsApplication
 import grails.plugins.elasticsearch.ElasticSearchContextHolder
 import grails.testing.mixin.integration.Integration

@@ -1,7 +1,5 @@
 package grails.plugins.elasticsearch.conversion.marshall
 
-import de.cgoit.grails.plugins.elasticsearch.ElasticSearchContextHolder
-import de.cgoit.grails.plugins.elasticsearch.unwrap.DomainClassUnWrapperChain
 import grails.core.GrailsApplication
 import grails.plugins.elasticsearch.ElasticSearchContextHolder
 import grails.plugins.elasticsearch.unwrap.DomainClassUnWrapperChain

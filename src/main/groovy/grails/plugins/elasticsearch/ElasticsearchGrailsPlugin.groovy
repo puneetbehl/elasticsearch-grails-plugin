@@ -24,6 +24,7 @@ import grails.plugins.elasticsearch.index.IndexRequestQueue
 import grails.plugins.elasticsearch.mapping.DomainReflectionService
 import grails.plugins.elasticsearch.mapping.MappingMigrationManager
 import grails.plugins.elasticsearch.mapping.SearchableClassMappingConfigurator
+import grails.plugins.elasticsearch.snapshot.SnapshotConfigurator
 import grails.plugins.elasticsearch.unwrap.DomainClassUnWrapperChain
 import grails.plugins.elasticsearch.unwrap.HibernateProxyUnWrapper
 import grails.plugins.elasticsearch.util.DomainDynamicMethodsUtils
@@ -56,18 +57,16 @@ class ElasticsearchGrailsPlugin extends Plugin {
             [name: 'Carsten Götzinger', email: 'carsten@cgo-it.de']
     ]
 
-    def issueManagement = [system: 'github', url: 'https://github.com/cgoIT/elasticsearch-grails-plugin/issues']
+    def issueManagement = [system: 'github', url: 'https://github.com/puneetbehl/elasticsearch-grails-plugin/issues']
 
-    def scm = [url: 'https://github.com/cgoIT/elasticsearch-grails-plugin']
+    def scm = [url: 'https://github.com/puneetbehl/elasticsearch-grails-plugin']
 
-    def author = 'Carsten Götzinger'
-    def authorEmail = 'carsten@cgo-it.de'
+    def author = 'Puneet Behl'
+    def authorEmail = 'puneet.behl007@gmail.com'
     def title = 'ElasticSearch Grails Plugin'
-    def description = """Elasticsearch is a search server based on Lucene. It provides a distributed, multitenant-capable 
-full-text search engine with an HTTP web interface and schema-free JSON documents. Elasticsearch is developed in 
-Java and is released as open source under the terms of the Apache License. 
-This is the Grails 3 plugin to support Elasticsearch up to Version 7.7.1."""
-    def documentation = 'https://elasticsearch-grails-plugin.cgo-it.de'
+    def description = """The revived Elasticsearch plugin for Grails."""
+    def documentation = 'http://puneetbehl.github.io/elasticsearch-grails-plugin'
+
 
     def profiles = ['web']
 

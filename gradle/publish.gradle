@@ -9,7 +9,7 @@ ext {
 grailsPublish {
     user = System.getenv("BINTRAY_USER") ?: project.bintrayUser
     key = System.getenv("BINTRAY_KEY") ?: project.bintrayKey
-    githubSlug = 'cgoIT/elasticsearch-grails-plugin'
+    githubSlug = 'puneetbehl/elasticsearch-grails-plugin'
     license {
         name = 'Apache-2.0'
     }
@@ -39,9 +39,9 @@ bintray {
     pkg {
         repo = 'maven'
         name = project.name
-        websiteUrl = "https://github.com/cgoIT/$repoName"
-        issueTrackerUrl = "https://github.com/cgoIT/$repoName/issues"
-        vcsUrl = "https://github.com/cgoIT/${repoName}.git"
+        websiteUrl = "https://github.com/puneetbehl/$repoName"
+        issueTrackerUrl = "https://github.com/puneetbehl/$repoName/issues"
+        vcsUrl = "https://github.com/puneetbehl/${repoName}.git"
         licenses = ['Apache-2.0']
         labels = ['grails', 'plugin', 'grails-plugin', 'elastic', 'ElasticSearch', repoName]
         version {
@@ -55,7 +55,7 @@ bintrayUpload.dependsOn = [sourcesJar, docs]
 publish.dependsOn = [bintrayUpload]
 
 githubPages {
-    repoUri = 'https://github.com/cgoIT/elasticsearch-grails-plugin.git'
+    repoUri = 'https://github.com/puneetbehl/elasticsearch-grails-plugin.git'
 
     credentials {
         username = project.hasProperty('githubApiKey') ? project.githubApiKey : ''

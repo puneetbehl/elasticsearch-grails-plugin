@@ -29,7 +29,7 @@ plugins {
 }
 
 version projectVersion
-group "de.cgoit.grails.plugins"
+group "grails.plugins"
 
 apply plugin: 'eclipse'
 apply plugin: 'idea'

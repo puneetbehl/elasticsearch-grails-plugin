@@ -15,9 +15,6 @@
  */
 package grails.plugins.elasticsearch
 
-import de.cgoit.grails.plugins.elasticsearch.index.IndexRequestQueue
-import de.cgoit.grails.plugins.elasticsearch.mapping.SearchableClassMapping
-import de.cgoit.grails.plugins.elasticsearch.util.GXContentBuilder
 import grails.core.GrailsApplication
 import grails.core.support.GrailsApplicationAware
 import grails.persistence.support.PersistenceContextInterceptor

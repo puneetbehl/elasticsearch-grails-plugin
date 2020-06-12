@@ -1,8 +1,5 @@
 package grails.plugins.elasticsearch.transients
 
-import de.cgoit.grails.plugins.elasticsearch.ElasticSearchAdminService
-import de.cgoit.grails.plugins.elasticsearch.ElasticSearchService
-import de.cgoit.grails.plugins.elasticsearch.mapping.SearchableClassMappingConfigurator
 import grails.core.GrailsApplication
 import grails.gorm.transactions.Rollback
 import grails.plugins.elasticsearch.ElasticSearchAdminService
