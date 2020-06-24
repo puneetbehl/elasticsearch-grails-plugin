@@ -84,7 +84,7 @@ class SearchableClassMapping implements ElasticSearchConfigAware {
     }
 
     String calculateIndexName() {
-        String name = (esConfig?.get('index') as ConfigObject)?.name ?: domainClass.packageName
+        String name = (esConfig?.get('index') as ConfigObject)?.name ?: domainClass.getClass().getName()
 
         if (name == null || name.length() == 0) {
             name = domainClass.defaultPropertyName
