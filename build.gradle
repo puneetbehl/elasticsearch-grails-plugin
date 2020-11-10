@@ -92,7 +92,7 @@ dependencies {
     compile "org.hibernate:hibernate-ehcache"
 
     compile "org.apache.logging.log4j:log4j-api:2.7"
-    compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.7'
+    compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.14.0'
 
     compile "org.elasticsearch:elasticsearch:${elasticsearchVersion}"
     compile group: 'org.elasticsearch.client', name: 'elasticsearch-rest-client', version: elasticsearchVersion
