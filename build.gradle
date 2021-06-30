@@ -91,7 +91,7 @@ dependencies {
     compile "org.grails.plugins:cache"
     compile "org.hibernate:hibernate-ehcache"
 
-    compile "org.apache.logging.log4j:log4j-api:2.7"
+    compile "org.apache.logging.log4j:log4j-api:2.14.1"
     compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.7'
 
     compile "org.elasticsearch:elasticsearch:${elasticsearchVersion}"
